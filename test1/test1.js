@@ -62,20 +62,21 @@ document.addEventListener('DOMContentLoaded', function() {
 );
 
 function displayTests(bookSelected){
+  console.log(bookSelected)
   chrome.storage.local.get('vocabList', function(data) {
     if (data.vocabList) {
       vocabList = data.vocabList;
       currentVocabIndex = -1;
-      
       if(vocabList.length<4){
         console.log("novocab1");
         document.getElementById('vocabFlashcard').textContent = "Come back after theres more vocabs";
       }else{
+        console.log(bookSelected)
+        console.log(vocabList)
         if(bookSelected === "All collections"){
           filteredVocabList = vocabList;
         }else{
           filteredVocabList = vocabList.filter(vocab => vocab.book === bookSelected);
-          console
         }
         totalNoCount = filteredVocabList.length;
         document.getElementById('wrongCountDiv').textContent = `"${currentQuizNo}" / ${totalNoCount}"`;
@@ -93,7 +94,7 @@ function displayTests(bookSelected){
 
 function populateBookSelector() {
   chrome.storage.sync.get({ bookList: [] }, (result) => {
-    const bookList = result.bookList||["Default"];
+    const bookList = result.bookList||"Default";
     chrome.storage.local.get('lastBook', function(data) {
       const lastBook = data.lastBook||"Default";
       console.log(lastBook)
@@ -101,19 +102,21 @@ function populateBookSelector() {
         document.getElementById('bookSelector').innerHTML = ""
     if(lastBook!=""||lastBook==="addNew"){
       optionNewSelected = document.createElement('option');
-      optionNewSelected.innerHTML = `<option value=${lastBook} selected = selected>${lastBook}</option>`;
+      optionNewSelected.textContent  = lastBook;
+      optionNewSelected.value = lastBook;
+      optionNewSelected.selected = true;
+
       document.getElementById('bookSelector').add(optionNewSelected)
     }
-    let option = document.createElement('option');
-    option.innerHTML = `<option value='All'> All collections </option>`;
-    document.getElementById('bookSelector').add(option);
     // Clear existing options except for the default option
     // Add books as options
     bookList.forEach(book => {
         let option = document.createElement('option');
         if(book === data.lastBook){
         }else{
-          option.innerHTML = `<option value='${book}'>${book}</option>`;
+          option.textContent  = book;
+          option.value = book;
+
           document.getElementById('bookSelector').add(option);
         }
       });
@@ -121,7 +124,6 @@ function populateBookSelector() {
     });
     
   });
-
 }
 
 function showNextItem() {
@@ -507,6 +509,7 @@ function adjustFontSize(){
       
   function quizStyle6()
   {
+    
     const eligibleVocab = filteredVocabList.filter(entry => entry.conjugations&& entry.conjugations.type!="");
     if(eligibleVocab.length<1){
       return quizStyle3();
@@ -551,9 +554,12 @@ function adjustFontSize(){
               i--
             }
         }
+        shuffleArray(options)
+
         quizType="groupTest"
       }
     }else{
+      quizType = "6"
       if(conjugations.pos=="verb"){
         const typeOfVerbToTest = getRandomNumber(1,10)
         numberOfFields = getRandomNumber(1, 5);
@@ -606,6 +612,7 @@ function adjustFontSize(){
         currentQuizDefinition = correctAnswer;
         quizType = 'conjugation';
         options = [correctAnswer];
+
         console.log(options);
         for (let i = 0; i<3;i++) {
             if (!options.includes(wrongAnswers)) {
@@ -641,6 +648,7 @@ function adjustFontSize(){
       document.getElementById('nextAfterIncorrectButton').style.display = 'none';
   }
   function quizStyle7(){
+    quizType = "7"
     wordToTest=""
     const eligibleVocab = filteredVocabList.filter(entry => entry.conjugations&& entry.conjugations.type!="");
     if(eligibleVocab.length<1){
@@ -759,14 +767,14 @@ function adjustFontSize(){
         vocabFlashcard.textContent+= " pronounciation:"
         vocabFlashcard.textContent+= correctVocab.pronounciation
       } 
-      if(conjToTest.length>0&&wordToTest.length==0){
+      if(quizType=="6"){
         vocabFlashcard.innerHTML+= String.fromCodePoint(0x1F4A0);
-        vocabFlashcard.textContent+= correctConj
+        vocabFlashcard.textContent+= currentQuizDefinition
         vocabFlashcard.textContent+= " is one of the "
         vocabFlashcard.textContent+= makeStringReadable(conjToTest.toString())
         vocabFlashcard.textContent+= "form of "
         vocabFlashcard.textContent+= correctVocab.word
-      }if(conjToTest.length>0&&wordToTest.length>0){
+      }if(quizType=="7"){
         vocabFlashcard.innerHTML+= String.fromCodePoint(0x1F4A0);
         vocabFlashcard.textContent+= wordToTest
         vocabFlashcard.textContent+= " is one of the "

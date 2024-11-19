@@ -205,7 +205,10 @@ function populateBookSelector() {
         document.getElementById('bookSelector').innerHTML = ""
     if(lastBook!=""||lastBook==="addNew"){
       optionNewSelected = document.createElement('option');
-      optionNewSelected.innerHTML = `<option value=${lastBook} selected = selected>${lastBook}</option>`;
+      optionNewSelected.textContent  = lastBook;
+      optionNewSelected.value = lastBook;
+      optionNewSelected.selected = true;
+
       document.getElementById('bookSelector').add(optionNewSelected)
     }
     // Clear existing options except for the default option
@@ -214,13 +217,16 @@ function populateBookSelector() {
         let option = document.createElement('option');
         if(book === data.lastBook){
         }else{
-          option.innerHTML = `<option value='${book}'>${book}</option>`;
+          option.textContent  = book;
+          option.value = book;
+
           document.getElementById('bookSelector').add(option);
         }
       });
       optionNew = document.createElement('option');
-      optionDefault = document.createElement('option');
-      optionNew.innerHTML += `<option value="addNew">add New Vocab collection</option>`;
+      optionNew.textContent = "add New Vocab collection";
+      optionNew.value = "addNew";
+
       document.getElementById('bookSelector').add(optionNew)
       }
     });
@@ -490,7 +496,10 @@ document.addEventListener('DOMContentLoaded', function() {
             acc[item.book] = [];
         }
         if(item.pronounciation){
-
+          pronoun = item.pronounciation
+        }
+        if(item.gender){
+          itemGender = item.gender
         }
         acc[item.book].push(`${item.word}:${item.definition}:${itemGender}:${pronoun}|`);
         return acc;

@@ -52,7 +52,9 @@ document.getElementById('addVocabForm').addEventListener('submit', function(e) {
       });
     });
   }else{
-    word = removeDiacritics(word)
+    if(language!="german"){
+      word = removeDiacritics(word)
+    }
     url = usingLocal?`http://localhost:3000/fetch/${word}`:`https://en.wiktionary.org/wiki/${word}`
     fetch(url)
     .then(response => response.text())
@@ -436,6 +438,7 @@ async function getEasyAttributes(doc,word,lang){
       }
     }
     baseDef = definition
+    definition = definition.split(".mw")[0]
     definition = definition.split(";")[0];
     document.getElementById('vocabInfo').innerHTML += definition
     document.getElementById('vocabInfo').innerHTML += autoGender?("|gender:"+autoGender):""
@@ -464,7 +467,7 @@ function getGermanAttributes(doc,word){
   }
 function populateBookSelector() {
   chrome.storage.sync.get({ bookList: [] }, (result) => {
-    const bookList = result.bookList||["Default"];
+    const bookList = result.bookList||"Default";
     chrome.storage.local.get('lastBook', function(data) {
       const lastBook = data.lastBook||"Default";
       console.log(lastBook)
@@ -472,7 +475,10 @@ function populateBookSelector() {
         document.getElementById('bookSelector').innerHTML = ""
     if(lastBook!=""||lastBook==="addNew"){
       optionNewSelected = document.createElement('option');
-      optionNewSelected.innerHTML = `<option value=${lastBook} selected = selected>${lastBook}</option>`;
+      optionNewSelected.textContent  = lastBook;
+      optionNewSelected.value = lastBook;
+      optionNewSelected.selected = true;
+
       document.getElementById('bookSelector').add(optionNewSelected)
     }
     // Clear existing options except for the default option
@@ -481,7 +487,9 @@ function populateBookSelector() {
         let option = document.createElement('option');
         if(book === data.lastBook){
         }else{
-          option.innerHTML = `<option value='${book}'>${book}</option>`;
+          option.textContent  = book;
+          option.value = book;
+
           document.getElementById('bookSelector').add(option);
         }
       });

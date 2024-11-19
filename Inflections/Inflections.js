@@ -418,6 +418,8 @@ async function getEasyAttributes(doc,word,lang){
       }
     }
     baseDef = definition
+    definition = definition.split(".mw")[0]
+
     definition = definition.split(";")[0];
     document.getElementById('result').innerHTML += definition
     document.getElementById('result').innerHTML += autoGender?(","+autoGender):""

@@ -345,7 +345,7 @@ function showNextVocab(collection = currentCollectionSelection) {
         const wordObject = currentCollection[currentVocabIndex];
         if(wordObject.conjugations&&wordObject.conjugations.group!=""){
           word = getRandomWordFromConjugations(wordObject.conjugations)
-          definition =wordObject.definition+"| \n"+makeStringReadable( Object.values(findSubfieldsForWord(word,wordObject.conjugations)).toString())+" for "+wordObject.word; 
+          definition =wordObject.definition+ String.fromCodePoint(0x1F4A0)+"| \n"+makeStringReadable( Object.values(findSubfieldsForWord(word,wordObject.conjugations)).toString())+" for "+wordObject.word; 
         }else{
           word = wordObject.word
           definition = currentCollection[currentVocabIndex].definition;
@@ -654,7 +654,7 @@ function quizStyle5(){
   const quizIndex = Math.floor(Math.random() * eligibleVocab.length);
   const correctVocab = eligibleVocab[quizIndex];
   currentQuizWord = correctVocab.word;
-  currentQuizDefinition = correctVocab.gender;
+  currentQuizDefinition = correctVocab.gender.toLowerCase();
   quizType = 'truefalse';
   
   isPairCorrect = Math.random() < 0.5;
@@ -670,7 +670,7 @@ function quizStyle5(){
       const randomIndex = Math.floor(Math.random() * eligibleOptions.length);
       incorrectVocab = eligibleOptions[randomIndex];
     } 
-    while (incorrectVocab.gender === currentQuizWord.gender);
+    while (incorrectVocab.gender.toLowerCase() === currentQuizWord.gender.toLowerCase());
     
   }
     document.getElementById('quizQuestion').textContent = `What is the gender of "${correctVocab.word}"?`;
@@ -784,6 +784,8 @@ function findSubfieldsForWord(word, conjugations) {
     
 function quizStyle6()
 {
+  //given word, find inflection
+  console.log("type 6, given word, find inflection")
   const eligibleVocab = vocabList.filter(entry => entry.conjugations&& entry.conjugations.type!="");
   if(eligibleVocab.length<1){
     return quizStyle3();
@@ -829,7 +831,7 @@ function quizStyle6()
             i--
           }
       }
-      quizType="groupTest"
+      quizType="6"
     }
   }else{
     if(conjugations.pos=="verb"){
@@ -882,7 +884,7 @@ function quizStyle6()
       console.log(wrongAnswers)
       currentQuizWord = correctVocab.word;
       currentQuizDefinition = correctAnswer;
-      quizType = 'conjugation';
+      quizType = '6';
       options = [correctAnswer];
       console.log(options);
       for (let i = 0; i<3;i++) {
@@ -919,6 +921,8 @@ function quizStyle6()
     document.getElementById('nextAfterIncorrectButton').style.display = 'none';
 }
 function quizStyle7(){
+  //given inflection, find word
+  console.log("type 7, given inflection, find word")
   wordToTest=""
   const eligibleVocab = vocabList.filter(entry => entry.conjugations&& entry.conjugations.type!="");
   if(eligibleVocab.length<1){
@@ -954,7 +958,7 @@ function quizStyle7(){
   console.log(wrongAnswers)
   currentQuizWord = correctVocab.word;
   currentQuizDefinition = correctAnswer;
-  quizType = 'conjugation';
+  quizType = '7';
   options = [correctAnswer];
   console.log(options);
   currentVocabIndex = vocabList.indexOf(correctVocab);
@@ -1018,6 +1022,7 @@ function checkAnswer(button) {
 }
 
 function showCorrectAnswer() {
+  console.log(quizType)
   const quizContainer = document.querySelector('.quiz-container');
   quizContainer.style.display = "none";
   const tfContainer = document.querySelector('.true-false-container');
@@ -1042,14 +1047,14 @@ function showCorrectAnswer() {
       vocabFlashcard.textContent+= " pronounciation:"
       vocabFlashcard.textContent+= correctVocab.pronounciation
     } 
-    if(conjToTest.length>0&&wordToTest.length==0){
+    if(conjToTest.length>0&&quizType=="6"){
       vocabFlashcard.innerHTML+= String.fromCodePoint(0x1F4A0);
       vocabFlashcard.textContent+= correctConj
       vocabFlashcard.textContent+= " is one of the "
       vocabFlashcard.textContent+= makeStringReadable(conjToTest.toString())
       vocabFlashcard.textContent+= "form of "
       vocabFlashcard.textContent+= correctVocab.word
-    }if(conjToTest.length>0&&wordToTest.length>0){
+    }if(conjToTest.length>0&&quizType=="7"){
       vocabFlashcard.innerHTML+= String.fromCodePoint(0x1F4A0);
       vocabFlashcard.textContent+= wordToTest
       vocabFlashcard.textContent+= " is one of the "

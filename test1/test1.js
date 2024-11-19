@@ -181,7 +181,6 @@ function quizStyle1() {
   console.log(options);
   for (let i = 0; i<3;i++) {    
     const randomIndex = Math.floor(Math.random() * filteredVocabList.length);
-    console.log(randomIndex,filteredVocabList)
     const randomDefinition = filteredVocabList[randomIndex].definition;
     if (!options.includes(randomDefinition)) {
       options.push(randomDefinition);
@@ -509,7 +508,6 @@ function adjustFontSize(){
       
   function quizStyle6()
   {
-    
     const eligibleVocab = filteredVocabList.filter(entry => entry.conjugations&& entry.conjugations.type!="");
     if(eligibleVocab.length<1){
       return quizStyle3();
@@ -610,7 +608,7 @@ function adjustFontSize(){
         console.log(wrongAnswers)
         currentQuizWord = correctVocab.word;
         currentQuizDefinition = correctAnswer;
-        quizType = 'conjugation';
+        quizType = '6';
         options = [correctAnswer];
 
         console.log(options);
@@ -648,7 +646,6 @@ function adjustFontSize(){
       document.getElementById('nextAfterIncorrectButton').style.display = 'none';
   }
   function quizStyle7(){
-    quizType = "7"
     wordToTest=""
     const eligibleVocab = filteredVocabList.filter(entry => entry.conjugations&& entry.conjugations.type!="");
     if(eligibleVocab.length<1){
@@ -684,7 +681,7 @@ function adjustFontSize(){
     console.log(wrongAnswers)
     currentQuizWord = correctVocab.word;
     currentQuizDefinition = correctAnswer;
-    quizType = 'conjugation';
+    quizType = '7';
     options = [correctAnswer];
     console.log(options);
     currentVocabIndex = filteredVocabList.indexOf(correctVocab);
@@ -742,6 +739,7 @@ function adjustFontSize(){
   }
   
   function showCorrectAnswer() {
+    console.log(quizType)
     const quizContainer = document.querySelector('.quiz-container');
     quizContainer.style.display = "none";
     const tfContainer = document.querySelector('.true-false-container');

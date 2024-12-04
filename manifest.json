@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Flashcard & Quiz for new tab Extension",
-  "version": "1.8.0.8",
+  "version": "1.8.1.0",
   "description": "Displays a flashcard or test every time a new page is opened.Add vocab automatically",
   "permissions": ["storage","*://*.wiktionary.org/*"],
   

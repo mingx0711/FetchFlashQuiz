@@ -504,10 +504,24 @@ document.addEventListener('DOMContentLoaded', function() {
           reader.onload = (e) => {
               try {
                   const jsonData = JSON.parse(e.target.result);
+                  if(jsonData.vocabList && Array.isArray(jsonData.vocabList)){
+                    chrome.storage.local.get('vocabList', function(data) {
+                      let currentData = data.vocabList || [];
+                      currentData = [...currentData,...jsonData.vocabList]
+                      chrome.storage.local.set({ vocabList: currentData }, () => {
+                        if (chrome.runtime.lastError) {
+                            console.error("Error saving merged data:", chrome.runtime.lastError);
+                        } else {
+                            console.log("Merged data saved to chrome.storage.local");
+                        }
+                    });
+                    })
+                  }
                   output.textContent = JSON.stringify(jsonData, null, 2); // Display the JSON
                   // Hide the file input after successful upload
                   fileInputContainer.style.display = 'none';
                   fileInput.value = ""; // Reset file input
+
               } catch (err) {
                   output.textContent = "Error parsing JSON file.";
                   console.error("Error parsing JSON", err);

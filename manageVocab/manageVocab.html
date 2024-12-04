@@ -44,7 +44,18 @@
       height: 100%;
       z-index: 999;
     }
-
+    #fileInputContainer {
+            display: none; /* Hidden by default */
+        }
+        #output {
+          display: none;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
     #popup{
       display: none; /* Hidden by default */
       position: fixed;
@@ -81,7 +92,13 @@
   </select>
   <button class="ui button" style = "background-color:#d3d6e4" id="testConj"> Practice your inflections!Results wil not be recorded(beta) </button>
   <button class="ui button" style = "background-color:#bbd4cb"id="importVocabButton"> Import vocabs </button>
-  <button class="ui button" style = "background-color:#d3d7bf"id="exportToExcel"> Export vocabs to excel</button>
+  <button class="ui button" style = "background-color:#d3d7bf"id="exportToJson"> Export vocabs as Json</button>
+  <button class="ui button" style = "background-color:#b8758b"id="importFromJson"> Import vocabs from Json files</button>
+  <div id="fileInputContainer">
+    <input type="file" id="fileInput" accept=".json" />
+  </div>
+
+<pre id="output"></pre>
   <button class="ui button" style = "background-color:#d3d7bf" id="exportTotxt"> Export vocabs to text(formatted for bulk import)</button>
   <div id="popup-overlay"></div>
   <div id="popup">

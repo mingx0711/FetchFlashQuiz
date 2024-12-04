@@ -473,18 +473,53 @@ document.addEventListener('DOMContentLoaded', function() {
       floatingContainer.style.display = 'none';
   });
 
-  document.getElementById('exportToExcel').addEventListener('click', function() {
+  document.getElementById('exportToJson').addEventListener('click', function() {
     chrome.storage.local.get('vocabList', function(data) {
-    const worksheet = XLSX.utils.json_to_sheet(data.vocabList);
-
-            // Create a new workbook
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-    var date = new Date();
-    const filename = date.toJSON().slice(0, 10) + ".xlsx";
-    XLSX.writeFile(workbook, filename);
+      const jsonString = JSON.stringify(data, null, 2);
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      var date = new Date();
+      const filename = date.toJSON().slice(0, 10) + ".json";      
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     });
   });
+  document.getElementById('importFromJson').addEventListener('click', function() {
+    const fileInput = document.getElementById('fileInput');
+    const output = document.getElementById('output');
+    const uploadBtn = document.getElementById('importFromJson');
+
+    const fileInputContainer = document.getElementById('fileInputContainer');
+    fileInputContainer.style.display = 'block';
+
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file && file.type === "application/json") {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+              try {
+                  const jsonData = JSON.parse(e.target.result);
+                  output.textContent = JSON.stringify(jsonData, null, 2); // Display the JSON
+                  // Hide the file input after successful upload
+                  fileInputContainer.style.display = 'none';
+                  fileInput.value = ""; // Reset file input
+              } catch (err) {
+                  output.textContent = "Error parsing JSON file.";
+                  console.error("Error parsing JSON", err);
+              }
+          };
+          reader.readAsText(file);
+      } else {
+          alert("Please upload a valid JSON file.");
+      }
+  });
+  });
+
 
   document.getElementById('exportTotxt').addEventListener('click', function() {
     console.log("click")
@@ -515,7 +550,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     var date = new Date();
-    const filename = date.toJSON().slice(0, 10) + ".xlsx";
+    const filename = date.toJSON().slice(0, 10) + ".txt";
     link.download = filename;
     link.style.display = 'none';
     document.body.appendChild(link);

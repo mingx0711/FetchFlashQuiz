@@ -413,7 +413,7 @@ async function getEasyAttributes(doc,word,lang){
     document.getElementById('vocabInfo').style.display = 'block'
     let definition = ""
     if(liElement){
-      liElement.querySelectorAll('dl,u,span').forEach(el => el.remove());
+      liElement.querySelectorAll('dl,u,span,ul').forEach(el => el.remove());
       definition = liElement.textContent.trim()
       definition = definition.replace(/ *\([^)]*\) */g, "");
     }

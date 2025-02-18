@@ -269,7 +269,7 @@ function quizStyle1() {
       setTimeout(() => {
         correctMessage.style.display = 'none';
         showNextItem();
-      }, 3000);
+      }, 300);
     } else {
       updateQuizResults('f');
   

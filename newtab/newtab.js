@@ -14,8 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (data.vocabList) {
       vocabList = data.vocabList;
       currentVocabIndex = -1;
-      showNextItem(currentCollectionSelection);
     }
+    showNextItem(currentCollectionSelection);
   });
 
   document.getElementById('snoozeButton').addEventListener('click', function() {

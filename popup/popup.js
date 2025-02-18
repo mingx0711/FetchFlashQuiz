@@ -370,7 +370,7 @@ async function getLinkedAttributes(doc,word,lang){
 
     if(finalStr.trim()!=linkText.trim())  {
       url = usingLocal?`http://localhost:3000/fetch/${linkText}`:`https://en.wiktionary.org/wiki/${finallinkText}`
-      fetch(url)
+      await fetch(url)
       .then(response => response.text())
       .then(html => {
         // Parse the returned HTML and extract the inflection table
@@ -378,13 +378,10 @@ async function getLinkedAttributes(doc,word,lang){
         baseDoc = parser.parseFromString(html, 'text/html');
         getEasyAttributes(baseDoc,linkText,lang);
       })
-      setTimeout(() => {
         document.getElementById("vocabInfo").textContent+","+definition
         definition = document.getElementById("vocabInfo").textContent+","+definition
         vocab = {word,definition,snoozed: false,book,pronounciation,gender,seen:0,quizResults: ['n','n','n','n']}
-        console.log(vocab)
-        console.log('This runs after 0.05 second');
-    }, 50);
+
       
     }
    

@@ -93,7 +93,7 @@ function updateLanguageList(lang){
 function removeDiacritics(str) {
   return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
-function getLatinAttributes(doc,word){
+async function getLatinAttributes(doc,word){
   const book = document.getElementById('bookSelector').value;
   const pronounciation = document.getElementById('pronounciation').value;
   const gender = document.getElementById('gender').value;
@@ -101,6 +101,24 @@ function getLatinAttributes(doc,word){
   document.getElementById('vocabInfo').innerHTML=""
   vocab = {}
   let verbInflectionTable;
+  let verbInflectionTableNew;
+  let isVerb = false;
+  const spanElement = doc.querySelector('span.Latn.form-of.lang-la[lang="la"]');
+
+  if (spanElement) {
+      // Get its parent element
+      const parentElement = spanElement.parentElement.parentElement.parentElement.parentElement;
+      
+      if (parentElement) {
+        console.log(parentElement)
+        verbInflectionTableNew = parentElement
+        if(verbInflectionTableNew.classList.contains("NavHead")){
+          isVerb = true
+        }
+      }
+    
+    }
+
   let iTableLocator = doc.querySelector('.inflection-table.vsSwitcher tbody tr th i[lang="la"]');
   if(iTableLocator){
     let th = iTableLocator.parentElement;
@@ -109,12 +127,10 @@ function getLatinAttributes(doc,word){
     verbInflectionTable=tbody.parentElement;
   }
 
-  if (verbInflectionTable) {
-    let anchorElement = doc.querySelector('#mw-content-text > div.mw-content-ltr.mw-parser-output > table > tbody > tr:nth-child(1) > th a[href]');
-    if(!anchorElement){
-       document.getElementById('VocabInfo').innerHTML += "No such words"
-    }
-    conjugations.group=anchorElement.textContent;
+  if (verbInflectionTable||isVerb) {
+    console.log("is verb")
+    let anchorElement = verbInflectionTableNew.querySelector('a');
+    if(anchorElement){conjugations.group=anchorElement.textContent};
     let definition = ""
     const paragraph = doc.querySelector('p span > strong[lang="la"].Latn.headword');
     if (paragraph) {
@@ -182,7 +198,7 @@ function getLatinAttributes(doc,word){
     vocabInfo.textContent+="| \n collection: "+vocab.book
     conjugations.type = 'latin';
     document.getElementById("addAuto").style.display = 'block'
-
+    console.log(vocab)
     }
   else {
     const nounInflectionTable = doc.querySelector('table.inflection-table-la');
@@ -304,13 +320,13 @@ function getLatinAttributes(doc,word){
         console.log("finallinkText is "+ finallinkText)
         if(finalStr.trim()!=finallinkText.trim())  {
           url = usingLocal?`http://localhost:3000/fetch/${linkText}`:`https://en.wiktionary.org/wiki/${finallinkText}`
-          fetch(url)
+          await fetch(url)
           .then(response => response.text())
           .then(html => {
             // Parse the returned HTML and extract the inflection table
             const parser = new DOMParser();
             const baseDoc = parser.parseFromString(html, 'text/html');
-            console.log(linkText)
+            console.log(baseDoc)
             getLatinAttributes(baseDoc,linkText);
           })
         }else{

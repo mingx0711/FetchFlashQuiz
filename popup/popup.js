@@ -673,13 +673,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
       }
     }
   });
-  chrome.storage.sync.get('hideBox',function(data){
-    if (!data.hideBox||typeof(data.hideBox)===undefined||data.hideBox == null){
-      document.getElementById('tipsBox').style.display='block';
+  chrome.storage.sync.get('hideBox1',function(data){
+    if (!data.hideBox1||typeof(data.hideBox1)===undefined||data.hideBox1 == null){
+      document.getElementById('tipsBox1').style.display='block';
     }else{
-      document.getElementById('tipsBox').style.display='none';
+      document.getElementById('tipsBox1').style.display='none';
     }      
-    console.log(data.hideBox)
+    console.log(data.hideBox1)
 
   });
   chrome.storage.sync.get('hideBox0',function(data){
@@ -691,9 +691,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
     console.log(data.hideBox0)
 
   });
-  document.getElementById('hideTips').addEventListener('click', function(e) {
-    document.getElementById('tipsBox').style.display='none';
-    chrome.storage.sync.set({ hideBox: true }, function(data) {})
+  document.getElementById('hideTips1').addEventListener('click', function(e) {
+    document.getElementById('tipsBox1').style.display='none';
+    chrome.storage.sync.set({ hideBox1: true }, function(data) {})
   })
   document.getElementById('hideTips0').addEventListener('click', function(e) {
     document.getElementById('tipsBox0').style.display='none';

@@ -144,21 +144,38 @@ async function getLatinAttributes(doc,word){
     let anchorElement = verbInflectionTableNew.querySelector('a');
     if(anchorElement){conjugations.group=anchorElement.textContent};
     let definition = ""
-    const paragraph = doc.querySelector('p span > strong[lang="la"].Latn.headword');
-    if (paragraph) {
-      const parentParagraph = paragraph.closest('p');
-      const nextOl = parentParagraph.nextElementSibling;
-      if (nextOl) {
-        const firstListItem = nextOl.querySelector('li');
-        firstListItem.querySelectorAll('span, dl,ul').forEach(el => el.remove());
-        rawDef = firstListItem.textContent.trim();
-        if(rawDef.includes('.mw')){
-          definition= rawDef.slice(0, definition.indexOf('.mw')).trim();
-        }else{
-          definition= rawDef.trim();
+    let lastOl = null;
+    const parentParagraph = verbInflectionTableNew.parentElement.parentElement;
+    let currentElement = parentParagraph;
+
+    while (currentElement) {
+        currentElement = currentElement.previousElementSibling ;
+        if (currentElement && currentElement.tagName === "OL") {
+            lastOl = currentElement;
+            break;
+        }
+    }
+    console.log(lastOl)
+    if (lastOl) {
+      const ListItems = lastOl.querySelectorAll('ol > li');
+      let firstListItem;
+      for(let i = 0;i<ListItems.length;i++){
+        console.log(ListItems[i])
+        if (ListItems[i].textContent.trim()!==""){
+          firstListItem = ListItems[i]
+          break;
         }
       }
+      console.log(firstListItem)
+      firstListItem.querySelectorAll('span, dl,ul').forEach(el => el.remove());
+      rawDef = firstListItem.textContent.trim();
+      if(rawDef.includes('.mw')){
+        definition= rawDef.slice(0, definition.indexOf('.mw')).trim();
+      }else{
+        definition= rawDef.trim();
+      }
     }
+  
     let conjugationText = conjugations.group;
     // Select the <span> element
     let spanElements = doc.querySelectorAll('span.Latn.form-of.lang-la');
@@ -265,7 +282,15 @@ async function getLatinAttributes(doc,word){
         }
         sibling = sibling.nextElementSibling; // Move to the next sibling
       }
-      const firstListItem = sibling.querySelector('li');
+      
+      const ListItems = sibling.querySelectorAll('li');
+      for(let i = 0;i<ListItems.length;i++){
+        console.log(ListItems[i])
+        if (ListItems[i].textContent.trim()!==""){
+          firstListItem = ListItems[i]
+          break;
+        }
+      }
       firstListItem.querySelectorAll('dl,ul').forEach(el => el.remove());
       definition = firstListItem.textContent.trim();
       conjugations.inflections = {singular_nominative:[],

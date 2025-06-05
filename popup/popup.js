@@ -418,8 +418,6 @@ async function getLinkedAttributes(doc,word,lang){
         document.getElementById("vocabInfo").textContent+","+definition
         definition = document.getElementById("vocabInfo").textContent+","+definition
         vocab = {word,definition,snoozed: false,book,pronounciation,gender,seen:0,quizResults: ['n','n','n','n']}
-
-      
     }
    
   }
@@ -480,12 +478,18 @@ async function getEasyAttributes(doc,word,lang){
           break;
       }
     }
+
     baseDef = definition
     definition = definition.split(".mw")[0]
     definition = definition.split(";")[0];
+    const h3 = doc.getElementById('Etymology');
+    const wrapperDiv = h3.parentElement; 
+    const nextElem = wrapperDiv.nextElementSibling;
+    const etym = nextElem.innerText;
+    console.log(etym);
     document.getElementById('vocabInfo').innerHTML += definition
     document.getElementById('vocabInfo').innerHTML += autoGender?("|gender:"+autoGender):""
-    vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,seen:0,quizResults: ['n','n','n','n']}
+    vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,seen:0,quizResults: ['n','n','n','n'],etym:etym}
     if(isVerb){
       switch(lang){
         case 'fr':

@@ -48,24 +48,19 @@ document.addEventListener('DOMContentLoaded', function() {
 const intervalInput = document.getElementById('interval');
 
 intervalInput.addEventListener('input', (e) => {
-  // 用 parseInt 确保是整数；如果输入为空字符串则返回 NaN
   const parsed = parseInt(e.target.value, 10);
 
-  // 只有当 parsed 是有效数字时才存储
-  if (!isNaN(parsed)) {
+  if (!isNaN(parsed)&&parsed>1) {
     chrome.storage.local.get(
       { intervalHistory: [] },
       ({ intervalHistory }) => {
-        // 追加整数值和时间戳
         intervalHistory.push({
-          value: parsed,
-          timestamp: Date.now()
+          value: parsed
         });
-
         chrome.storage.local.set(
           { intervalHistory },
           () => {
-            console.log('Saved new interval', parsed);
+           // console.log('Saved new interval', parsed);
           }
         );
       }
@@ -94,9 +89,9 @@ changeIntervalBtn.addEventListener('click', () => {
   chrome.storage.sync.get({ bookList: [] }, (result) => {
     chrome.storage.sync.get({ currentCollectionSelection}, (data)=> {
     selectedbooks = data.currentCollectionSelection || ""
-    console.log(selectedbooks)
+   // console.log(selectedbooks)
     const bookList = result.bookList;
-    console.log(bookList)
+   // console.log(bookList)
     displayBookList.innerHTML = '';
     bookList.forEach(book => {
         let checkboxContainer = document.createElement('div');
@@ -314,12 +309,12 @@ function changeColor(palette){
 
 
   chrome.storage.sync.set({selectedPalette: palette}, function() {
-    console.log('Palette saved:', palette);
+   // console.log('Palette saved:', palette);
 });
 
 }
 function showNextVocab(collection = currentCollectionSelection) {
-  console.log("current collection", collection)
+ // console.log("current collection", collection)
   let currentCollection = [];
   document.getElementById('quizContainer').style.display = 'none';
   document.getElementById('trueFalseContainer').style.display = 'none';
@@ -335,7 +330,7 @@ function showNextVocab(collection = currentCollectionSelection) {
   }
   const startIndex = currentVocabIndex === null ? -1 : currentVocabIndex;
   let nextIndex = (startIndex + 1) % currentCollection.length;
-  console.log("current collection",currentCollection.length)
+ // console.log("current collection",currentCollection.length)
   if(currentCollection.length == 0){
     let wordDiv = document.getElementById('wordDiv');
     wordDiv.innerHTML = "No available words yet"
@@ -354,34 +349,35 @@ function showNextVocab(collection = currentCollectionSelection) {
       currentVocabIndex = Math.floor(Math.random()*currentCollection.length);
       while (nextIndex !== startIndex && currentCollection[currentVocabIndex].snoozed) {
         currentVocabIndex = (nextIndex + 1) % currentCollection.length;
-        console.log("le word has been snoozy shouldnt show up ")
+       // console.log("le word has been snoozy shouldnt show up ")
       }
       if(currentCollection[currentVocabIndex].seen>=200){
         if(Math.random()<0.9){
-          console.log(currentCollection[currentVocabIndex].word + "has been seen too many times therefore skipped")
+         // console.log(currentCollection[currentVocabIndex].word + "has been seen too many times therefore skipped")
           currentVocabIndex = Math.floor(Math.random()*vocabList.length);
         }
       }
       if(currentCollection[currentVocabIndex].seen>=100){
         if(Math.random()<0.75){
-          console.log(currentCollection[currentVocabIndex].word + "has been seen too many times therefore skipped")
+         // console.log(currentCollection[currentVocabIndex].word + "has been seen too many times therefore skipped")
           currentVocabIndex = Math.floor(Math.random()*vocabList.length);
         }
       }
       if(currentCollection[currentVocabIndex].seen>=50){
         if(Math.random()<0.5){
-          console.log(currentCollection[currentVocabIndex].word + "has been seen too many times therefore skipped")
+         // console.log(currentCollection[currentVocabIndex].word + "has been seen too many times therefore skipped")
           currentVocabIndex = Math.floor(Math.random()*vocabList.length);
         }
       }
       
-      console.log(currentCollection[currentVocabIndex]);
+     // console.log(currentCollection[currentVocabIndex]);
       const vocabFlashcard = document.getElementById('vocabFlashcard');
       let wordDiv = document.getElementById('wordDiv');
       let defDiv = document.getElementById('defDiv');
       let bookDiv = document.getElementById('bookDiv');
       let pronounDiv = document.getElementById('pronounDiv');
       let genderDiv = document.getElementById('genderDiv');
+      let etymDiv = document.getElementById('etymDiv');
       let word;
       let definition
       if (Math.random()<=0.5){
@@ -413,11 +409,17 @@ function showNextVocab(collection = currentCollectionSelection) {
       wordDiv.innerHTML = word.bold();
       defDiv.textContent =definition;
       bookDiv.textContent = book;
+      if(currentCollection[currentVocabIndex].etym){
+        const eytmText = currentCollection[currentVocabIndex].etym;
+        etymDiv.textContent += eytmText
+      }else{
+        etymDiv.textContent = ""
+      }
       // Increment the seen count
       const match = vocabList.find(item => item.word === currentCollection[currentVocabIndex].word);
       match.seen += 1;
       chrome.storage.local.set({ vocabList: vocabList }, function() {
-        console.log(`Incremented seen count for "${word}".`);
+       // console.log(`Incremented seen count for "${word}".`);
       });
   
       // Show vocab card and hide quiz
@@ -452,13 +454,13 @@ function enterAutoPlay(){
       chrome.storage.local.set(
         { intervalHistory: newHistory },
         () => {
-          console.log('No previous interval found. Defaulted to 6 and saved into history.');
+         // console.log('No previous interval found. Defaulted to 6 and saved into history.');
         }
       );
     } else {
       // 2b. Use the last-recorded interval value
       intervalSeconds = history[history.length - 1].value;
-      console.log('Loaded interval from history:', intervalSeconds);
+     // console.log('Loaded interval from history:', intervalSeconds);
     }
 
     timerId = setInterval(() => {
@@ -477,7 +479,7 @@ function snoozeCurrentVocab() {
 
     // Save updated vocab list to Chrome storage
     chrome.storage.local.set({ vocabList: vocabList }, function() {
-      console.log(`Snoozed "${vocabList[currentVocabIndex].word}".`);
+     // console.log(`Snoozed "${vocabList[currentVocabIndex].word}".`);
       showNextItem();  // Show the next item (vocab or quiz)
     });
   }
@@ -485,7 +487,7 @@ function snoozeCurrentVocab() {
 
 function showQuiz() {
   const quizStyle = Math.floor(Math.random() * 10);
-  console.log(quizStyle);
+ // console.log(quizStyle);
   switch(quizStyle){
     case 0:
       quizStyle1();
@@ -520,23 +522,23 @@ function showQuiz() {
   }
 }
 function updateQuizResults(result,word) {
-  console.log(result,word)
+ // console.log(result,word)
   for (const item of vocabList) {
     if (item.word === word) {
-      console.log(item)
+     // console.log(item)
       let quizResults = item.quizResults;
       quizResults.unshift(result);
       if (quizResults.length > 4) {
         quizResults.pop(); // Remove the oldest result to keep only the first 4
       }
       chrome.storage.local.set({ vocabList: vocabList }, function() {
-      console.log(`Updated quiz results for "${item.word}": ${quizResults}`);
+     // console.log(`Updated quiz results for "${item.word}": ${quizResults}`);
     });
     }
 }
 }
 function quizStyle1(){
-  console.log("quiz style 1")
+ // console.log("quiz style 1")
   const eligibleVocab = vocabList.filter(entry => entry.seen > 3);
   if (eligibleVocab.length < 1) {
     showNextVocab();
@@ -576,7 +578,7 @@ function quizStyle1(){
   document.getElementById('nextAfterIncorrectButton').style.display = 'none';
 }
 function quizStyle2(){
- console.log("Quiz Style 2: Ask for the word given a definition");
+// console.log("Quiz Style 2: Ask for the word given a definition");
  const eligibleVocab = vocabList.filter(entry => entry.seen > 3);
  if (eligibleVocab.length < 1) {
    showNextVocab();
@@ -588,7 +590,7 @@ function quizStyle2(){
  currentQuizWord = correctVocab.word;
  currentQuizDefinition = correctVocab.definition;
  quizType = 'word';
- console.log(currentQuizWord);
+// console.log(currentQuizWord);
 
  const options = [correctVocab.word];
  for (let i = 0; i<3;i++) {    
@@ -661,13 +663,13 @@ document.getElementById('correctDefinition').style.display = 'none';
 document.getElementById('nextAfterIncorrectButton').style.display = 'none';
 }
 function quizStyle4(){
-  console.log("4, ask for pronounciation")
+ // console.log("4, ask for pronounciation")
   const eligibleVocab = vocabList.filter(entry => entry.seen > 3 && entry.pronounciation&& entry.pronounciation!="");
   const eligibleOptions = vocabList.filter(entry => entry.pronounciation&& entry.pronounciation!="");
   const numberOfDifferentTypes = new Set(eligibleOptions.map(item => item.pronounciation)).size;
-  console.log("numberOfDifferentTypesQuiz4",numberOfDifferentTypes)
+ // console.log("numberOfDifferentTypesQuiz4",numberOfDifferentTypes)
 
-  console.log(eligibleOptions)
+ // console.log(eligibleOptions)
   if (eligibleVocab.length < 1 || numberOfDifferentTypes <3 || eligibleOptions.length<3) {
     showNextVocab();
     return;
@@ -676,7 +678,7 @@ function quizStyle4(){
   const quizIndex = Math.floor(Math.random() * eligibleVocab.length);
   const correctVocab = eligibleVocab[quizIndex];
   currentQuizWord = correctVocab.word;
-  console.log(currentQuizWord);
+ // console.log(currentQuizWord);
   currentQuizDefinition = correctVocab.pronounciation;
   if(currentQuizDefinition==""){
     quizStyle1();
@@ -685,7 +687,7 @@ function quizStyle4(){
   for (let i = 0; i<3;i++) {    
     const randomIndex = Math.floor(Math.random() * eligibleOptions.length);
     const randomPronounciation = eligibleOptions[randomIndex].pronounciation;
-    console.log(randomPronounciation)
+   // console.log(randomPronounciation)
     if (!options.includes(randomPronounciation)) {
       options.push(randomPronounciation);
     }else{
@@ -715,11 +717,11 @@ function quizStyle4(){
   
 }
 function quizStyle5(){
-  console.log("5, ask for gender")
+ // console.log("5, ask for gender")
   const eligibleVocab = vocabList.filter(entry => entry.seen > 3 && entry.gender&& entry.gender!=""&&entry.gender!="undefined");
   const numberOfDifferentTypes = new Set(vocabList.map(item => item.gender)).size;
-  console.log("numberOfDifferentTypes",numberOfDifferentTypes)
-  console.log(eligibleVocab)
+ // console.log("numberOfDifferentTypes",numberOfDifferentTypes)
+ // console.log(eligibleVocab)
   const eligibleOptions = vocabList.filter(entry => entry.gender&& entry.gender!=""&&entry.gender!="undefined");
 
   if (eligibleVocab.length < 1 || numberOfDifferentTypes <2) {
@@ -810,13 +812,13 @@ function getRandomWordFromConjugations(conjugations,commonWordsList=[]) {
   let randomSubfield = subfields[Math.floor(Math.random() * subfields.length)];
   const words = conjugations[randomField][randomSubfield];
   const randomWord = words[Math.floor(Math.random() * words.length)];
-  console.log(randomField+":"+randomSubfield+":"+randomWord)
+ // console.log(randomField+":"+randomSubfield+":"+randomWord)
   if(randomWord==undefined){
     return getRandomWordFromConjugations(conjugations,commonWordsList);
   }
   const isInAllSubfields = commonWordsList.includes(randomWord)
   if(randomWord.length<=1||randomWord==null||isInAllSubfields){
-    console.log(randomWord+" is not not a wrong answer")
+   // console.log(randomWord+" is not not a wrong answer")
       return getRandomWordFromConjugations(conjugations,commonWordsList);
   }else{    
       return randomWord;}
@@ -860,7 +862,7 @@ function findSubfieldsForWord(word, conjugations) {
 function quizStyle6()
 {
   //given word, find inflection
-  console.log("type 6, given word, find inflection")
+ // console.log("type 6, given word, find inflection")
   const eligibleVocab = vocabList.filter(entry => entry.conjugations&& entry.conjugations.type!="");
   if(eligibleVocab.length<1){
     return quizStyle3();
@@ -869,7 +871,7 @@ function quizStyle6()
     currentVocabIndex = 0;
   } else {
     currentVocabIndex = Math.floor(Math.random() * eligibleVocab.length);
-    console.log(eligibleVocab[currentVocabIndex]);
+   // console.log(eligibleVocab[currentVocabIndex]);
   }
   const correctVocab = eligibleVocab[currentVocabIndex];
   const conjugations = correctVocab.conjugations;
@@ -879,13 +881,13 @@ function quizStyle6()
   let selectedField;
   let questionText = ""
   let options = []
-  console.log(correctVocab.word)
+ // console.log(correctVocab.word)
   if((getRandomNumber(1,9))>=8){
     if(conjugations.group&&conjugations.group!=""){
 
       questionText = "what is the group of " + correctVocab.word
       correctAnswer =  conjugations.group;
-      console.log(correctAnswer)
+     // console.log(correctAnswer)
       options = [correctAnswer];
       currentQuizWord = correctVocab.word;
       if(Array.isArray(correctAnswer)){
@@ -898,7 +900,7 @@ function quizStyle6()
         wrongAnswers = ["first declension","second declension","third declension","fourth declension","fifth declension","irregular"]
       }
       for (let i = 0; i<3;i++) {
-        console.log(options)
+       // console.log(options)
           const index = getRandomNumber(1,wrongAnswers.length)
           if (!options.includes(wrongAnswers[index])) {
             options.push(wrongAnswers[index]);
@@ -924,12 +926,12 @@ function quizStyle6()
           selectedField = verbFields3
       }    
       }else{
-        console.log("not a verb")
+       // console.log("not a verb")
         if(conjugations.inflections){
           numberOfFields = 1;
           selectedField = ['inflections'];
         }else{
-          console.log(correctVocab.word + "data format outdatted ")
+         // console.log(correctVocab.word + "data format outdatted ")
           showNextItem();
         }
       }
@@ -938,14 +940,14 @@ function quizStyle6()
       let conjugationLists = [];
       selectedKeys.forEach(field => {
           const subfield = getRandomSubfield(conjugations[field]);
-          console.log(subfield)
+         // console.log(subfield)
           conjToTest.push(subfield);
           conjugationLists.push(conjugations[field][subfield]);
         });
       const commonWordsList = findCommonWordAcrossLists(conjugationLists);
       const commonWord = commonWordsList[getRandomNumber(0,commonWordsList.length)];
       if (!commonWord) {
-          console.log("No common word found, retrying...");
+         // console.log("No common word found, retrying...");
           return quizStyle6(); // Restart quiz if no common word is found
         } 
       correctAnswer = commonWord; 
@@ -956,12 +958,12 @@ function quizStyle6()
               wrongAnswers.push(wrongWord);
               }
           }
-      console.log(wrongAnswers)
+     // console.log(wrongAnswers)
       currentQuizWord = correctVocab.word;
       currentQuizDefinition = correctAnswer;
       quizType = '6';
       options = [correctAnswer];
-      console.log(options);
+     // console.log(options);
       for (let i = 0; i<3;i++) {
           if (!options.includes(wrongAnswers)) {
           options.push(wrongAnswers[i]);
@@ -997,7 +999,7 @@ function quizStyle6()
 }
 function quizStyle7(){
   //given inflection, find word
-  console.log("type 7, given inflection, find word")
+ // console.log("type 7, given inflection, find word")
   wordToTest=""
   const eligibleVocab = vocabList.filter(entry => entry.conjugations&& entry.conjugations.type!="");
   if(eligibleVocab.length<1){
@@ -1007,7 +1009,7 @@ function quizStyle7(){
     currentVocabIndex = 0;
   } else {
     currentVocabIndex = Math.floor(Math.random() * eligibleVocab.length);
-    console.log(eligibleVocab[currentVocabIndex]);
+   // console.log(eligibleVocab[currentVocabIndex]);
   }
   const correctVocab = eligibleVocab[currentVocabIndex];
   const conjugations = correctVocab.conjugations;
@@ -1018,24 +1020,24 @@ function quizStyle7(){
   wordToTest = getRandomWordFromConjugations(conjugations)
   const subFields = findSubfieldsForWord(wordToTest,conjugations)
   conjToTest = Object.values(subFields);
-  console.log(conjToTest)
+ // console.log(conjToTest)
   correctAnswer = conjToTest.toString(); 
   correctAnswer = makeStringReadable(correctAnswer);
   let wrongAnswers = [];
   while (wrongAnswers.length < 3) {
     const wrongWord = getRandomWordFromConjugations(conjugations);
-    console.log(wrongWord)
+   // console.log(wrongWord)
     const wrongConj = makeStringReadable( Object.values(findSubfieldsForWord(wrongWord,conjugations)).toString()); 
     if(!wrongAnswers.includes(wrongConj)&&!(wrongConj==correctAnswer)){
         wrongAnswers.push(wrongConj);
         }
     }
-  console.log(wrongAnswers)
+ // console.log(wrongAnswers)
   currentQuizWord = correctVocab.word;
   currentQuizDefinition = correctAnswer;
   quizType = '7';
   options = [correctAnswer];
-  console.log(options);
+ // console.log(options);
   currentVocabIndex = vocabList.indexOf(correctVocab);
   for (let i = 0; i<3;i++) {
       if (!options.includes(wrongAnswers)) {
@@ -1097,7 +1099,7 @@ function checkAnswer(button) {
 }
 
 function showCorrectAnswer() {
-  console.log(quizType)
+ // console.log(quizType)
   const quizContainer = document.querySelector('.quiz-container');
   quizContainer.style.display = "none";
   const tfContainer = document.querySelector('.true-false-container');

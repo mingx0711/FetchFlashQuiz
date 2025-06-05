@@ -522,6 +522,23 @@ document.addEventListener('DOMContentLoaded', function() {
                   // Hide the file input after successful upload
                   fileInputContainer.style.display = 'none';
                   fileInput.value = ""; // Reset file input
+                  const vocablistRaw = jsonData.vocabList
+                  console.log(vocablistRaw)
+                  const distinctBooks = [...new Set(vocablistRaw.map(x => x.book))];
+                    chrome.storage.sync.get({ bookList: [] }, (result) => {
+                     let bookList = result.bookList;
+                     bookList.push(...distinctBooks);
+                     bookList = Array.from(new Set(bookList));
+                     bookList = bookList.filter(Boolean)
+                     console.log(bookList)
+                      chrome.storage.sync.set({ bookList: bookList }, () => {
+                        if (chrome.runtime.lastError) {
+                          console.error("Error saving bookList:", chrome.runtime.lastError);
+                        } else {
+                          console.log("bookList saved:", mergedArray);
+                        }
+                      });
+                  });
 
               } catch (err) {
                   output.textContent = "Error parsing JSON file.";
@@ -534,44 +551,5 @@ document.addEventListener('DOMContentLoaded', function() {
       }
   });
   });
-
-
-  // document.getElementById('exportTotxt').addEventListener('click', function() {
-  //   console.log("click")
-  //   chrome.storage.local.get('vocabList', function(data) {
-  //     const groupedData = data.vocabList.reduce((acc, item) => {
-  //       let pronoun = ""
-  //       let itemGender = ""
-  //       if (!acc[item.book]) {
-  //           acc[item.book] = [];
-  //       }
-  //       if(item.pronounciation){
-  //         pronoun = item.pronounciation
-  //       }
-  //       if(item.gender){
-  //         itemGender = item.gender
-  //       }
-  //       acc[item.book].push(`${item.word}:${item.definition}:${itemGender}:${pronoun}|`);
-  //       return acc;
-  //   }, {});
-
-  //   let textContent = '';
-  //   for (const book in groupedData) {
-  //       textContent += `<---Collection: ${book}--->\n`;
-  //       textContent += groupedData[book].join('\n') + '\n';
-  //   }
-
-  //   const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8;' });
-  //   const link = document.createElement('a');
-  //   link.href = URL.createObjectURL(blob);
-  //   var date = new Date();
-  //   const filename = date.toJSON().slice(0, 10) + ".txt";
-  //   link.download = filename;
-  //   link.style.display = 'none';
-  //   document.body.appendChild(link);
-  //   link.click();
-  //   document.body.removeChild(link);
-  //   });
-  // });
   
 });

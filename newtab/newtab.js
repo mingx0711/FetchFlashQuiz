@@ -21,7 +21,9 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('snoozeButton').addEventListener('click', function() {
     snoozeCurrentVocab();
   });
-
+  document.getElementById('autoplayButton').addEventListener('click', function() {
+    enterAutoPlay();
+  });
   document.getElementById('nextButton').addEventListener('click', function() {
     showNextItem(currentCollectionSelection);
   });
@@ -43,7 +45,43 @@ document.addEventListener('DOMContentLoaded', function() {
       checkAnswer(button);
     });
   });
+const intervalInput = document.getElementById('interval');
 
+intervalInput.addEventListener('input', (e) => {
+  // 用 parseInt 确保是整数；如果输入为空字符串则返回 NaN
+  const parsed = parseInt(e.target.value, 10);
+
+  // 只有当 parsed 是有效数字时才存储
+  if (!isNaN(parsed)) {
+    chrome.storage.local.get(
+      { intervalHistory: [] },
+      ({ intervalHistory }) => {
+        // 追加整数值和时间戳
+        intervalHistory.push({
+          value: parsed,
+          timestamp: Date.now()
+        });
+
+        chrome.storage.local.set(
+          { intervalHistory },
+          () => {
+            console.log('Saved new interval', parsed);
+          }
+        );
+      }
+    );
+  }
+});
+window.addEventListener('resize', adjustFontSize);
+adjustFontSize();
+changeIntervalBtn.addEventListener('click', () => {
+      // Toggle visibility of Auto Play
+      if (intervalInput.style.display === 'none' || intervalInput.style.display === '') {
+        intervalInput.style.display = 'inline';
+      } else {
+        intervalInput.style.display = 'none';
+      }
+    });
   document.getElementById('trueButton').addEventListener('click', function() {
     checkTrueFalse(true);
   });
@@ -96,6 +134,9 @@ let currentCollectionSelection = [];
 let totalNoCount = null;
 let currentQuizNo = 0;
 let wordToTest = "";
+let timerId;
+const changeIntervalBtn = document.getElementById('changeInterval');
+const autoPlayBtn = document.getElementById('autoplayButton');
 function showNextItem(checkBooks = ["all"]) {
 
   if (newtab){
@@ -267,6 +308,8 @@ function changeColor(palette){
   document.getElementById('nextButton').style.boxShadow = selectedPalette.buttonShadow;
   document.getElementById('nextAfterIncorrectButton').style.backgroundColor = selectedPalette.Snooze;
   document.getElementById('nextAfterIncorrectButton').style.boxShadow = selectedPalette.buttonShadow;
+  //document.getElementById('autoplayButton').style.backgroundColor = selectedPalette.Snooze;
+  //document.getElementById('autoplayButton').style.boxShadow = selectedPalette.buttonShadow;
 
 
 
@@ -383,8 +426,6 @@ function showNextVocab(collection = currentCollectionSelection) {
     }
   } 
 }
-window.addEventListener('resize', adjustFontSize);
-adjustFontSize();
 
 function adjustFontSize(){
   const screenWidth = window.innerWidth;
@@ -395,7 +436,41 @@ function adjustFontSize(){
     option.style.fontSize = fontSize1;  // Set font size to 24px
   });
 }
+function enterAutoPlay(){
+  if(autoPlayBtn.textContent === "\u25B6"){
+    autoPlayBtn.innerText = String.fromCodePoint(0x23F8)
+     chrome.storage.local.get({ intervalHistory: [] }, (result) => {
+    let intervalSeconds;
+    const history = result.intervalHistory;
 
+    if (!Array.isArray(history) || history.length === 0) {
+      // 2a. No history found → default to 6 seconds and save that back into storage
+      intervalSeconds = 6;
+      const now = Date.now();
+      const newHistory = [{ value: intervalSeconds, timestamp: now }];
+
+      chrome.storage.local.set(
+        { intervalHistory: newHistory },
+        () => {
+          console.log('No previous interval found. Defaulted to 6 and saved into history.');
+        }
+      );
+    } else {
+      // 2b. Use the last-recorded interval value
+      intervalSeconds = history[history.length - 1].value;
+      console.log('Loaded interval from history:', intervalSeconds);
+    }
+
+    timerId = setInterval(() => {
+      showNextVocab();
+    }, intervalSeconds * 1000);
+  }); 
+  }else{
+    autoPlayBtn.innerText = String.fromCodePoint(0x25B6);
+    clearInterval(timerId)
+  }
+
+}
 function snoozeCurrentVocab() {
   if (currentVocabIndex !== null && currentVocabIndex !== -1) {
     vocabList[currentVocabIndex].snoozed = true;

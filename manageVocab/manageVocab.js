@@ -1,42 +1,42 @@
 
-document.getElementById('addVocabForm').addEventListener('submit', function(e) {
-  e.preventDefault();
+// document.getElementById('addVocabForm').addEventListener('submit', function(e) {
+//   e.preventDefault();
   
-  const word = document.getElementById('word').value;
-  const definition = document.getElementById('definition').value;
-  const book = document.getElementById('bookSelector').value;
-  const pronounciation = document.getElementById('pronounciation').value;
-  const gender = document.getElementById('gender').value;
-  lastBook = book;
-  // Get existing vocab data from Chrome storage
-  chrome.storage.local.get('vocabList', function(data) {
-    let vocabList = data.vocabList || [];
-    //console.log(data.vocabList)
-    if(book === "add New Vocab collection"||book ==="addNew"){
-      book = "Default"
-    }
-    chrome.storage.local.set({ lastBook: book });
-    lastBook = book;
-    console.log(book)
+//   const word = document.getElementById('word').value;
+//   const definition = document.getElementById('definition').value;
+//   const book = document.getElementById('bookSelector').value;
+//   const pronounciation = document.getElementById('pronounciation').value;
+//   const gender = document.getElementById('gender').value;
+//   lastBook = book;
+//   // Get existing vocab data from Chrome storage
+//   chrome.storage.local.get('vocabList', function(data) {
+//     let vocabList = data.vocabList || [];
+//     //console.log(data.vocabList)
+//     if(book === "add New Vocab collection"||book ==="addNew"){
+//       book = "Default"
+//     }
+//     chrome.storage.local.set({ lastBook: book });
+//     lastBook = book;
+//     console.log(book)
     
-    populateBookSelector()
-    // Append the new word, definition, snoozed field, and seen field
-    vocabList.push({ word, definition, snoozed: false , book, gender,pronounciation,seen: 0, quizResults: ['n','n','n','n']});
-    // Save updated vocab list to Chrome storage
-    chrome.storage.local.set({ vocabList: vocabList }, function() {
-      updateVocabList(vocabList);
-      // Clear form fields
-      document.getElementById('addVocabForm').reset();
-    });
-  });
-});
+//     populateBookSelector()
+//     // Append the new word, definition, snoozed field, and seen field
+//     vocabList.push({ word, definition, snoozed: false , book, gender,pronounciation,seen: 0, quizResults: ['n','n','n','n']});
+//     // Save updated vocab list to Chrome storage
+//     chrome.storage.local.set({ vocabList: vocabList }, function() {
+//       updateVocabList(vocabList);
+//       // Clear form fields
+//       document.getElementById('addVocabForm').reset();
+//     });
+//   });
+// });
 document.getElementById('testConj').addEventListener('click', function() {
   chrome.tabs.create({ url: 'conjTest/conjTest.html' });
 });
 
-document.getElementById("importButton").addEventListener("click", function() {
-  chrome.tabs.create({ url: 'inflections/inflections.html' });
-});
+// document.getElementById("importButton").addEventListener("click", function() {
+//   chrome.tabs.create({ url: 'inflections/inflections.html' });
+// });
 document.getElementById('clearButton').addEventListener('click', function() {
   chrome.storage.local.clear(function() {
     console.log('Chrome storage local data cleared');
@@ -280,23 +280,23 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to handle the display toggle
     
   });
-  const importVocabButton = document.getElementById('importVocabButton');
+  // const importVocabButton = document.getElementById('importVocabButton');
   const popup = document.getElementById('popup');
   const popupOverlay = document.getElementById('popup-overlay');
   const submitBulkListButton = document.getElementById('submitVocabButton');
-  importVocabButton.addEventListener('click', () => {
+  // importVocabButton.addEventListener('click', () => {
     
-    populateBookSelector2()
-    if (popup.style.display === 'block') {
-      // If the popup is already displayed, hide it
-      popup.style.display = 'none';
-      popupOverlay.style.display = 'none';
-    } else {
-      // Otherwise, show the popup
-      popup.style.display = 'block';
-      popupOverlay.style.display = 'block';
-    }
-  });
+  //   populateBookSelector2()
+  //   if (popup.style.display === 'block') {
+  //     // If the popup is already displayed, hide it
+  //     popup.style.display = 'none';
+  //     popupOverlay.style.display = 'none';
+  //   } else {
+  //     // Otherwise, show the popup
+  //     popup.style.display = 'block';
+  //     popupOverlay.style.display = 'block';
+  //   }
+  // });
 
   popupOverlay.addEventListener('click', () => {
     popup.style.display = 'none';
@@ -354,33 +354,33 @@ document.addEventListener('DOMContentLoaded', function() {
   const addBookInContainerButton = document.getElementById('addBookInContainerButton');
   const bookSelector = document.getElementById('bookSelector');
   const newBookField = document.getElementById('newBookField');
-  const addBookButton = document.getElementById('addBookButton');
+  //const addBookButton = document.getElementById('addBookButton');
   const newBookInput = document.getElementById('newBook');
-  bookSelector.addEventListener('change', () => {
-    if (bookSelector.value === 'add New Vocab collection') {
-      newBookField.style.display = 'block';
-    } else {
-      newBookField.style.display = 'none';
-    }
-  });
-  addBookButton.addEventListener('click', () => {
-    const newBook = newBookInput.value.trim();
-    if (newBook) {
-        chrome.storage.sync.get({ bookList: [] }, (result) => {
-            const bookList = result.bookList;
-            if (!bookList.includes(newBook)) {
-                bookList.push(newBook);
-                chrome.storage.sync.set({ bookList }, () => {
-                    alert(`"${newBook}" has been added to the book list.`);
-                    newBookInput.value = '';
-                    populateBookSelector()
-                });
-            } else {
-                alert(`"${newBook}" is already in the book list.`);
-            }
-        });
-    }
-  });
+  // bookSelector.addEventListener('change', () => {
+  //   if (bookSelector.value === 'add New Vocab collection') {
+  //     newBookField.style.display = 'block';
+  //   } else {
+  //     newBookField.style.display = 'none';
+  //   }
+  // });
+  // addBookButton.addEventListener('click', () => {
+  //   const newBook = newBookInput.value.trim();
+  //   if (newBook) {
+  //       chrome.storage.sync.get({ bookList: [] }, (result) => {
+  //           const bookList = result.bookList;
+  //           if (!bookList.includes(newBook)) {
+  //               bookList.push(newBook);
+  //               chrome.storage.sync.set({ bookList }, () => {
+  //                   alert(`"${newBook}" has been added to the book list.`);
+  //                   newBookInput.value = '';
+  //                   populateBookSelector()
+  //               });
+  //           } else {
+  //               alert(`"${newBook}" is already in the book list.`);
+  //           }
+  //       });
+  //   }
+  // });
   populateBookSelector()
   function showFloatingContainer() {
     chrome.storage.sync.get({ bookList: [] }, (result) => {
@@ -475,6 +475,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.getElementById('exportToJson').addEventListener('click', function() {
     chrome.storage.local.get('vocabList', function(data) {
+      console.log("a")
       const jsonString = JSON.stringify(data, null, 2);
       const blob = new Blob([jsonString], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -535,42 +536,42 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
 
-  document.getElementById('exportTotxt').addEventListener('click', function() {
-    console.log("click")
-    chrome.storage.local.get('vocabList', function(data) {
-      const groupedData = data.vocabList.reduce((acc, item) => {
-        let pronoun = ""
-        let itemGender = ""
-        if (!acc[item.book]) {
-            acc[item.book] = [];
-        }
-        if(item.pronounciation){
-          pronoun = item.pronounciation
-        }
-        if(item.gender){
-          itemGender = item.gender
-        }
-        acc[item.book].push(`${item.word}:${item.definition}:${itemGender}:${pronoun}|`);
-        return acc;
-    }, {});
+  // document.getElementById('exportTotxt').addEventListener('click', function() {
+  //   console.log("click")
+  //   chrome.storage.local.get('vocabList', function(data) {
+  //     const groupedData = data.vocabList.reduce((acc, item) => {
+  //       let pronoun = ""
+  //       let itemGender = ""
+  //       if (!acc[item.book]) {
+  //           acc[item.book] = [];
+  //       }
+  //       if(item.pronounciation){
+  //         pronoun = item.pronounciation
+  //       }
+  //       if(item.gender){
+  //         itemGender = item.gender
+  //       }
+  //       acc[item.book].push(`${item.word}:${item.definition}:${itemGender}:${pronoun}|`);
+  //       return acc;
+  //   }, {});
 
-    let textContent = '';
-    for (const book in groupedData) {
-        textContent += `<---Collection: ${book}--->\n`;
-        textContent += groupedData[book].join('\n') + '\n';
-    }
+  //   let textContent = '';
+  //   for (const book in groupedData) {
+  //       textContent += `<---Collection: ${book}--->\n`;
+  //       textContent += groupedData[book].join('\n') + '\n';
+  //   }
 
-    const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    var date = new Date();
-    const filename = date.toJSON().slice(0, 10) + ".txt";
-    link.download = filename;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    });
-  });
+  //   const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8;' });
+  //   const link = document.createElement('a');
+  //   link.href = URL.createObjectURL(blob);
+  //   var date = new Date();
+  //   const filename = date.toJSON().slice(0, 10) + ".txt";
+  //   link.download = filename;
+  //   link.style.display = 'none';
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  //   });
+  // });
   
 });

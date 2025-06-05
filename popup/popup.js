@@ -52,7 +52,7 @@ document.getElementById('addVocabForm').addEventListener('submit', function(e) {
       });
     });
   }else{
-    if(language!="german"){
+    if(language!="de"){
       word = removeDiacritics(word)
     }
     url = usingLocal?`http://localhost:3000/fetch/${word}`:`https://en.wiktionary.org/wiki/${word}`
@@ -64,7 +64,7 @@ document.getElementById('addVocabForm').addEventListener('submit', function(e) {
             const doc = parser.parseFromString(html, 'text/html');
             if (language == "latin"){
               getLatinAttributes(doc,word);
-            } else if(language == 'german'){
+            } else if(language == 'de'){
               getGermanAttributes(doc,word);
             } else{
               getLinkedAttributes(doc,word,language)
@@ -86,7 +86,6 @@ function updateLanguageList(lang){
       languageList[lang]=1
     }
     chrome.storage.sync.set({languageList:languageList }, function() {
-      console.log(languageList)
     });
   });
 }
@@ -140,7 +139,6 @@ async function getLatinAttributes(doc,word){
   }
 
   if (verbInflectionTable||isVerb) {
-    console.log("is verb")
     let anchorElement = verbInflectionTableNew.querySelector('a');
     if(anchorElement){conjugations.group=anchorElement.textContent};
     let definition = ""
@@ -155,18 +153,15 @@ async function getLatinAttributes(doc,word){
             break;
         }
     }
-    console.log(lastOl)
     if (lastOl) {
       const ListItems = lastOl.querySelectorAll('ol > li');
       let firstListItem;
       for(let i = 0;i<ListItems.length;i++){
-        console.log(ListItems[i])
         if (ListItems[i].textContent.trim()!==""){
           firstListItem = ListItems[i]
           break;
         }
       }
-      console.log(firstListItem)
       firstListItem.querySelectorAll('span, dl,ul').forEach(el => el.remove());
       rawDef = firstListItem.textContent.trim();
       if(rawDef.includes('.mw')){
@@ -227,7 +222,6 @@ async function getLatinAttributes(doc,word){
     vocabInfo.textContent+="| \n collection: "+vocab.book
     conjugations.type = 'latin';
     document.getElementById("addAuto").style.display = 'block'
-    console.log(vocab)
     }
   else {
     const nounInflectionTable = doc.querySelector('table.inflection-table-la');
@@ -252,9 +246,7 @@ async function getLatinAttributes(doc,word){
         const grannyElement = isWord.parentElement.parentElement;
         const genderSpan = grannyElement.querySelector("span.gender");
         if(genderSpan){
-          console.log(genderSpan)
           const genderDef = genderSpan.firstChild.textContent;
-          console.log(genderDef);
           switch(genderDef){
             case 'f':
               autoGender = 'feminine'
@@ -285,7 +277,6 @@ async function getLatinAttributes(doc,word){
       
       const ListItems = sibling.querySelectorAll('li');
       for(let i = 0;i<ListItems.length;i++){
-        console.log(ListItems[i])
         if (ListItems[i].textContent.trim()!==""){
           firstListItem = ListItems[i]
           break;
@@ -334,14 +325,12 @@ async function getLatinAttributes(doc,word){
 
       conjugations.type = 'latin';
       document.getElementById("addAuto").style.display = 'block'
-      console.log(vocab)
      }else{
       const latinElement = doc.querySelector('span.form-of-definition-link i.Latn.mention[lang="la"]');
       if(latinElement){
         const anchorTag = latinElement.querySelector('a');
         if (anchorTag) {
           const linkText = anchorTag.textContent; // Get the text content of the <a>
-          console.log("Anchor text:", linkText);
           const spanElement = latinElement.parentElement;
           const spanElement1 = spanElement.parentElement;
           const liElement = spanElement1.parentElement;
@@ -354,7 +343,6 @@ async function getLatinAttributes(doc,word){
         let noDiacritics = noramlizedWord.replace(/[\u0300-\u036f]/g, "");
         let finalStr = noDiacritics.replace(/-/g, "");
         let finallinkText = removeDiacritics(linkText)
-        console.log("finallinkText is "+ finallinkText)
         if(finalStr.trim()!=finallinkText.trim())  {
           url = usingLocal?`http://localhost:3000/fetch/${linkText}`:`https://en.wiktionary.org/wiki/${finallinkText}`
           await fetch(url)
@@ -363,7 +351,6 @@ async function getLatinAttributes(doc,word){
             // Parse the returned HTML and extract the inflection table
             const parser = new DOMParser();
             const baseDoc = parser.parseFromString(html, 'text/html');
-            console.log(baseDoc)
             getLatinAttributes(baseDoc,linkText);
           })
         }else{
@@ -393,11 +380,9 @@ async function getLinkedAttributes(doc,word,lang){
   const baseFormQuery = 'span.form-of-definition-link i[class="Latn mention"][lang="'+lang+'"]'
   const hasBaseForm = doc.querySelector(baseFormQuery);
   if(hasBaseForm){
-    console.log(hasBaseForm)
     const anchorTag = hasBaseForm.querySelector('a');
     if (anchorTag) {
       const linkText = anchorTag.textContent; // Get the text content of the <a>
-      console.log("Anchor text:", linkText);
       document.getElementById('vocabInfoInfs').style.display = 'block'
       const spanElement = hasBaseForm.parentElement;
       const spanElement1 = spanElement.parentElement;
@@ -407,7 +392,6 @@ async function getLinkedAttributes(doc,word,lang){
         const firstInflection = liElement.querySelector('ol')
         if(firstInflection){
           const inflectionDescription = firstInflection.querySelector('li')
-          console.log(inflectionDescription)
           definition+=inflectionDescription.textContent.trim()
         }else{
           definition = liElement.textContent.trim()
@@ -440,7 +424,6 @@ async function getLinkedAttributes(doc,word,lang){
    
   }
   }else{ 
-    console.log("is base form")
     getEasyAttributes(doc,word,lang)
   }
 }
@@ -448,7 +431,6 @@ async function getEasyAttributes(doc,word,lang){
   
   document.getElementById('vocabInfo').innerHTML = ''
   document.getElementById('vocabInfo').style.display = ""
-  console.log(word)
   const book = document.getElementById('bookSelector').value;
   const pronounciation = document.getElementById('pronounciation').value;
   const gender = document.getElementById('gender').value;
@@ -458,7 +440,6 @@ async function getEasyAttributes(doc,word,lang){
     const grannyElement = isWord.parentElement.parentElement;
     const closestOl = grannyElement.nextElementSibling;
     const liElement = closestOl.querySelector("li"); // Get the text content of the <a>
-    console.log(liElement)
     document.getElementById('vocabInfo').style.display = 'block'
     let definition = ""
     if(liElement){
@@ -474,7 +455,6 @@ async function getEasyAttributes(doc,word,lang){
         const parentElement = spanElement.parentElement.parentElement.parentElement.parentElement;
         
         if (parentElement) {
-          console.log(parentElement)
           verbInflectionTableNew = parentElement
           if(verbInflectionTableNew.classList.contains("roa-inflection-table")){
             isVerb = true
@@ -482,7 +462,6 @@ async function getEasyAttributes(doc,word,lang){
         }
       
       }
-    console.log(isVerb)
     let autoGender = ''
     const genderSpan = grannyElement.querySelector("span.gender");
     if(genderSpan){
@@ -516,7 +495,6 @@ async function getEasyAttributes(doc,word,lang){
         //   vocab.conjugations = getSpanishVerbInflections(verbInflectionTableNew)
       }
     }
-    console.log(vocab)
     document.getElementById("addAuto").style.display = 'block'
   }else{
     document.getElementById('vocabInfo').style.display = 'block'
@@ -733,16 +711,15 @@ document.addEventListener('DOMContentLoaded', (event) => {
   });
   populateBookSelector()
 });
-document.getElementById("autoAdd").addEventListener("click", function() {
-  chrome.tabs.create({ url: 'inflections/inflections.html' });
-});
 document.getElementById('addAuto').addEventListener('click', function(e) {
-  console.log(vocab)
   const book = document.getElementById('bookSelector').value;
   chrome.storage.local.get('vocabList', function(data) {
     let vocabList = data.vocabList || [];
+    if (vocabList.some(item=>item.word === vocab.word&&item.book === vocab.book)){
+    }else{
+      vocabList.push(vocab);
+    }
     // Append the new word, definition, and snoozed field
-    vocabList.push(vocab);
     chrome.storage.local.set({ lastBook: book }, function() {});
     // Save updated vocab list to Chrome storage
     chrome.storage.local.set({ vocabList: vocabList }, function() {

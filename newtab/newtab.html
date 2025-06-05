@@ -17,12 +17,33 @@
     #correctMessage { color: green; }
     #incorrectMessage { color: red; }
     #nextAfterIncorrectButton { display: none; margin-top: 10px; }
+    #changeInterval {
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      color: rgb(83, 83, 83);
+      cursor: pointer;
+      font: inherit; /* match the surrounding text font */
+    }
+    #autoplayButton {
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      color: rgb(83, 83, 83);
+      cursor: pointer;
+      font: inherit; /* match the surrounding text font */
+    }
   </style>
     <link rel="stylesheet" href="../libs/semantic.css">
 </head>
 <body>
   <div id="vocabFlashcard" class="flashcard" style = "background-color:#ffffff;margin: auto ;">
-    
+     <button class = "ui button"id="autoplayButton" style = "position: fixed;bottom:85%;transform: translateX(-50%);left:5%;font-weight: bold;font-size: 240%;">&#9654;</button>
+   <button class = "ui button"id="changeInterval" style = "position: fixed;bottom:85%;transform: translateX(-50%);left: 8%;font-weight: bold;font-size: 240%;">&#9881;</button>
+   <input class = "ui text" type="text" id="interval" name="interval" style = "display: None;position: fixed;bottom:88%;transform: translateX(-50%);left: 17%;font-weight: bold;"placeholder="Enter interval (seconds)">
+ 
     <div style = "font-size: 15px; color:#4b5437;" id="bookDiv"></div>   
     <div style = "font-size: 40px;color:#272623;" id="pronounDiv"></div>
     <div style = "font-size: 60px;color:#272623;" id="wordDiv"></div>
@@ -62,9 +83,9 @@
   <div id="correctDefinition" class="ui flashcard" style = "background-color:#ebebe9;height:200px; font-size: 200% ;margin: auto ;"></div>
   <div style = "display: block;justify-content: center;
             align-items: center;flex-wrap: wrap; padding-top:20px;">
-  <button class = "ui button"id="snoozeButton" style = "border: 3px solid;position: fixed;bottom:19%;transform: translateX(-50%);left: 30%;font-weight: bold;">Snooze</button>
-  <button class = "ui button"id="nextButton"style = "border: 3px solid;position: fixed;bottom:19%;transform: translateX(-50%);left: 70%;font-weight: bold;">Next</button>
-  <button class = "ui button"id="testButton" style = "border: 3px solid;position: fixed;bottom:19%;transform: translateX(-50%);left: 50%;font-weight: bold;">Test your vocabs</button>
+  <button class = "ui button"id="snoozeButton" style = "border: 3px solid;position: fixed;bottom:19%;transform: translateX(-50%);left: 40%;font-weight: bold;">Snooze</button>
+  <button class = "ui button"id="nextButton"style = "border: 3px solid;position: fixed;bottom:19%;transform: translateX(-50%);left: 65%;font-weight: bold;">Next</button>
+  <button class = "ui button"id="testButton" style = "border: 3px solid;position: fixed;bottom:19%;transform: translateX(-50%);left: 55%;font-weight: bold;">Test your vocabs</button>
   <button class = "ui button" id="nextAfterIncorrectButton" style="border: 3px solid;position: relative ; left:50% ; margin-top: 50px">Next</button>
   </div>
   <div class="ui form" style = "display: flex;position: fixed;bottom:13%;justify-content: center;transform: translateX(-50%);left: 50%;

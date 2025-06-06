@@ -55,7 +55,7 @@ document.getElementById('addVocabForm').addEventListener('submit', function(e) {
     if(language!="de"){
       word = removeDiacritics(word)
     }
-    url = usingLocal?`http://localhost:3000/fetch/${word}`:`https://en.wiktionary.org/wiki/${word}`
+    var url = usingLocal?`http://localhost:3000/fetch/${word}`:`https://en.wiktionary.org/wiki/${word}`
     fetch(url)
     .then(response => response.text())
     .then(html => {
@@ -163,7 +163,7 @@ async function getLatinAttributes(doc,word){
         }
       }
       firstListItem.querySelectorAll('span, dl,ul').forEach(el => el.remove());
-      rawDef = firstListItem.textContent.trim();
+      var rawDef = firstListItem.textContent.trim();
       if(rawDef.includes('.mw')){
         definition= rawDef.slice(0, definition.indexOf('.mw')).trim();
       }else{
@@ -291,12 +291,12 @@ async function getLatinAttributes(doc,word){
       const ListItems = sibling.querySelectorAll('li');
       for(let i = 0;i<ListItems.length;i++){
         if (ListItems[i].textContent.trim()!==""){
-          firstListItem = ListItems[i]
+          var firstListItem = ListItems[i]
           break;
         }
       }
       firstListItem.querySelectorAll('dl,ul').forEach(el => el.remove());
-      definition = firstListItem.textContent.trim();
+      var definition = firstListItem.textContent.trim();
       conjugations.inflections = {singular_nominative:[],
         plural_nominative:[],singular_genitive:[],
         plural_genitive:[],singular_dative:[],
@@ -370,7 +370,7 @@ async function getLatinAttributes(doc,word){
         let finalStr = noDiacritics.replace(/-/g, "");
         let finallinkText = removeDiacritics(linkText)
         if(finalStr.trim()!=finallinkText.trim())  {
-          url = usingLocal?`http://localhost:3000/fetch/${linkText}`:`https://en.wiktionary.org/wiki/${finallinkText}`
+          var url = usingLocal?`http://localhost:3000/fetch/${linkText}`:`https://en.wiktionary.org/wiki/${finallinkText}`
           await fetch(url)
           .then(response => response.text())
           .then(html => {
@@ -432,7 +432,7 @@ async function getLinkedAttributes(doc,word,lang){
     let finallinkText = removeDiacritics(linkText)
 
     if(finalStr.trim()!=linkText.trim())  {
-      url = usingLocal?`http://localhost:3000/fetch/${linkText}`:`https://en.wiktionary.org/wiki/${finallinkText}`
+      var url = usingLocal?`http://localhost:3000/fetch/${linkText}`:`https://en.wiktionary.org/wiki/${finallinkText}`
       await fetch(url)
       .then(response => response.text())
       .then(html => {
@@ -505,7 +505,7 @@ async function getEasyAttributes(doc,word,lang){
       }
     }
 
-    baseDef = definition
+    var baseDef = definition
     definition = definition.split(".mw")[0]
     definition = definition.split(";")[0];
     const language = convertFromAbbr(lang);
@@ -520,10 +520,10 @@ async function getEasyAttributes(doc,word,lang){
       }
     const nextElem = h2Parent.nextElementSibling;
     const etym = nextElem.innerText;
-    console.log(etym);
     document.getElementById('vocabInfo').innerHTML += '<span style="font-weight: bold;">'+definition+'</span>'
     document.getElementById('vocabInfo').innerHTML += autoGender?("|gender:"+autoGender):""
     document.getElementById('vocabInfo').innerHTML += "<br>" + etym
+    console.log(book)
     vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,seen:0,quizResults: ['n','n','n','n'],etym:etym}
     if(isVerb){
       switch(lang){
@@ -711,12 +711,12 @@ function populateBookSelector() {
   chrome.storage.sync.get({ bookList: [] }, (result) => {
     const bookList = result.bookList||"Default";
     chrome.storage.local.get('lastBook', function(data) {
-      const lastBook = data.lastBook||"Default";
-      console.log(lastBook)
+      const lastBook = data.lastBook?result.bookList[0]:"Default";
+      console.log(data.lastBook)
     if(lastBook){
         document.getElementById('bookSelector').innerHTML = ""
     if(lastBook!=""||lastBook==="addNew"){
-      optionNewSelected = document.createElement('option');
+      var optionNewSelected = document.createElement('option');
       optionNewSelected.textContent  = lastBook;
       optionNewSelected.value = lastBook;
       optionNewSelected.selected = true;

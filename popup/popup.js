@@ -214,12 +214,25 @@ async function getLatinAttributes(doc,word){
       }
     });
     const vocabInfo = document.getElementById('vocabInfo');
-    vocab = {word,definition,snoozed: false,book,pronounciation,gender,conjugations,seen:0,quizResults: ['n','n','n','n']}
-    vocabInfo.textContent=""
-    vocabInfo.textContent+=" word: "+vocab.word
-    vocabInfo.textContent+="| \n definition: "+vocab.definition
-    vocabInfo.textContent+=" |\n group: "+vocab.conjugations.group
-    vocabInfo.textContent+="| \n collection: "+vocab.book
+    var h2 = doc.getElementById('Latin');
+    var h2Parent = h2.parentElement;
+    while(true){
+      if(h2Parent&&h2Parent.firstChild&&h2Parent.firstChild.id&&h2Parent.firstChild.id.includes('Etymology')){
+        break;
+      }else{
+        h2Parent = h2Parent.nextElementSibling;
+      }
+    }
+    const nextElem = h2Parent.nextElementSibling;
+    const etym = nextElem.innerText;
+    console.log(etym);
+    vocab = {word,definition,snoozed: false,book,pronounciation,gender,conjugations,seen:0,quizResults: ['n','n','n','n'],etym:etym}
+    vocabInfo.innerHTML=""
+    vocabInfo.innerHTML+=' word: <span style="font-weight: bold;">'+vocab.word + '</span>'
+    vocabInfo.innerHTML+='<br>| \n definition: <span style="font-weight: bold;">'+vocab.definition+ '</span>'
+    vocabInfo.innerHTML+="<br>|\n group: "+vocab.conjugations.group
+    vocabInfo.innerHTML+="<br>| \n collection: "+vocab.book
+    vocabInfo.innerHTML+="<br>| \n eytmology: "+vocab.etym
     conjugations.type = 'latin';
     document.getElementById("addAuto").style.display = 'block'
     }
@@ -312,16 +325,29 @@ async function getLatinAttributes(doc,word){
       });
       conjugations.type = 'latin';
       const vocabInfo = document.getElementById('vocabInfo');
-      vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,conjugations,seen:0,quizResults: ['n','n','n','n']}
-      vocabInfo.textContent=""
-      vocabInfo.textContent+=" word: "+vocab.word
-      vocabInfo.textContent+="| \n definition: "+vocab.definition
-      if(autoGender){
-      vocabInfo.textContent+="| \n gender: "+autoGender
+      var h2 = doc.getElementById('Latin');
+      var h2Parent = h2.parentElement;
+      while(true){
+        if(h2Parent&&h2Parent.firstChild&&h2Parent.firstChild.id&&h2Parent.firstChild.id.includes('Etymology')){
+          break;
+        }else{
+          h2Parent = h2Parent.nextElementSibling;
+        }
       }
-      vocabInfo.textContent+="| \n group: "+vocab.conjugations.group
-      vocabInfo.textContent+="| \n collection: "+vocab.book
-      vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,conjugations,seen:0,quizResults: ['n','n','n','n']}
+      const nextElem = h2Parent.nextElementSibling;
+      const etym = nextElem.innerText;
+      console.log(etym);
+      vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,conjugations,seen:0,quizResults: ['n','n','n','n'],etym:etym}
+       vocabInfo.innerHTML=""
+      vocabInfo.innerHTML+=' word: <span style="font-weight: bold;">'+vocab.word + '</span>'
+      vocabInfo.innerHTML+='<br> \n definition: <span style="font-weight: bold;">'+vocab.definition+ '</span>'
+      if(autoGender){
+      vocabInfo.innerHTML+="<br> \n gender: "+autoGender
+      }
+      vocabInfo.innerHTML+="<br>\n group: "+vocab.conjugations.group
+      vocabInfo.innerHTML+="<br> \n collection: "+vocab.book
+      vocabInfo.innerHTML+="<br> \n eytmology: "+vocab.etym
+      vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,conjugations,seen:0,quizResults: ['n','n','n','n'],etym:etym}
 
       conjugations.type = 'latin';
       document.getElementById("addAuto").style.display = 'block'
@@ -482,13 +508,22 @@ async function getEasyAttributes(doc,word,lang){
     baseDef = definition
     definition = definition.split(".mw")[0]
     definition = definition.split(";")[0];
-    const h3 = doc.getElementById('Etymology');
-    const wrapperDiv = h3.parentElement; 
-    const nextElem = wrapperDiv.nextElementSibling;
+    const language = convertFromAbbr(lang);
+    var h2 = doc.getElementById(language);
+      var h2Parent = h2.parentElement;
+      while(true){
+        if(h2Parent&&h2Parent.firstChild&&h2Parent.firstChild.id&&h2Parent.firstChild.id.includes('Etymology')){
+          break;
+        }else{
+          h2Parent = h2Parent.nextElementSibling;
+        }
+      }
+    const nextElem = h2Parent.nextElementSibling;
     const etym = nextElem.innerText;
     console.log(etym);
-    document.getElementById('vocabInfo').innerHTML += definition
+    document.getElementById('vocabInfo').innerHTML += '<span style="font-weight: bold;">'+definition+'</span>'
     document.getElementById('vocabInfo').innerHTML += autoGender?("|gender:"+autoGender):""
+    document.getElementById('vocabInfo').innerHTML += "<br>" + etym
     vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,seen:0,quizResults: ['n','n','n','n'],etym:etym}
     if(isVerb){
       switch(lang){
@@ -504,6 +539,84 @@ async function getEasyAttributes(doc,word,lang){
     document.getElementById('vocabInfo').style.display = 'block'
     document.getElementById('vocabInfo').innerHTML = "word could need correct capitalizations, be a special word, or doesnot exist in the language"
   }
+}
+function convertFromAbbr(lang){
+switch (lang) {
+  case 'de':
+    return 'German';
+  case 'es':
+    return 'Spanish';
+  case 'fr':
+    return 'French';
+  case 'it':
+    return 'Italian';
+  case 'en':
+    return 'English';
+  case 'pt':
+    return 'Portuguese';
+  case 'ru':
+    return 'Russian';
+  case 'zh':
+    return 'Chinese';
+  case 'ja':
+    return 'Japanese';
+  case 'ko':
+    return 'Korean';
+  case 'ar':
+    return 'Arabic';
+  case 'nl':
+    return 'Dutch';
+  case 'sv':
+    return 'Swedish';
+  case 'no':
+    return 'Norwegian';
+  case 'da':
+    return 'Danish';
+  case 'fi':
+    return 'Finnish';
+  case 'pl':
+    return 'Polish';
+  case 'tr':
+    return 'Turkish';
+  case 'el':
+    return 'Greek';
+  case 'he':
+    return 'Hebrew';
+  case 'hi':
+    return 'Hindi';
+  case 'bn':
+    return 'Bengali';
+  case 'la':
+    return 'Latin';
+  case 'vi':
+    return 'Vietnamese';
+  case 'id':
+    return 'Indonesian';
+  case 'ms':
+    return 'Malay';
+  case 'th':
+    return 'Thai';
+  case 'ro':
+    return 'Romanian';
+  case 'cs':
+    return 'Czech';
+  case 'hu':
+    return 'Hungarian';
+  case 'sk':
+    return 'Slovak';
+  case 'bg':
+    return 'Bulgarian';
+  case 'uk':
+    return 'Ukrainian';
+  case 'fa':
+    return 'Persian';
+  case 'sw':
+    return 'Swahili';
+
+  default:
+    return 'Unknown';
+}
+
 }
 function getFrenchVerbInflections(doc){
   conjugations = {}

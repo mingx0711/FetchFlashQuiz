@@ -216,17 +216,26 @@ async function getLatinAttributes(doc,word){
     const vocabInfo = document.getElementById('vocabInfo');
     var h2 = doc.getElementById('Latin');
     var h2Parent = h2.parentElement;
+    var hasEytm = true;
     while(true){
       if(h2Parent&&h2Parent.firstChild&&h2Parent.firstChild.id&&h2Parent.firstChild.id.includes('Etymology')){
         break;
       }else{
-        h2Parent = h2Parent.nextElementSibling;
+        if(h2Parent.nextElementSibling){
+          h2Parent = h2Parent.nextElementSibling;
+        }else{
+          hasEytm = false;
+          break;
+        }
       }
     }
+    var etym;
+    if(!hasEytm){etym = ""}else{
     const nextElem = h2Parent.nextElementSibling;
-    const etym = nextElem.innerText;
+    etym = nextElem.innerText;
+    }
     console.log(etym);
-    vocab = {word,definition,snoozed: false,book,pronounciation,gender,conjugations,seen:0,quizResults: ['n','n','n','n'],etym:etym}
+    vocab = {word,definition,snoozed: false,book,pronounciation,gender,conjugations,seen:0,quizResults: ['n','n','n','n'],etym:hasEytm?etym:""}
     vocabInfo.innerHTML=""
     vocabInfo.innerHTML+=' word: <span style="font-weight: bold;">'+vocab.word + '</span>'
     vocabInfo.innerHTML+='<br>| \n definition: <span style="font-weight: bold;">'+vocab.definition+ '</span>'
@@ -323,6 +332,7 @@ async function getLatinAttributes(doc,word){
         if(spanElement.className.includes('p-')&&spanElement.className.includes('abl')){conjugations.inflections.plural_ablative.push(childText);}
 
       });
+      let hasEytm = true;
       conjugations.type = 'latin';
       const vocabInfo = document.getElementById('vocabInfo');
       var h2 = doc.getElementById('Latin');
@@ -331,14 +341,23 @@ async function getLatinAttributes(doc,word){
         if(h2Parent&&h2Parent.firstChild&&h2Parent.firstChild.id&&h2Parent.firstChild.id.includes('Etymology')){
           break;
         }else{
-          h2Parent = h2Parent.nextElementSibling;
+          if(h2Parent.nextElementSibling){
+            h2Parent = h2Parent.nextElementSibling;
+          }else{
+            hasEytm = false;
+            break;
+          }
         }
       }
-      const nextElem = h2Parent.nextElementSibling;
-      const etym = nextElem.innerText;
+      
+    var etym;
+    if(!hasEytm){etym = ""}else{
+    const nextElem = h2Parent.nextElementSibling;
+    etym = nextElem.innerText;
+    }
       console.log(etym);
-      vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,conjugations,seen:0,quizResults: ['n','n','n','n'],etym:etym}
-       vocabInfo.innerHTML=""
+      vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,conjugations,seen:0,quizResults: ['n','n','n','n'],etym:hasEytm?etym:""}
+      vocabInfo.innerHTML=""
       vocabInfo.innerHTML+=' word: <span style="font-weight: bold;">'+vocab.word + '</span>'
       vocabInfo.innerHTML+='<br> \n definition: <span style="font-weight: bold;">'+vocab.definition+ '</span>'
       if(autoGender){
@@ -347,8 +366,6 @@ async function getLatinAttributes(doc,word){
       vocabInfo.innerHTML+="<br>\n group: "+vocab.conjugations.group
       vocabInfo.innerHTML+="<br> \n collection: "+vocab.book
       vocabInfo.innerHTML+="<br> \n eytmology: "+vocab.etym
-      vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,conjugations,seen:0,quizResults: ['n','n','n','n'],etym:etym}
-
       conjugations.type = 'latin';
       document.getElementById("addAuto").style.display = 'block'
      }else{
@@ -504,27 +521,36 @@ async function getEasyAttributes(doc,word,lang){
           break;
       }
     }
-
+    var hasEytm = true;
     var baseDef = definition
     definition = definition.split(".mw")[0]
     definition = definition.split(";")[0];
     const language = convertFromAbbr(lang);
     var h2 = doc.getElementById(language);
-      var h2Parent = h2.parentElement;
-      while(true){
+    var h2Parent = h2.parentElement;
+    while(true){
         if(h2Parent&&h2Parent.firstChild&&h2Parent.firstChild.id&&h2Parent.firstChild.id.includes('Etymology')){
           break;
         }else{
-          h2Parent = h2Parent.nextElementSibling;
+          if(h2Parent.nextElementSibling){
+            h2Parent = h2Parent.nextElementSibling;
+          }else{
+            hasEytm = false;
+            break;
+          }
         }
-      }
+    }
+    var etym;
+    if(!hasEytm){etym = ""}else{
     const nextElem = h2Parent.nextElementSibling;
-    const etym = nextElem.innerText;
+    etym = nextElem.innerText;
+    }
+    console.log("Eytm?" + hasEytm)
     document.getElementById('vocabInfo').innerHTML += '<span style="font-weight: bold;">'+definition+'</span>'
     document.getElementById('vocabInfo').innerHTML += autoGender?("|gender:"+autoGender):""
     document.getElementById('vocabInfo').innerHTML += "<br>" + etym
     console.log(book)
-    vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,seen:0,quizResults: ['n','n','n','n'],etym:etym}
+    vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,seen:0,quizResults: ['n','n','n','n'],etym:hasEytm?etym:""}
     if(isVerb){
       switch(lang){
         case 'fr':
@@ -711,7 +737,7 @@ function populateBookSelector() {
   chrome.storage.sync.get({ bookList: [] }, (result) => {
     const bookList = result.bookList||"Default";
     chrome.storage.local.get('lastBook', function(data) {
-      const lastBook = data.lastBook?result.bookList[0]:"Default";
+      const lastBook = data.lastBook?data.lastBook:(result.bookList?result.bookList[0]:"Default");
       console.log(data.lastBook)
     if(lastBook){
         document.getElementById('bookSelector').innerHTML = ""

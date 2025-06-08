@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
   chrome.storage.local.get('currentCollectionSelection', function(data){
     currentCollectionSelection = data.currentCollectionSelection || []
   });
-  chrome.storage.sync.get(['selectedPalette'], function(result) {
+  chrome.storage.local.get(['selectedPalette'], function(result) {
     if (result.selectedPalette) {
         changeColor(result.selectedPalette);
     } else {
@@ -46,7 +46,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 const intervalInput = document.getElementById('interval');
-
 intervalInput.addEventListener('input', (e) => {
   const parsed = parseInt(e.target.value, 10);
 
@@ -67,6 +66,663 @@ intervalInput.addEventListener('input', (e) => {
     );
   }
 });
+const fetchTip = document.getElementById('fetchTip');
+const fetchInfo = document.getElementById('fetchInfo');
+fetchInfo.addEventListener('mouseenter',() => {
+    fetchTip.style.display = ''
+});
+fetchInfo.addEventListener('mouseleave', () => {
+    fetchTip.style.display = 'none'
+});
+var keepGoing = true;
+fetchInfo.addEventListener('click', async () => {
+  if(fetchInfo.textContent == 'fetching'){
+    fetchInfo.textContent = 'auto-complete vocab in the background(?)'
+    keepGoing = false;
+  }else{
+    fetchInfo.textContent = 'fetching'
+    for (const item of vocabList) {
+      if(!keepGoing){break;}
+      if(!item.hasChecked||item.hasChecked!=true){
+        fetchInfoFromWik(item);
+        await sleep(30000,100000)
+      }
+    };
+  }
+});
+function sleep(maxMs, minMs) {
+  var sleepMs = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+  return new Promise(resolve => setTimeout(resolve, sleepMs));
+}
+async function fetchInfoFromWik(vocab){
+  console.log('bob')
+  var language = vocab.book
+  var word = vocab.word
+  if(language!="de"){
+      word = removeDiacritics(word)
+  }
+  console.log(vocab.word + "---"+ vocab.book)
+  var url = `https://en.wiktionary.org/wiki/${word}`
+    fetch(url)
+    .then(response => response.text())
+    .then(html => {
+      // Parse the returned HTML and extract the inflection table
+       const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            if (language == "Latin"){
+              getLatinAttributes(doc,vocab);
+            }else{
+              language = convertToAbbr(language)
+              getEasyAttributes(doc,vocab,language)
+            }
+    })
+}
+
+async function getLatinAttributes(doc,vocab){
+  let conjugations = {};
+  let verbInflectionTable;
+  let verbInflectionTableNew;
+  let isVerb = false;
+  const spanElement = doc.querySelector('span.Latn.form-of.lang-la[lang="la"]');
+
+  if (spanElement) {
+      // Get its parent element
+      const parentElement = spanElement.parentElement.parentElement.parentElement.parentElement;
+      
+      if (parentElement) {
+        console.log(parentElement)
+        verbInflectionTableNew = parentElement
+        if(verbInflectionTableNew.classList.contains("roa-inflection-table")){
+          isVerb = true
+        }
+      }
+    
+    }
+
+  let iTableLocator = doc.querySelector('.inflection-table.vsSwitcher tbody tr th i[lang="la"]');
+  if(iTableLocator){
+    let th = iTableLocator.parentElement;
+    let tr = th.parentElement;
+    let tbody = tr.parentElement;
+    verbInflectionTable=tbody.parentElement;
+  }
+
+  if (verbInflectionTable||isVerb) {
+    let anchorElement = verbInflectionTableNew.querySelector('a');
+    if(anchorElement){conjugations.group=anchorElement.textContent};
+    let definition = ""
+    let lastOl = null;
+    const parentParagraph = verbInflectionTableNew.parentElement.parentElement;
+    let currentElement = parentParagraph;
+
+    while (currentElement) {
+        currentElement = currentElement.previousElementSibling ;
+        if (currentElement && currentElement.tagName === "OL") {
+            lastOl = currentElement;
+            break;
+        }
+    }
+    if (lastOl) {
+      const ListItems = lastOl.querySelectorAll('ol > li');
+      let firstListItem;
+      for(let i = 0;i<ListItems.length;i++){
+        if (ListItems[i].textContent.trim()!==""){
+          firstListItem = ListItems[i]
+          break;
+        }
+      }
+      firstListItem.querySelectorAll('span, dl,ul').forEach(el => el.remove());
+      var rawDef = firstListItem.textContent.trim();
+      if(rawDef.includes('.mw')){
+        definition= rawDef.slice(0, definition.indexOf('.mw')).trim();
+      }else{
+        definition= rawDef.trim();
+      }
+    }
+  
+    let conjugationText = conjugations.group;
+    // Select the <span> element
+    let spanElements = doc.querySelectorAll('span.Latn.form-of.lang-la');
+    conjugations.pos = 'verb'
+    conjugations.number = {singular:[],plural:[]}
+    conjugations.person = {first:[],second:[],third:[]}
+    conjugations.tense = {present:[],imperfect:[],perfect:[],future:[],pluperfect:[],futurePerfect:[],sigmaticFuture:[],aorist:[]}
+    conjugations.voice = {active:[],passive:[]}
+    conjugations.mood = {indicative:[],subjunctive:[],imperative:[]}
+    conjugations.form = {infinitive:[],participle:[]}
+    conjugations.noun = {gerundive:[],supine:[]}
+    conjugations.case = {genitive:[],ablative:[],accusative:[],dative:[]}
+    spanElements.forEach((spanElement) => {
+      let childText = spanElement.firstElementChild.textContent;
+      if(spanElement.className.includes('1')){conjugations.person.first.push(childText);}
+      if(spanElement.className.includes('2')){conjugations.person.second.push(childText);}
+      if(spanElement.className.includes('3')){conjugations.person.third.push(childText);}
+      if(spanElement.className.includes('|s|')){conjugations.number.singular.push(childText);
+      }if(spanElement.className.includes('|p|')){conjugations.number.plural.push(childText);
+      }if(spanElement.className.includes('pres')){ conjugations.tense.present.push(childText);
+      }if(spanElement.className.includes('impf')){conjugations.tense.imperfect.push(childText);
+      }if(spanElement.className.includes('fut|')){conjugations.tense.future.push(childText);
+      }if(spanElement.className.includes('perf')){conjugations.tense.perfect.push(childText);
+      }if(spanElement.className.includes('plup')){conjugations.tense.pluperfect.push(childText);
+      }if(spanElement.className.includes('futp')){conjugations.tense.futurePerfect.push(childText);
+      }if(spanElement.className.includes('sigm')){conjugations.tense.sigmaticFuture.push(childText);
+      }if(spanElement.className.includes('aor')){conjugations.tense.aorist.push(childText);
+      }if(spanElement.className.includes('act')){conjugations.voice.active.push(childText);
+      }if(spanElement.className.includes('pass')){conjugations.voice.passive.push(childText);
+      }if(spanElement.className.includes('ind')){conjugations.mood.indicative.push(childText);
+      }if(spanElement.className.includes('sub')){conjugations.mood.subjunctive.push(childText);
+      }if(spanElement.className.includes('imp-form-of')){conjugations.mood.imperative.push(childText);
+      }if(spanElement.className.includes('inf')){conjugations.form.infinitive.push(childText);
+      }if(spanElement.className.includes('part')){conjugations.form.participle.push(childText);
+      }if(spanElement.className.includes('gen')){conjugations.case.genitive.push(childText);
+      }if(spanElement.className.includes('ger')){conjugations.noun.gerundive.push(childText);
+      }if(spanElement.className.includes('dat')){conjugations.case.dative.push(childText);
+      }if(spanElement.className.includes('acc')){conjugations.case.accusative.push(childText);
+      }if(spanElement.className.includes('sup')){conjugations.noun.supine.push(childText);
+      }if(spanElement.className.includes('abl')){conjugations.case.ablative.push(childText);
+      }
+    });
+    var h2 = doc.getElementById('Latin');
+    var h2Parent = h2.parentElement;
+    var hasEytm = true;
+    while(true){
+      if(h2Parent&&h2Parent.firstChild&&h2Parent.firstChild.id&&h2Parent.firstChild.id.includes('Etymology')){
+        break;
+      }else{
+        if(h2Parent.nextElementSibling){
+          h2Parent = h2Parent.nextElementSibling;
+        }else{
+          hasEytm = false;
+          break;
+        }
+      }
+    }
+    var etym;
+    if(!hasEytm){etym = ""}else{
+    const nextElem = h2Parent.nextElementSibling;
+    etym = nextElem.innerText;
+    }
+    console.log(etym);
+    vocab.hasChecked = true;
+    if(!vocab.etym&&hasEytm){vocab.etym = etym;}
+    if(!vocab.conjugations){vocab.conjugations = conjugations;}
+    vocabList = vocabList.map(item =>
+    item.word === vocab.word
+      ? vocab      // replace the entire object
+      : item         // leave everything else alone
+    );
+    chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
+    }
+  else {
+    const nounInflectionTable = doc.querySelector('table.inflection-table-la');
+    if(nounInflectionTable){
+      const conjugations = {}
+      let declension = ""
+      const declensionElements = doc.querySelectorAll('a[href^="/wiki/Appendix:Latin_"][href*="declension"]');
+      if(declensionElements){
+        const declensionElementsLength = declensionElements.length/2
+        for(let i = 0;i<declensionElementsLength;i++){
+          declension+=declensionElements[i].textContent
+        }
+        declension = declension.replaceAll("firstsecond","first&second").replaceAll("-"," ")
+        declension= declension.slice(0, declension.indexOf(' ')).trim();        
+        conjugations.group = declension
+      }
+      const queryWord = 'strong.Latn.headword[lang="la"]'
+      const isWord = doc.querySelector(queryWord);
+      let autoGender = ''
+      if(isWord){
+        const grannyElement = isWord.parentElement.parentElement;
+        const genderSpan = grannyElement.querySelector("span.gender");
+        if(genderSpan){
+          const genderDef = genderSpan.firstChild.textContent;
+          switch(genderDef){
+            case 'f':
+              autoGender = 'feminine'
+              break;
+            case 'm':
+              autoGender = 'masculine'
+              break;
+            case 'n':
+              autoGender = 'neuter'
+              break;
+            default:
+              break;
+          }
+        }
+      }
+      let closestOl = null;
+      const latinHeading = doc.querySelector('h2#Latin');
+      const closestDiv = latinHeading.closest('div');
+      let sibling = closestDiv.nextElementSibling;
+      while (sibling) {
+        // If an <ol> is found, assign it to closestOl and break out of the loop
+        if (sibling.tagName.toLowerCase() === 'ol') {
+            closestOl = sibling;
+            break;
+        }
+        sibling = sibling.nextElementSibling; // Move to the next sibling
+      }
+      
+      const ListItems = sibling.querySelectorAll('li');
+      for(let i = 0;i<ListItems.length;i++){
+        if (ListItems[i].textContent.trim()!==""){
+          var firstListItem = ListItems[i]
+          break;
+        }
+      }
+      firstListItem.querySelectorAll('dl,ul').forEach(el => el.remove());
+      var definition = firstListItem.textContent.trim();
+      conjugations.inflections = {singular_nominative:[],
+        plural_nominative:[],singular_genitive:[],
+        plural_genitive:[],singular_dative:[],
+        plural_dative:[],singular_accusative:[],
+        plural_accusative:[],singular_ablative:[],
+        plural_ablative:[],singular_vocative:[],
+        plural_vocative:[],
+      
+      }
+      let spanElements = doc.querySelectorAll('span.Latn.form-of.lang-la');
+      spanElements.forEach((spanElement) => {
+        let childText = spanElement.firstElementChild.textContent;
+        if(spanElement.className.includes('s-')&&spanElement.className.includes('nom')){conjugations.inflections.singular_nominative.push(childText);}
+        if(spanElement.className.includes('p-')&&spanElement.className.includes('nom')){conjugations.inflections.plural_nominative.push(childText);}
+        if(spanElement.className.includes('s-')&&spanElement.className.includes('acc')){conjugations.inflections.singular_accusative.push(childText);}
+        if(spanElement.className.includes('p-')&&spanElement.className.includes('acc')){conjugations.inflections.plural_accusative.push(childText);}
+        if(spanElement.className.includes('s-')&&spanElement.className.includes('dat')){conjugations.inflections.singular_dative.push(childText);}
+        if(spanElement.className.includes('p-')&&spanElement.className.includes('dat')){conjugations.inflections.plural_dative.push(childText);}
+        if(spanElement.className.includes('s-')&&spanElement.className.includes('gen')){conjugations.inflections.singular_genitive.push(childText);}
+        if(spanElement.className.includes('p-')&&spanElement.className.includes('gen')){conjugations.inflections.plural_genitive.push(childText);}
+        if(spanElement.className.includes('s-')&&spanElement.className.includes('voc')){conjugations.inflections.singular_vocative.push(childText);}
+        if(spanElement.className.includes('p-')&&spanElement.className.includes('voc')){conjugations.inflections.plural_vocative.push(childText);}
+        if(spanElement.className.includes('s-')&&spanElement.className.includes('abl')){conjugations.inflections.singular_ablative.push(childText);}
+        if(spanElement.className.includes('p-')&&spanElement.className.includes('abl')){conjugations.inflections.plural_ablative.push(childText);}
+
+      });
+      let hasEytm = true;
+      conjugations.type = 'latin';
+      var h2 = doc.getElementById('Latin');
+      var h2Parent = h2.parentElement;
+      while(true){
+        if(h2Parent&&h2Parent.firstChild&&h2Parent.firstChild.id&&h2Parent.firstChild.id.includes('Etymology')){
+          break;
+        }else{
+          if(h2Parent.nextElementSibling){
+            h2Parent = h2Parent.nextElementSibling;
+          }else{
+            hasEytm = false;
+            break;
+          }
+        }
+      }
+      
+    var etym;
+    if(!hasEytm){etym = ""}else{
+    const nextElem = h2Parent.nextElementSibling;
+    etym = nextElem.innerText;
+    }
+    vocab.hasChecked = true;
+    if(!vocab.etym&&hasEytm){vocab.etym = etym;}
+    if(!vocab.gender){vocab.gender = autoGender;}
+    if(!vocab.conjugations){vocab.conjugations = conjugations;}
+    vocabList = vocabList.map(item =>
+    item.word === vocab.word
+      ? vocab      // replace the entire object
+      : item         // leave everything else alone
+    );
+    chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
+    console.log(vocab)
+     }else{
+      const latinElement = doc.querySelector('span.form-of-definition-link i.Latn.mention[lang="la"]');
+      if(latinElement){
+        const anchorTag = latinElement.querySelector('a');
+        if (anchorTag) {
+          const linkText = anchorTag.textContent; // Get the text content of the <a>
+          const spanElement = latinElement.parentElement;
+          const spanElement1 = spanElement.parentElement;
+          const liElement = spanElement1.parentElement;
+          let definition = ""
+          if(liElement){
+            definition = liElement.textContent.trim()
+          }
+          definition+=","
+        let noramlizedWord = word.normalize('NFD');
+        let noDiacritics = noramlizedWord.replace(/[\u0300-\u036f]/g, "");
+        let finalStr = noDiacritics.replace(/-/g, "");
+        let finallinkText = removeDiacritics(linkText)
+        if(finalStr.trim()!=finallinkText.trim())  {
+          var url = usingLocal?`http://localhost:3000/fetch/${linkText}`:`https://en.wiktionary.org/wiki/${finallinkText}`
+          await fetch(url)
+          .then(response => response.text())
+          .then(html => {
+            // Parse the returned HTML and extract the inflection table
+            const parser = new DOMParser();
+            const baseDoc = parser.parseFromString(html, 'text/html');
+            getLatinAttributes(baseDoc,linkText);
+          })
+        }else{
+          vocab.hasChecked = true;
+          console.log(vocab + " does not exist in wiktionary")
+          chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
+        }
+      }
+    }else{
+      const isLatinWord = doc.querySelector('strong.Latn.headword[lang="la"]');
+      if(isLatinWord){
+       getEasyAttributes(doc,vocab,"la")
+        }
+      }
+    }
+  }
+}
+function removeDiacritics(str) {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+async function getEasyAttributes(doc,vocab,lang){
+  const queryWord = 'strong.Latn.headword[lang="'+lang+'"]'
+  const isWord = doc.querySelector(queryWord);
+  if(isWord){
+    const grannyElement = isWord.parentElement.parentElement;
+    const closestOl = grannyElement.nextElementSibling;
+    const liElement = closestOl.querySelector("li"); // Get the text content of the <a>
+    let definition = ""
+    if(liElement){
+      liElement.querySelectorAll('dl,u,span,ul').forEach(el => el.remove());
+      definition = liElement.textContent.trim()
+      definition = definition.replace(/ *\([^)]*\) */g, "");
+    }
+    const spanElement = doc.querySelector('span.Latn.form-of.lang-'+lang+'[lang="'+lang+'"]');
+    let isVerb = false;
+    let verbInflectionTableNew;
+    if (spanElement) {
+        // Get its parent element
+        const parentElement = spanElement.parentElement.parentElement.parentElement.parentElement;
+        
+        if (parentElement) {
+          verbInflectionTableNew = parentElement
+          if(verbInflectionTableNew.classList.contains("roa-inflection-table")){
+            isVerb = true
+          }
+        }
+      
+      }
+    let autoGender = ''
+    const genderSpan = grannyElement.querySelector("span.gender");
+    if(genderSpan){
+      const genderDef = genderSpan.firstChild.textContent;
+      switch(genderDef){
+        case 'f':
+          autoGender = 'feminine'
+          break;
+        case 'm':
+          autoGender = 'masculine'
+          break;
+        case 'n':
+          autoGender = 'neuter'
+          break;
+        default:
+          break;
+      }
+    }
+    var hasEytm = true;
+    var baseDef = definition
+    definition = definition.split(".mw")[0]
+    definition = definition.split(";")[0];
+    const language = convertFromAbbr(lang);
+    var h2 = doc.getElementById(language);
+    var h2Parent = h2.parentElement;
+    while(true){
+        if(h2Parent&&h2Parent.firstChild&&h2Parent.firstChild.id&&h2Parent.firstChild.id.includes('Etymology')){
+          break;
+        }else{
+          if(h2Parent.nextElementSibling){
+            h2Parent = h2Parent.nextElementSibling;
+          }else{
+            hasEytm = false;
+            break;
+          }
+        }
+    }
+    var etym;
+    if(!hasEytm){etym = ""}else{
+    const nextElem = h2Parent.nextElementSibling;
+    etym = nextElem.innerText;
+    }
+    console.log("Eytm?" + hasEytm)
+    vocab.hasChecked = true;
+    if(!vocab.etym&&hasEytm){vocab.etym = etym;}
+    if(!vocab.gender){vocab.gender = autoGender;}
+    if(isVerb){
+      switch(lang){
+        case 'fr':
+          vocab.conjugations = getFrenchVerbInflections(verbInflectionTableNew)
+          break;
+        // case 'es':
+        //   vocab.conjugations = getSpanishVerbInflections(verbInflectionTableNew)
+      }
+    }
+    vocabList = vocabList.map(item =>
+    item.word === vocab.word
+      ? vocab      // replace the entire object
+      : item         // leave everything else alone
+    );
+    chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
+    console.log(vocab)
+  }else{
+    vocab.hasChecked = true;
+    console.log(vocab + " does not exist in wiktionary")
+    chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
+  }
+}
+function convertFromAbbr(lang){
+switch (lang) {
+  case 'de':
+    return 'German';
+  case 'es':
+    return 'Spanish';
+  case 'fr':
+    return 'French';
+  case 'it':
+    return 'Italian';
+  case 'en':
+    return 'English';
+  case 'pt':
+    return 'Portuguese';
+  case 'ru':
+    return 'Russian';
+  case 'zh':
+    return 'Chinese';
+  case 'ja':
+    return 'Japanese';
+  case 'ko':
+    return 'Korean';
+  case 'ar':
+    return 'Arabic';
+  case 'nl':
+    return 'Dutch';
+  case 'sv':
+    return 'Swedish';
+  case 'no':
+    return 'Norwegian';
+  case 'da':
+    return 'Danish';
+  case 'fi':
+    return 'Finnish';
+  case 'pl':
+    return 'Polish';
+  case 'tr':
+    return 'Turkish';
+  case 'el':
+    return 'Greek';
+  case 'he':
+    return 'Hebrew';
+  case 'hi':
+    return 'Hindi';
+  case 'bn':
+    return 'Bengali';
+  case 'la':
+    return 'Latin';
+  case 'vi':
+    return 'Vietnamese';
+  case 'id':
+    return 'Indonesian';
+  case 'ms':
+    return 'Malay';
+  case 'th':
+    return 'Thai';
+  case 'ro':
+    return 'Romanian';
+  case 'cs':
+    return 'Czech';
+  case 'hu':
+    return 'Hungarian';
+  case 'sk':
+    return 'Slovak';
+  case 'bg':
+    return 'Bulgarian';
+  case 'uk':
+    return 'Ukrainian';
+  case 'fa':
+    return 'Persian';
+  case 'sw':
+    return 'Swahili';
+
+  default:
+    return 'Unknown';
+}
+
+}
+function getFrenchVerbInflections(doc){
+  conjugations = {}
+    let spanElements = doc.querySelectorAll('span.Latn.form-of.lang-fr');
+    conjugations.pos = 'verb'
+    conjugations.number = {singular:[],plural:[]}
+    conjugations.person = {first:[],second:[],third:[]}
+    conjugations.tense = {present:[],imperfect:[],past_historic:[],future:[],conditional:[]}
+    conjugations.mood = {indicative:[],subjunctive:[],imperative:[]}
+    conjugations.form = {past_participle:[],present_participle:[]}
+    spanElements.forEach((spanElement) => {
+      let childText = spanElement.firstElementChild.textContent;
+      if(spanElement.className.includes('1')){conjugations.person.first.push(childText);}
+      if(spanElement.className.includes('2')){conjugations.person.second.push(childText);}
+      if(spanElement.className.includes('3')){conjugations.person.third.push(childText);}
+      if(spanElement.className.includes('|s|')){conjugations.number.singular.push(childText);
+      }if(spanElement.className.includes('|p|')){conjugations.number.plural.push(childText);
+      }if(spanElement.className.includes('pres')){ conjugations.tense.present.push(childText);
+      }if(spanElement.className.includes('impf')){conjugations.tense.imperfect.push(childText);
+      }if(spanElement.className.includes('phis')){conjugations.tense.past_historic.push(childText);
+      }if(spanElement.className.includes('cond')){conjugations.tense.conditional.push(childText);
+      }if(spanElement.className.includes('fut|')){conjugations.tense.future.push(childText);
+      }if(spanElement.className.includes('cond')){conjugations.tense.conditional.push(childText);
+      }if(spanElement.className.includes('ppr')){conjugations.form.present_participle.push(childText);
+      }if(spanElement.className.includes('pp-form-of')){conjugations.form.past_participle.push(childText);
+      }if(spanElement.className.includes('ind')){conjugations.mood.indicative.push(childText);
+      }if(spanElement.className.includes('subj-form-of')){conjugations.mood.subjunctive.push(childText);
+      }if(spanElement.className.includes('impr-form-of')){conjugations.mood.imperative.push(childText);
+      }if(spanElement.className.includes('inf')){conjugations.form.infinitive.push(childText);
+      }if(spanElement.className.includes('part')){conjugations.form.participle.push(childText);
+      }if(spanElement.className.includes('ger')){conjugations.noun.gerundive.push(childText);
+      }
+    });
+    return conjugations;
+
+}
+function getSpanishVerbInflections(doc){
+    conjugations = {}
+    let spanElements = doc.querySelectorAll('span.Latn.form-of.lang-es');
+    conjugations.pos = 'verb'
+    conjugations.number = {singular:[],plural:[]}
+    conjugations.person = {first:[],second:[],third:[]}
+    conjugations.tense = {present:[],imperfect:[],preterite:[],future:[],conditional:[]}
+    conjugations.mood = {indicative:[],subjunctive:[],imperative:[]}
+    conjugations.form = {gerund:[]}
+    conjugations.past_participle = {masculine_singular:[],feminine_singular:[],masculine_plural:[],feminine_plural:[]}
+
+    spanElements.forEach((spanElement) => {
+      let childText = spanElement.firstElementChild.textContent;
+      if(spanElement.className.includes('1')){conjugations.person.first.push(childText);}
+      if(spanElement.className.includes('2')){conjugations.person.second.push(childText);}
+      if(spanElement.className.includes('3')){conjugations.person.third.push(childText);}
+      if(spanElement.className.includes('|s|')){conjugations.number.singular.push(childText);
+      }if(spanElement.className.includes('|p|')){conjugations.number.plural.push(childText);
+      }if(spanElement.className.includes('pres')){ conjugations.tense.present.push(childText);
+      }if(spanElement.className.includes('impf')){conjugations.tense.imperfect.push(childText);
+      }if(spanElement.className.includes('phis')){conjugations.tense.preterite.push(childText);
+      }if(spanElement.className.includes('cond')){conjugations.tense.conditional.push(childText);
+      }if(spanElement.className.includes('fut|')){conjugations.tense.future.push(childText);
+      }if(spanElement.className.includes('cond')){conjugations.tense.conditional.push(childText);
+      }if(spanElement.className.includes('ppr')){conjugations.form.present_participle.push(childText);
+      }if(spanElement.className.includes('pp-form-of')){conjugations.form.past_participle.push(childText);
+      }if(spanElement.className.includes('ind')){conjugations.mood.indicative.push(childText);
+      }if(spanElement.className.includes('subj-form-of')){conjugations.mood.subjunctive.push(childText);
+      }if(spanElement.className.includes('impr-form-of')){conjugations.mood.imperative.push(childText);
+      }if(spanElement.className.includes('pp￰ms')){conjugations.past_participle.masculine_singular.push(childText);
+      }if(spanElement.className.includes('ppfs')){conjugations.past_participle.feminine_singular.push(childText);
+      }if(spanElement.className.includes('ppmp')){conjugations.past_participle.masculine_plural.push(childText);
+      }if(spanElement.className.includes('ppfp')){conjugations.past_participle.feminine_plural.push(childText);
+      }if(spanElement.className.includes('gerund')){conjugations.form.form.push(childText);
+
+      }
+    });
+    return conjugations;
+
+}
+const langMap = {
+  de: 'German',
+  es: 'Spanish',
+  fr: 'French',
+  it: 'Italian',
+  en: 'English',
+  pt: 'Portuguese',
+  ru: 'Russian',
+  zh: 'Chinese',
+  ja: 'Japanese',
+  ko: 'Korean',
+  ar: 'Arabic',
+  nl: 'Dutch',
+  sv: 'Swedish',
+  no: 'Norwegian',
+  da: 'Danish',
+  fi: 'Finnish',
+  pl: 'Polish',
+  tr: 'Turkish',
+  el: 'Greek',
+  he: 'Hebrew',
+  hi: 'Hindi',
+  bn: 'Bengali',
+  la: 'Latin',
+  vi: 'Vietnamese',
+  id: 'Indonesian',
+  ms: 'Malay',
+  th: 'Thai',
+  ro: 'Romanian',
+  cs: 'Czech',
+  hu: 'Hungarian',
+  sk: 'Slovak',
+  bg: 'Bulgarian',
+  uk: 'Ukrainian',
+  fa: 'Persian',
+  sw: 'Swahili',
+};
+
+// same as your convertFromAbbr:
+function convertFromAbbr(lang) {
+  return langMap[lang] || 'Unknown';
+}
+
+// now build a reverse map (value → key):
+const nameToAbbr = Object
+  .entries(langMap)                      // [[ 'de','German'], …]
+  .reduce((acc, [k, v]) => {
+    acc[v.toLowerCase()] = k;
+    return acc;
+  }, {});
+
+// reverse converter:
+function convertToAbbr(name) {
+  // case‐insensitive lookup
+  return nameToAbbr[name.toLowerCase()] || 'unknown';
+}
 window.addEventListener('resize', adjustFontSize);
 adjustFontSize();
 changeIntervalBtn.addEventListener('click', () => {
@@ -86,8 +742,8 @@ changeIntervalBtn.addEventListener('click', () => {
   document.getElementById('falseButton').addEventListener('click', function() {
     checkTrueFalse(false);
   });
-  chrome.storage.sync.get({ bookList: [] }, (result) => {
-    chrome.storage.sync.get({ currentCollectionSelection}, (data)=> {
+  chrome.storage.local.get({ bookList: [] }, (result) => {
+    chrome.storage.local.get({ currentCollectionSelection}, (data)=> {
     selectedbooks = data.currentCollectionSelection || ""
    // console.log(selectedbooks)
     const bookList = result.bookList;
@@ -308,7 +964,7 @@ function changeColor(palette){
 
 
 
-  chrome.storage.sync.set({selectedPalette: palette}, function() {
+  chrome.storage.local.set({selectedPalette: palette}, function() {
    // console.log('Palette saved:', palette);
 });
 
@@ -1181,7 +1837,7 @@ function shuffleArray(array) {
 function getCheckedBooks(){
   let checkedBooks = [];
   let bookList = [];
-  chrome.storage.sync.get({ bookList: [] }, (result) => {
+  chrome.storage.local.get({ bookList: [] }, (result) => {
     bookList = result.bookList;
   });
   document.querySelectorAll('#displayBookList input[type="checkbox"]').forEach(checkbox => {

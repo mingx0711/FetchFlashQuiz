@@ -7,7 +7,7 @@
     .flashcard {  position: relative;
             transform: translateY(20%);
             text-align: center;
-            height: 400px;
+            height: 60vh;
             width: 80vw;
             margin: auto; padding: 20px; border: 10px solid; border-radius: 25px; display: inline-block; }
     #snoozeButton, #nextButton {  position: relative; left: 20%;text-align: center; margin-top: 100px; margin-left: 25px; }
@@ -51,6 +51,16 @@
     <div class="ui horizontal divider" id = "divider" style = "color:#545150; height: 5px" ></div>
     <div style = "font-size: 400%; color:#4b5437;" id="defDiv"></div>
     <div style = "font-size: 150%; color:#737373;" id="etymDiv"></div>
+    <button class = "ui button"id="fetchInfo" style = "position: fixed;bottom:1%;background-color:transparent;transform: translateX(-50%);left: 15%;font-size: 90%;">auto-complete vocab in the background(?)</button>
+      <p class = "ui" id = "fetchTip" style = "position: fixed;bottom:10%;transform: translateX(-50%);left:25%;border-width: 2px;font-size: 90%;display: none;border: 2px solid #000000;background-color:whitesmoke;text-align: left;"> 
+      When you click this button, the extension will:
+      <br>   - Scan your vocab list for entries missing etymology, gender, or inflection.
+      <br>   - Fetch any missing data from Wiktionary in the background, pausing 3~100 seconds between each request to avoid overloading the server.
+      <br>For this feature to work, your collection name must exactly match the language name with an initial capital letter (for example, 'German').
+      <br>Existing definitions and quiz results will not be overridden.
+      </p>
+    </div>
+
   </div>
   <div class="quiz-container" style="top: 2%;margin: auto ;border: 10px solid;" id="quizContainer">
     <p style="font-size: 350%;" id="quizQuestion"></p>

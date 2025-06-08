@@ -10,7 +10,7 @@ document.getElementById('selectLanguage').addEventListener('change', function() 
     for (let option of this.options) {
       option.removeAttribute('selected');
     }
-    chrome.storage.sync.set({lastLang:selectedLanguage});
+    chrome.storage.local.set({lastLang:selectedLanguage});
       selectedOption.setAttribute('selected', 'true');
   });
 
@@ -291,7 +291,7 @@ function getLatinAttributes(doc,word){
   // }
 }
   function populateBookSelector() {
-    chrome.storage.sync.get({ bookList: [] }, (result) => {
+    chrome.storage.local.get({ bookList: [] }, (result) => {
       const bookList = result.bookList||["Default"];
       chrome.storage.local.get('lastBook', function(data) {
         const lastBook = data.lastBook||"Default";
@@ -454,7 +454,7 @@ function getGermanAttributes(doc,word){
   getLinkedAttributes(doc,word,"de")
   }
 function updateLanguageList(lang){
-  chrome.storage.sync.get({ languageList: {}}, (data) => {
+  chrome.storage.local.get({ languageList: {}}, (data) => {
 
     let languageList = data.languageList|| {};
     if(languageList[lang]){
@@ -462,7 +462,7 @@ function updateLanguageList(lang){
     }else{
       languageList[lang]=1
     }
-    chrome.storage.sync.set({languageList:languageList }, function() {
+    chrome.storage.local.set({languageList:languageList }, function() {
       console.log(languageList)
     });
   });
@@ -471,7 +471,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
   const submitButton = document.getElementById('submit'); 
   const wrongDefButton = document.getElementById('wrongDef'); 
   const selectLanguage = document.getElementById('selectLanguage');
-  chrome.storage.sync.get('languageList',function(data){
+  chrome.storage.local.get('languageList',function(data){
     if(data.languageList){
       console.log(data.languageList)
       let optionsArray = Array.from(selectLanguage.options);
@@ -487,7 +487,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     }
 
   });
-  chrome.storage.sync.get('lastLang',function(data){
+  chrome.storage.local.get('lastLang',function(data){
     const lastLang = data.lastLang||"latin"
     for (let i = 0; i < selectLanguage.options.length; i++) {
       if (selectLanguage.options[i].value === lastLang) {

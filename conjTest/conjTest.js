@@ -94,7 +94,7 @@ function displayTests(bookSelected){
 }
 
 function populateBookSelector() {
-  chrome.storage.sync.get({ bookList: [] }, (result) => {
+  chrome.storage.local.get({ bookList: [] }, (result) => {
     const bookList = result.bookList||["Default"];
     chrome.storage.local.get('lastBook', function(data) {
       const lastBook = data.lastBook||"Default";

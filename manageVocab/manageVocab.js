@@ -182,7 +182,7 @@ function sortVocabList(vocabList, sortBy) {
   }
 }
 function populateBookSelector2() {
-  chrome.storage.sync.get({ bookList: [] }, (result) => {
+  chrome.storage.local.get({ bookList: [] }, (result) => {
     
     const bookList = result.bookList;
     document.getElementById('bookSelector2').innerHTML = ""
@@ -195,44 +195,44 @@ function populateBookSelector2() {
       });
   });
 }
-function populateBookSelector() {
-  chrome.storage.sync.get({ bookList: [] }, (result) => {
-    const bookList = result.bookList||"Default";
-    chrome.storage.local.get('lastBook', function(data) {
-      const lastBook = data.lastBook||"Default";
-      console.log(lastBook)
-    if(lastBook){
-        document.getElementById('bookSelector').innerHTML = ""
-    if(lastBook!=""||lastBook==="addNew"){
-      optionNewSelected = document.createElement('option');
-      optionNewSelected.textContent  = lastBook;
-      optionNewSelected.value = lastBook;
-      optionNewSelected.selected = true;
+// function populateBookSelector() {
+//   chrome.storage.local.get({ bookList: [] }, (result) => {
+//     const bookList = result.bookList||"Default";
+//     chrome.storage.local.get('lastBook', function(data) {
+//       const lastBook = data.lastBook||"Default";
+//       console.log(lastBook)
+//     if(lastBook){
+//         document.getElementById('bookSelector').innerHTML = ""
+//     if(lastBook!=""||lastBook==="addNew"){
+//       optionNewSelected = document.createElement('option');
+//       optionNewSelected.textContent  = lastBook;
+//       optionNewSelected.value = lastBook;
+//       optionNewSelected.selected = true;
 
-      document.getElementById('bookSelector').add(optionNewSelected)
-    }
-    // Clear existing options except for the default option
-    // Add books as options
-    bookList.forEach(book => {
-        let option = document.createElement('option');
-        if(book === data.lastBook){
-        }else{
-          option.textContent  = book;
-          option.value = book;
+//       document.getElementById('bookSelector').add(optionNewSelected)
+//     }
+//     // Clear existing options except for the default option
+//     // Add books as options
+//     bookList.forEach(book => {
+//         let option = document.createElement('option');
+//         if(book === data.lastBook){
+//         }else{
+//           option.textContent  = book;
+//           option.value = book;
 
-          document.getElementById('bookSelector').add(option);
-        }
-      });
-      optionNew = document.createElement('option');
-      optionNew.textContent = "add New Vocab collection";
-      optionNew.value = "addNew";
+//           document.getElementById('bookSelector').add(option);
+//         }
+//       });
+//       optionNew = document.createElement('option');
+//       optionNew.textContent = "add New Vocab collection";
+//       optionNew.value = "addNew";
 
-      document.getElementById('bookSelector').add(optionNew)
-      }
-    });
+//       document.getElementById('bookSelector').add(optionNew)
+//       }
+//     });
     
-  });
-}
+//   });
+// }
 function convertToCSV() {
   chrome.storage.local.get('vocabList', function(data) {
   const headers = Object.keys(data.vocabList[0]);
@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (data.vocabList) {
       updateVocabList(data.vocabList);
     }
-    chrome.storage.sync.get({ bookList: [] }, (result) => {
+    chrome.storage.local.get({ bookList: [] }, (result) => {
         const bookList = result.bookList;
         console.log(bookList)
         displayBookList.innerHTML = '';
@@ -316,11 +316,11 @@ document.addEventListener('DOMContentLoaded', function() {
           chrome.storage.local.set({ lastBook: book.trim() });
 
           vocabList.push({ word, definition,book, snoozed: false, gender, pronounciation,seen: 0, quizResults:['n','n','n','n'] });
-          chrome.storage.sync.get({ bookList: [] }, (result) => {
+          chrome.storage.local.get({ bookList: [] }, (result) => {
             const bookList = result.bookList;
             if (!bookList.includes(book)) {
                 bookList.push(book);
-                chrome.storage.sync.set({ bookList }, () => {});
+                chrome.storage.local.set({ bookList }, () => {});
             }
         });
         } else {
@@ -366,11 +366,11 @@ document.addEventListener('DOMContentLoaded', function() {
   // addBookButton.addEventListener('click', () => {
   //   const newBook = newBookInput.value.trim();
   //   if (newBook) {
-  //       chrome.storage.sync.get({ bookList: [] }, (result) => {
+  //       chrome.storage.local.get({ bookList: [] }, (result) => {
   //           const bookList = result.bookList;
   //           if (!bookList.includes(newBook)) {
   //               bookList.push(newBook);
-  //               chrome.storage.sync.set({ bookList }, () => {
+  //               chrome.storage.local.set({ bookList }, () => {
   //                   alert(`"${newBook}" has been added to the book list.`);
   //                   newBookInput.value = '';
   //                   populateBookSelector()
@@ -381,37 +381,21 @@ document.addEventListener('DOMContentLoaded', function() {
   //       });
   //   }
   // });
-  populateBookSelector()
+  //populateBookSelector()
   function showFloatingContainer() {
-    chrome.storage.sync.get({ bookList: [] }, (result) => {
+    chrome.storage.local.get({ bookList: [] }, (result) => {
         const bookList = result.bookList;
         bookListContainer.innerHTML = '';
         bookList.forEach((book, index) => {
             let bookItem = document.createElement('div');
             bookItem.style.fontSize = "15px";
             bookItem.innerHTML = `${book} 
-            <button class="ui button delete-button" style = "display: flex;margin-left: auto;padding: 10px;" data-index="${index}">Delete Collection</button>
             <button class="ui button delete-all-button" style = "display: flex;margin-left: auto;padding: 10px;" data-index="${index}">Delete Collection and its vocabs</button>`;
             let bookItem2 = document.createElement('div');
             bookItem2.innerHTML = '<div class="ui horizontal divider">...'
             bookListContainer.appendChild(bookItem);
             bookListContainer.appendChild(bookItem2);
 
-        });
-
-        // Add event listeners to delete buttons
-        document.querySelectorAll('.delete-button').forEach(button => {
-            button.addEventListener('click', (event) => {
-              const confirmDeletion = confirm('Are you sure you want to delete this collection?');
-              if (confirmDeletion) {
-                const index = event.target.getAttribute('data-index');
-                bookList.splice(index, 1);
-                chrome.storage.sync.set({ bookList }, () => {
-                    showFloatingContainer(); // Refresh the list
-                    populateBookSelector(); // Update the book selector
-                });
-              }
-            });
         });
         // Add event listeners to delete buttons
         document.querySelectorAll('.delete-all-button').forEach(button => {
@@ -423,18 +407,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 let vocabList = data.vocabList || [];
                 const index = event.target.getAttribute('data-index');
                 const collectionToBeDeleted = bookList[index]
+                console.log("bookList",bookList);
                 console.log("collectionToBeDeleted",collectionToBeDeleted);
                 vocabList = vocabList.filter(item => item.book !== collectionToBeDeleted);
+                console.log(console.length)
                 chrome.storage.local.set({ vocabList: vocabList }, function() {
                 updateVocabList(vocabList);  // Update the displayed list
                 });
-              });
-              const index = event.target.getAttribute('data-index');
               bookList.splice(index, 1);
-              chrome.storage.sync.set({ bookList }, () => {
+              chrome.storage.local.set({ bookList }, () => {
                   showFloatingContainer(); // Refresh the list
-                  populateBookSelector(); // Update the book selector
               });
+              });
+             
           }});
       });
 
@@ -446,11 +431,11 @@ document.addEventListener('DOMContentLoaded', function() {
   addBookInContainerButton.addEventListener('click', () => {
     const newBook = newBookInContainer.value.trim();
     if (newBook) {
-        chrome.storage.sync.get({ bookList: [] }, (result) => {
+        chrome.storage.local.get({ bookList: [] }, (result) => {
             const bookList = result.bookList;
             if (!bookList.includes(newBook)) {
                 bookList.push(newBook);
-                chrome.storage.sync.set({ bookList }, () => {
+                chrome.storage.local.set({ bookList }, () => {
                     alert(`"${newBook}" has been added to the book list.`);
                     newBookInContainer.value = '';
                     showFloatingContainer(); // Refresh the list
@@ -525,17 +510,17 @@ document.addEventListener('DOMContentLoaded', function() {
                   const vocablistRaw = jsonData.vocabList
                   console.log(vocablistRaw)
                   const distinctBooks = [...new Set(vocablistRaw.map(x => x.book))];
-                    chrome.storage.sync.get({ bookList: [] }, (result) => {
+                    chrome.storage.local.get({ bookList: [] }, (result) => {
                      let bookList = result.bookList;
                      bookList.push(...distinctBooks);
                      bookList = Array.from(new Set(bookList));
                      bookList = bookList.filter(Boolean)
                      console.log(bookList)
-                      chrome.storage.sync.set({ bookList: bookList }, () => {
+                      chrome.storage.local.set({ bookList: bookList }, () => {
                         if (chrome.runtime.lastError) {
                           console.error("Error saving bookList:", chrome.runtime.lastError);
                         } else {
-                          console.log("bookList saved:", mergedArray);
+                          console.log("bookList saved:", bookList);
                         }
                       });
                   });

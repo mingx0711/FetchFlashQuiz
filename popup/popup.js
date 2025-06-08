@@ -9,7 +9,7 @@ document.getElementById('selectLanguage').addEventListener('change', function() 
   for (let option of this.options) {
     option.removeAttribute('selected');
   }
-  chrome.storage.sync.set({lastLang:selectedLanguage});
+  chrome.storage.local.set({lastLang:selectedLanguage});
     selectedOption.setAttribute('selected', 'true');
 });
 document.getElementById('addVocabForm').addEventListener('submit', function(e) {
@@ -30,12 +30,12 @@ document.getElementById('addVocabForm').addEventListener('submit', function(e) {
       chrome.storage.local.set({ lastBook: book }, function() {});
       // Save updated vocab list to Chrome storage
       chrome.storage.local.set({ vocabList: vocabList }, function() {
-        chrome.storage.sync.get('bookList', function(data) {
+        chrome.storage.local.get('bookList', function(data) {
           let bookList = data.bookList || [];
           if(!bookList.includes(book)){
             bookList.push(book);
           }
-          chrome.storage.sync.set({ vocabList: vocabList }, function(data) {})
+          chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
     
         })
         // Show a message indicating the word was added
@@ -77,7 +77,7 @@ document.getElementById('addVocabForm').addEventListener('submit', function(e) {
 
 });
 function updateLanguageList(lang){
-  chrome.storage.sync.get({ languageList: {}}, (data) => {
+  chrome.storage.local.get({ languageList: {}}, (data) => {
 
     let languageList = data.languageList|| {};
     if(languageList[lang]){
@@ -85,7 +85,7 @@ function updateLanguageList(lang){
     }else{
       languageList[lang]=1
     }
-    chrome.storage.sync.set({languageList:languageList }, function() {
+    chrome.storage.local.set({languageList:languageList }, function() {
     });
   });
 }
@@ -734,7 +734,7 @@ function getGermanAttributes(doc,word){
   getLinkedAttributes(doc,word,"de")
   }
 function populateBookSelector() {
-  chrome.storage.sync.get({ bookList: [] }, (result) => {
+  chrome.storage.local.get({ bookList: [] }, (result) => {
     const bookList = result.bookList||"Default";
     chrome.storage.local.get('lastBook', function(data) {
       const lastBook = data.lastBook?data.lastBook:(result.bookList?result.bookList[0]:"Default");
@@ -767,8 +767,9 @@ function populateBookSelector() {
   });
 }
 document.addEventListener('DOMContentLoaded', (event) => {
+  syncBook()
   const selectLanguage = document.getElementById('selectLanguage');
-  chrome.storage.sync.get('languageList',function(data){
+  chrome.storage.local.get('languageList',function(data){
     if(data.languageList){
       console.log(data.languageList)
       let optionsArray = Array.from(selectLanguage.options);
@@ -785,7 +786,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     }
 
   });
-  chrome.storage.sync.get('lastLang',function(data){
+  chrome.storage.local.get('lastLang',function(data){
     const lastLang = data.lastLang||"latin"
     for (let i = 0; i < selectLanguage.options.length; i++) {
       if (selectLanguage.options[i].value === lastLang) {
@@ -794,7 +795,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
       }
     }
   });
-  chrome.storage.sync.get('hideBox1',function(data){
+  chrome.storage.local.get('hideBox1',function(data){
     if (!data.hideBox1||typeof(data.hideBox1)===undefined||data.hideBox1 == null){
       document.getElementById('tipsBox1').style.display='block';
     }else{
@@ -803,7 +804,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     console.log(data.hideBox1)
 
   });
-  chrome.storage.sync.get('hideBox0',function(data){
+  chrome.storage.local.get('hideBox0',function(data){
     if (!data.hideBox0||typeof(data.hideBox0)===undefined||data.hideBox0 == null){
       document.getElementById('tipsBox0').style.display='block';
     }else{
@@ -814,11 +815,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
   });
   document.getElementById('hideTips1').addEventListener('click', function(e) {
     document.getElementById('tipsBox1').style.display='none';
-    chrome.storage.sync.set({ hideBox1: true }, function(data) {})
+    chrome.storage.local.set({ hideBox1: true }, function(data) {})
   })
   document.getElementById('hideTips0').addEventListener('click', function(e) {
     document.getElementById('tipsBox0').style.display='none';
-    chrome.storage.sync.set({ hideBox0: true }, function(data) {})
+    chrome.storage.local.set({ hideBox0: true }, function(data) {})
   })
 
 
@@ -837,11 +838,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
   addBookButton.addEventListener('click', () => {
     const newBook = newBookInput.value.trim();
     if (newBook) {
-        chrome.storage.sync.get({ bookList: [] }, (result) => {
+        chrome.storage.local.get({ bookList: [] }, (result) => {
             const bookList = result.bookList;
             if (!bookList.includes(newBook)) {
                 bookList.push(newBook);
-                chrome.storage.sync.set({ bookList }, () => {
+                chrome.storage.local.set({ bookList }, () => {
                     alert(`"${newBook}" has been added to the book list.`);
                     newBookInput.value = '';
                     populateBookSelector()
@@ -854,6 +855,27 @@ document.addEventListener('DOMContentLoaded', (event) => {
   });
   populateBookSelector()
 });
+function syncBook(){
+  chrome.storage.local.get('vocabList', function(data) {
+  let vocabList = data.vocabList || []
+  const distinctBooks = [...new Set(vocabList.map(x => x.book))];
+  chrome.storage.local.get({ bookList: [] }, (result) => {
+    let bookList = result.bookList;
+    bookList.push(...distinctBooks);
+    bookList = Array.from(new Set(bookList));
+    bookList = bookList.filter(Boolean)
+    console.log(bookList)
+    chrome.storage.local.set({ bookList: bookList }, () => {
+      if (chrome.runtime.lastError) {
+        console.error("Error saving bookList:", chrome.runtime.lastError);
+      } else {
+        console.log("bookList saved:", bookList);
+      }
+    });
+  });
+  ;})
+  
+}
 document.getElementById('addAuto').addEventListener('click', function(e) {
   const book = document.getElementById('bookSelector').value;
   chrome.storage.local.get('vocabList', function(data) {
@@ -866,13 +888,12 @@ document.getElementById('addAuto').addEventListener('click', function(e) {
     chrome.storage.local.set({ lastBook: book }, function() {});
     // Save updated vocab list to Chrome storage
     chrome.storage.local.set({ vocabList: vocabList }, function() {
-      chrome.storage.sync.get('bookList', function(data) {
+      chrome.storage.local.get('bookList', function(data) {
         let bookList = data.bookList || [];
         if(!bookList.includes(book)){
           bookList.push(book);
         }
-        chrome.storage.sync.set({ vocabList: vocabList }, function(data) {})
-  
+        chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
       })
       // Show a message indicating the word was added
       const messageDiv = document.getElementById('message');

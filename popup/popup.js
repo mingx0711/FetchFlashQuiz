@@ -235,7 +235,7 @@ async function getLatinAttributes(doc,word){
     etym = nextElem.innerText;
     }
     console.log(etym);
-    vocab = {word,definition,snoozed: false,book,pronounciation,gender,conjugations,seen:0,quizResults: ['n','n','n','n'],etym:hasEytm?etym:""}
+    vocab = {word,definition,snoozed: false,book,pronounciation,gender,conjugations,seen:0,quizResults: ['n','n','n','n'],hasChecked:true,etym:hasEytm?etym:""}
     vocabInfo.innerHTML=""
     vocabInfo.innerHTML+=' word: <span style="font-weight: bold;">'+vocab.word + '</span>'
     vocabInfo.innerHTML+='<br>| \n definition: <span style="font-weight: bold;">'+vocab.definition+ '</span>'
@@ -356,7 +356,7 @@ async function getLatinAttributes(doc,word){
     etym = nextElem.innerText;
     }
       console.log(etym);
-      vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,conjugations,seen:0,quizResults: ['n','n','n','n'],etym:hasEytm?etym:""}
+      vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,conjugations,hasChecked:true,seen:0,quizResults: ['n','n','n','n'],etym:hasEytm?etym:""}
       vocabInfo.innerHTML=""
       vocabInfo.innerHTML+=' word: <span style="font-weight: bold;">'+vocab.word + '</span>'
       vocabInfo.innerHTML+='<br> \n definition: <span style="font-weight: bold;">'+vocab.definition+ '</span>'
@@ -460,7 +460,7 @@ async function getLinkedAttributes(doc,word,lang){
       })
         document.getElementById("vocabInfo").textContent+","+definition
         definition = document.getElementById("vocabInfo").textContent+","+definition
-        vocab = {word,definition,snoozed: false,book,pronounciation,gender,seen:0,quizResults: ['n','n','n','n']}
+        vocab = {word,definition,snoozed: false,book,pronounciation,gender,hasChecked:true,seen:0,quizResults: ['n','n','n','n']}
     }
    
   }
@@ -550,7 +550,7 @@ async function getEasyAttributes(doc,word,lang){
     document.getElementById('vocabInfo').innerHTML += autoGender?("|gender:"+autoGender):""
     document.getElementById('vocabInfo').innerHTML += "<br>" + etym
     console.log(book)
-    vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,seen:0,quizResults: ['n','n','n','n'],etym:hasEytm?etym:""}
+    vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,hasChecked:true,seen:0,quizResults: ['n','n','n','n'],etym:hasEytm?etym:""}
     if(isVerb){
       switch(lang){
         case 'fr':

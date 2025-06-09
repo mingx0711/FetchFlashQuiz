@@ -62,9 +62,8 @@ function updateVocabList(vocabList, collection = ["all"]) {
     if (entry.word && entry.definition) {
       const vocabDiv  = document.createElement('div');
       vocabDiv .className = 'flashcard';
-      //vocabDiv .textContent = `${entry.word}: ${entry.definition} (Seen: ${entry.seen}, Snoozed: ${entry.snoozed})`;
- 
       const wordDiv = document.createElement('div');
+      const vocabDivDiv = document.createElement('div');
       wordDiv.textContent = ` ${entry.word}`;
       wordDiv.style.width = '20vw';
       wordDiv.style.fontSize = '160%';
@@ -82,9 +81,6 @@ function updateVocabList(vocabList, collection = ["all"]) {
         genderDiv.style.fontSize = '60%';
         wordDiv.appendChild(genderDiv);
       }
-
-
- 
       const definitionDiv = document.createElement('div');
       definitionDiv.textContent = `${entry.definition}`;
       definitionDiv.style.width = '20vw';
@@ -134,14 +130,29 @@ function updateVocabList(vocabList, collection = ["all"]) {
           updateVocabList(vocabList);  // Update the displayed list
         });
       });
+      
       vocabDiv.appendChild(wordDiv);
       vocabDiv.appendChild(definitionDiv);
       vocabDiv.appendChild(bookDiv);
-
       vocabDiv.appendChild(quizResultsDiv);
       vocabDiv.appendChild(deleteButton);
       vocabDiv.appendChild(snoozeButton);
-      vocabListContainer.appendChild(vocabDiv);
+      vocabDiv.style.backgroundColor='white';
+      const etymContainerDiv  = document.createElement('div');
+      if(entry.etym!=undefined&&entry.etym!=""){
+        const etymDiv = document.createElement('div');
+        etymDiv.textContent = `-${entry.etym}`;
+        etymDiv.style.fontSize = '100%';
+        etymDiv.style.left = '5%';
+        etymDiv.style.marginTop = '10px';
+        etymContainerDiv.appendChild(etymDiv);
+      }
+      vocabDivDiv.style.borderBottom = '1px dashed'
+      vocabDivDiv.style.padding= '10px';
+      vocabDivDiv.appendChild(vocabDiv);
+      vocabDivDiv.appendChild(etymContainerDiv);
+
+      vocabListContainer.appendChild(vocabDivDiv);
     }
   });
 }

@@ -1,4 +1,6 @@
-
+const fetchTip = document.getElementById('fetchTip');
+const fetchInfo = document.getElementById('fetchInfo');
+var missingCount;
 document.addEventListener('DOMContentLoaded', function() {
   chrome.storage.local.get('currentCollectionSelection', function(data){
     currentCollectionSelection = data.currentCollectionSelection || []
@@ -9,11 +11,19 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         changeColor('Basic'); // Default to palette1 if no previous selection
     }
-});
+  });
   chrome.storage.local.get('vocabList', function(data) {
     if (data.vocabList) {
       vocabList = data.vocabList;
       currentVocabIndex = -1;
+      missingCount = vocabList
+      .filter(item => !item.hasOwnProperty('hasChecked'))
+      .length;
+      if(missingCount>0){
+        fetchInfo.textContent = missingCount + ' words may be missing etymology, inflection, or gender. Click here to fetch their info in the background from Wiktionary.'
+      }else{
+        fetchInfo.style.display = 'None'
+      }
     }
     showNextItem(currentCollectionSelection);
   });
@@ -66,8 +76,6 @@ intervalInput.addEventListener('input', (e) => {
     );
   }
 });
-const fetchTip = document.getElementById('fetchTip');
-const fetchInfo = document.getElementById('fetchInfo');
 fetchInfo.addEventListener('mouseenter',() => {
     fetchTip.style.display = ''
 });
@@ -76,16 +84,18 @@ fetchInfo.addEventListener('mouseleave', () => {
 });
 var keepGoing = true;
 fetchInfo.addEventListener('click', async () => {
-  if(fetchInfo.textContent == 'fetching'){
-    fetchInfo.textContent = 'auto-complete vocab in the background(?)'
+  if(fetchInfo.textContent.includes('fetching')){
+    fetchInfo.textContent = missingCount + ' words may be missing etymology, inflection, or gender. Click here to fetch their info in the background from Wiktionary.'
     keepGoing = false;
   }else{
-    fetchInfo.textContent = 'fetching'
     for (const item of vocabList) {
       if(!keepGoing){break;}
       if(!item.hasChecked||item.hasChecked!=true){
+        console.log(new Date().toLocaleTimeString());        
         fetchInfoFromWik(item);
-        await sleep(30000,100000)
+        missingCount --;
+        fetchInfo.textContent = 'fetching...' + missingCount + " words left"
+        await sleep(30000,300000)
       }
     };
   }
@@ -95,16 +105,14 @@ function sleep(maxMs, minMs) {
   return new Promise(resolve => setTimeout(resolve, sleepMs));
 }
 async function fetchInfoFromWik(vocab){
-  console.log('bob')
   var language = vocab.book
   var word = vocab.word
   if(language!="de"){
       word = removeDiacritics(word)
   }
-  console.log(vocab.word + "---"+ vocab.book)
   var url = `https://en.wiktionary.org/wiki/${word}`
     fetch(url)
-    .then(response => response.text())
+    .then(response => {return response.text();})
     .then(html => {
       // Parse the returned HTML and extract the inflection table
        const parser = new DOMParser();
@@ -115,6 +123,15 @@ async function fetchInfoFromWik(vocab){
               language = convertToAbbr(language)
               getEasyAttributes(doc,vocab,language)
             }
+        })
+    .catch(err => {
+     vocab.hasChecked = true;
+      vocabList = vocabList.map(item =>
+      item.word === vocab.word
+      ? vocab      
+      : item         
+      );
+    chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
     })
 }
 
@@ -124,13 +141,11 @@ async function getLatinAttributes(doc,vocab){
   let verbInflectionTableNew;
   let isVerb = false;
   const spanElement = doc.querySelector('span.Latn.form-of.lang-la[lang="la"]');
-
   if (spanElement) {
       // Get its parent element
       const parentElement = spanElement.parentElement.parentElement.parentElement.parentElement;
       
       if (parentElement) {
-        console.log(parentElement)
         verbInflectionTableNew = parentElement
         if(verbInflectionTableNew.classList.contains("roa-inflection-table")){
           isVerb = true
@@ -138,7 +153,7 @@ async function getLatinAttributes(doc,vocab){
       }
     
     }
-
+    
   let iTableLocator = doc.querySelector('.inflection-table.vsSwitcher tbody tr th i[lang="la"]');
   if(iTableLocator){
     let th = iTableLocator.parentElement;
@@ -179,7 +194,7 @@ async function getLatinAttributes(doc,vocab){
         definition= rawDef.trim();
       }
     }
-  
+
     let conjugationText = conjugations.group;
     // Select the <span> element
     let spanElements = doc.querySelectorAll('span.Latn.form-of.lang-la');
@@ -223,6 +238,7 @@ async function getLatinAttributes(doc,vocab){
       }
     });
     var h2 = doc.getElementById('Latin');
+    console.log(h2)
     var h2Parent = h2.parentElement;
     var hasEytm = true;
     while(true){
@@ -242,6 +258,8 @@ async function getLatinAttributes(doc,vocab){
     const nextElem = h2Parent.nextElementSibling;
     etym = nextElem.innerText;
     }
+    if(typeof (vocab) == 'string'){
+    }
     console.log(etym);
     vocab.hasChecked = true;
     if(!vocab.etym&&hasEytm){vocab.etym = etym;}
@@ -251,6 +269,7 @@ async function getLatinAttributes(doc,vocab){
       ? vocab      // replace the entire object
       : item         // leave everything else alone
     );
+    console.log(vocab)
     chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
     }
   else {
@@ -303,7 +322,7 @@ async function getLatinAttributes(doc,vocab){
         }
         sibling = sibling.nextElementSibling; // Move to the next sibling
       }
-      
+
       const ListItems = sibling.querySelectorAll('li');
       for(let i = 0;i<ListItems.length;i++){
         if (ListItems[i].textContent.trim()!==""){
@@ -361,7 +380,6 @@ async function getLatinAttributes(doc,vocab){
     const nextElem = h2Parent.nextElementSibling;
     etym = nextElem.innerText;
     }
-    vocab.hasChecked = true;
     if(!vocab.etym&&hasEytm){vocab.etym = etym;}
     if(!vocab.gender){vocab.gender = autoGender;}
     if(!vocab.conjugations){vocab.conjugations = conjugations;}
@@ -371,46 +389,19 @@ async function getLatinAttributes(doc,vocab){
       : item         // leave everything else alone
     );
     chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
-    console.log(vocab)
      }else{
-      const latinElement = doc.querySelector('span.form-of-definition-link i.Latn.mention[lang="la"]');
-      if(latinElement){
-        const anchorTag = latinElement.querySelector('a');
-        if (anchorTag) {
-          const linkText = anchorTag.textContent; // Get the text content of the <a>
-          const spanElement = latinElement.parentElement;
-          const spanElement1 = spanElement.parentElement;
-          const liElement = spanElement1.parentElement;
-          let definition = ""
-          if(liElement){
-            definition = liElement.textContent.trim()
-          }
-          definition+=","
-        let noramlizedWord = word.normalize('NFD');
-        let noDiacritics = noramlizedWord.replace(/[\u0300-\u036f]/g, "");
-        let finalStr = noDiacritics.replace(/-/g, "");
-        let finallinkText = removeDiacritics(linkText)
-        if(finalStr.trim()!=finallinkText.trim())  {
-          var url = usingLocal?`http://localhost:3000/fetch/${linkText}`:`https://en.wiktionary.org/wiki/${finallinkText}`
-          await fetch(url)
-          .then(response => response.text())
-          .then(html => {
-            // Parse the returned HTML and extract the inflection table
-            const parser = new DOMParser();
-            const baseDoc = parser.parseFromString(html, 'text/html');
-            getLatinAttributes(baseDoc,linkText);
-          })
-        }else{
-          vocab.hasChecked = true;
-          console.log(vocab + " does not exist in wiktionary")
-          chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
-        }
-      }
-    }else{
       const isLatinWord = doc.querySelector('strong.Latn.headword[lang="la"]');
       if(isLatinWord){
        getEasyAttributes(doc,vocab,"la")
-        }
+      }else{
+        vocab.hasChecked = true;
+        vocabList = vocabList.map(item =>
+      item.word === vocab.word
+      ? vocab      // replace the entire object
+      : item         // leave everything else alone
+    );
+    console.log(vocab)
+    chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
       }
     }
   }
@@ -488,7 +479,6 @@ async function getEasyAttributes(doc,vocab,lang){
     const nextElem = h2Parent.nextElementSibling;
     etym = nextElem.innerText;
     }
-    console.log("Eytm?" + hasEytm)
     vocab.hasChecked = true;
     if(!vocab.etym&&hasEytm){vocab.etym = etym;}
     if(!vocab.gender){vocab.gender = autoGender;}

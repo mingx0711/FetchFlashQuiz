@@ -1,7 +1,7 @@
 let vocab = {}
 let def;
 let usingLocal = false;
-
+let lastClick = new Date(2025, 5, 12);
 document.getElementById('selectLanguage').addEventListener('change', function() {
   let selectedLanguage = this.value;  // Get the selected value
   let word = document.getElementById('word').value.trim();

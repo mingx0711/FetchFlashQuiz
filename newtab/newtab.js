@@ -1,5 +1,6 @@
 const fetchTip = document.getElementById('fetchTip');
 const fetchInfo = document.getElementById('fetchInfo');
+let isQuiz = false;
 var missingCount;
 document.addEventListener('DOMContentLoaded', function() {
   chrome.storage.local.get('currentCollectionSelection', function(data){
@@ -255,8 +256,14 @@ async function getLatinAttributes(doc,vocab){
     }
     var etym;
     if(!hasEytm){etym = ""}else{
-    const nextElem = h2Parent.nextElementSibling;
-    etym = nextElem.innerText;
+      while(h2Parent){
+        if(h2Parent.nextElementSibling?.matches('div')){
+          break;
+        }else{
+          h2Parent=h2Parent.nextElementSibling
+        }
+      }
+      etym = h2Parent.innerText;
     }
     if(typeof (vocab) == 'string'){
     }
@@ -374,12 +381,19 @@ async function getLatinAttributes(doc,vocab){
           }
         }
       }
-      
+
     var etym;
     if(!hasEytm){etym = ""}else{
-    const nextElem = h2Parent.nextElementSibling;
-    etym = nextElem.innerText;
+    while(h2Parent){
+      if(h2Parent.nextElementSibling?.matches('div')){
+        break;
+      }else{
+        h2Parent=h2Parent.nextElementSibling
+      }
     }
+    etym = h2Parent.innerText;
+    }
+    vocab.hasChecked = true;
     if(!vocab.etym&&hasEytm){vocab.etym = etym;}
     if(!vocab.gender){vocab.gender = autoGender;}
     if(!vocab.conjugations){vocab.conjugations = conjugations;}
@@ -388,6 +402,7 @@ async function getLatinAttributes(doc,vocab){
       ? vocab      // replace the entire object
       : item         // leave everything else alone
     );
+    console.log(vocab)
     chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
      }else{
       const isLatinWord = doc.querySelector('strong.Latn.headword[lang="la"]');
@@ -476,8 +491,14 @@ async function getEasyAttributes(doc,vocab,lang){
     }
     var etym;
     if(!hasEytm){etym = ""}else{
-    const nextElem = h2Parent.nextElementSibling;
-    etym = nextElem.innerText;
+    while(h2Parent){
+      if(h2Parent.nextElementSibling?.matches('div')){
+        break;
+      }else{
+        h2Parent=h2Parent.nextElementSibling
+      }
+    }
+    etym = h2Parent.innerText;
     }
     vocab.hasChecked = true;
     if(!vocab.etym&&hasEytm){vocab.etym = etym;}
@@ -791,8 +812,10 @@ function showNextItem(checkBooks = ["all"]) {
     const shouldShowQuiz = (Math.random() < Math.min(probs, 0.3)) && eligibleForQuiz;
   
     if (shouldShowQuiz) {
+      isQuiz = true;
       showQuiz();
     } else {
+      isQuiz = false
       showNextVocab(currentCollectionSelection);
     }
   }
@@ -1039,6 +1062,12 @@ function showNextVocab(collection = currentCollectionSelection) {
        word = currentCollection[currentVocabIndex].word;
        definition = currentCollection[currentVocabIndex].definition;
       }
+      const maxSize = 3
+      const minSize = 1
+      const clamped = Math.min(definition.length, 200);
+       const size =
+        maxSize - ( (maxSize - minSize) * (clamped / 200) );
+      defDiv.style.fontSize = size.toFixed(1) + 'vw';
       const book = currentCollection[currentVocabIndex].book || '';
       if(currentCollection[currentVocabIndex].gender){
         const gender = currentCollection[currentVocabIndex].gender;
@@ -1057,7 +1086,8 @@ function showNextVocab(collection = currentCollectionSelection) {
       bookDiv.textContent = book;
       if(currentCollection[currentVocabIndex].etym){
         const eytmText = currentCollection[currentVocabIndex].etym;
-        etymDiv.textContent += eytmText
+        etymDiv.textContent = eytmText
+        ent.style.fontSize = size.toFixed(1) + 'vw';
       }else{
         etymDiv.textContent = ""
       }
@@ -1104,13 +1134,12 @@ function enterAutoPlay(){
         }
       );
     } else {
-      // 2b. Use the last-recorded interval value
       intervalSeconds = history[history.length - 1].value;
      // console.log('Loaded interval from history:', intervalSeconds);
     }
 
     timerId = setInterval(() => {
-      showNextVocab();
+      showNextItem();
     }, intervalSeconds * 1000);
   }); 
   }else{

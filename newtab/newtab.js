@@ -519,13 +519,14 @@ async function getEasyAttributes(doc,vocab,lang){
       }
       let nextElem = h2Parent.nextElementSibling;
       while(nextElem.tagName === 'P'){
-         etym += nextElem.innerText;
+         etym += nextElem.innerText===undefined?"":nextElem.innerText;
          nextElem = nextElem.nextElementSibling;
       }
     if(etym.includes("This etymology is missing or incomplete")){
       etym = ""
     }else{
       etym = etym.replace(/\.mw[\s\S]*\}/, '');
+      etym = etym.replace('undefined', '');
       }
     }
     let pronounciationText = null;
@@ -1158,9 +1159,12 @@ function showNextVocab(collection = currentCollectionSelection) {
       defDiv.textContent =definition;
       bookDiv.textContent = book;
       if(currentCollection[currentVocabIndex].etym){
-        const eytmText = currentCollection[currentVocabIndex].etym;
-        etymDiv.textContent = eytmText.replace(/\.mw[\s\S]*\}/, '');
-        etymDiv.textContent = eytmText.replace('undefined', '');
+        const etymText = currentCollection[currentVocabIndex].etym;
+        const etymSize =
+        maxSize - ( (maxSize - minSize) * ( Math.min(etymText.length, 400) / 400) );
+        etymDiv.textContent = etymText.replace(/\.mw[\s\S]*\}/, '');
+        etymDiv.textContent = etymDiv.textContent.replace('undefined', '');
+        etymDiv.style.fontSize = etymSize.toFixed(1) + 'vw';
       }else{
         etymDiv.textContent = ""
       }
@@ -1502,7 +1506,7 @@ function quizStyle5(){
       const randomIndex = Math.floor(Math.random() * eligibleOptions.length);
       incorrectVocab = eligibleOptions[randomIndex];
     } 
-    while (incorrectVocab.gender.toLowerCase() === currentQuizWord.gender.toLowerCase());
+    while (incorrectVocab.gender === currentQuizWord.gender);
     
   }
     document.getElementById('quizQuestion').textContent = `What is the gender of "${correctVocab.word}"?`;

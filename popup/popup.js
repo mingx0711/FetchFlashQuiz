@@ -609,9 +609,13 @@ async function getEasyAttributes(doc,word,lang){
         h2Parent = h2Parent.nextElementSibling
       }
       let nextElem = h2Parent.nextElementSibling;
-      while(nextElem.tagName === 'P'){
-         etym += nextElem.innerText;
-         nextElem = nextElem.nextElementSibling;
+      if(lang === 'ja'|| lang === 'zh'){
+        while(nextElem.tagName === 'P'){
+          etym += nextElem.innerText;
+          nextElem = nextElem.nextElementSibling;
+        }
+      }else{
+      etym = nextElem.innerText;
       }
     if(etym.includes("This etymology is missing or incomplete")){
       etym = ""

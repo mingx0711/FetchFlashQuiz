@@ -12,6 +12,7 @@ document.getElementById('selectLanguage').addEventListener('change', function() 
   chrome.storage.local.set({lastLang:selectedLanguage});
     selectedOption.setAttribute('selected', 'true');
 });
+let needDiatricts = ["de","fr"]
 document.getElementById('addVocabForm').addEventListener('submit', function(e) {
   e.preventDefault();
   const language = document.getElementById('selectLanguage').value;
@@ -52,7 +53,7 @@ document.getElementById('addVocabForm').addEventListener('submit', function(e) {
       });
     });
   }else{
-    if(language!="de"){
+    if(!needDiatricts.includes(language)){
       word = removeDiacritics(word)
     }
     var url = usingLocal?`http://localhost:3000/fetch/${word}`:`https://en.wiktionary.org/wiki/${word}`
@@ -115,7 +116,7 @@ function initializeConjugations(conjugations){
 
 }
 async function getLatinAttributes(doc,word){
-  const book = document.getElementById('bookSelector').value?document.getElementById('bookSelector').value:"Latin";
+  const book = document.getElementById('bookSelector').value;
   const pronounciation = document.getElementById('pronounciation').value;
   const gender = document.getElementById('gender').value;
   let conjugations = {};
@@ -434,6 +435,7 @@ async function getLatinAttributes(doc,word){
 }
 async function getLinkedAttributes(doc,word,lang){
   var mention = getLanguageCharSetMapping(lang)
+  console.log(mention)
   document.getElementById('vocabInfo').innerHTML = ""
   document.getElementById('vocabInfoInfs').innerHTML = ""
   const book = document.getElementById('bookSelector').value;
@@ -444,7 +446,7 @@ async function getLinkedAttributes(doc,word,lang){
   const queryWord = 'strong.'+mention+'.headword[lang="'+lang+'"]'
   let isWord = doc.querySelector(queryWord);
   let title = null;
-  console.log(word.length)
+  console.log(mention)
     console.log(lang)
   if(word.length === 1){
     return getEasyAttributes(doc,word,lang)
@@ -519,7 +521,7 @@ async function getEasyAttributes(doc,word,lang){
   let mention = getLanguageCharSetMapping(lang)
   document.getElementById('vocabInfo').innerHTML = ''
   document.getElementById('vocabInfo').style.display = ""
-  let book = document.getElementById('bookSelector').value?document.getElementById('bookSelector').value:(lang?convertFromAbbr(lang):"Default");
+  let book = document.getElementById('bookSelector').value;
   const pronounciation = document.getElementById('pronounciation').value;
   const gender = document.getElementById('gender').value;
   const queryWord = 'strong.'+mention+'.headword[lang="'+lang+'"]'
@@ -533,6 +535,8 @@ async function getEasyAttributes(doc,word,lang){
         mention = "Hant"
       }
   }
+  console.log(isWord)
+  console.log(queryWord)
   if(isWord){
     const grannyElement = isWord.parentElement.parentElement;
     const closestOl = grannyElement.nextElementSibling;
@@ -757,7 +761,7 @@ switch (lang) {
 
 }
 function getFrenchVerbInflections(doc){
-  conjugations = {}
+   let conjugations = {}
     let spanElements = doc.querySelectorAll('span.Latn.form-of.lang-fr');
     conjugations.pos = 'verb'
     conjugations.number = {singular:[],plural:[]}

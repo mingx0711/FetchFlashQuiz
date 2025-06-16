@@ -13,17 +13,17 @@
 <body>
   <div class = "ui center aligned basic segment">
     <div class="ui message">
-      <h1 class = "ui header">Manage Flashcards</h1>
+      <h1 class = "ui header">Quick lookup</h1>
     </div>
   </div>
   <form class = "ui center aligned basic segment" id="addVocabForm">
-    <div class="ui input"> 
+    <div class="ui input" style=" padding-bottom: 1%;"> 
       <input type="text" id="word" placeholder="Word" required />
     </div>
-    <div class="ui input"> 
+    <div class="ui input" style=" padding-bottom: 1%;"> 
       <input type="text" id="definition" placeholder="Definition"/>
     </div>
-    <div style="display: block;"class="ui input"> 
+    <div style="display: block;padding-bottom: 1%"class="ui input"> 
       <select class = "ui search dropdown" type="text" id="gender" >
         <option value="">gender(optional)</option>
         <option value="neuter">neuter</option>
@@ -32,10 +32,10 @@
         <option value="masculine">masculine</option>
       </select>
     </div>
-    <div class="ui input"> 
+    <div class="ui input"style=" padding-bottom: 1%;"> 
       <input type="text" id="pronounciation" placeholder="pronounciation (optional)"/>
     </div>
-    <div>
+    <div style=" padding-bottom: 1%;">
       <p style="display: inline-block;"> select collection</p>
     <select class = "ui search dropdown" id="bookSelector" style="margin:auto; margin-top: 5px;margin-bottom: 5px;display:inline-block;">
     </select>
@@ -44,7 +44,7 @@
       <input type="text" style = "margin-top:5px;margin-bottom: 5px ;"id="newBook" placeholder="Enter new collection name">
       <button class="ui teal basic button"style = "margin-top:5px;margin-bottom: 5px ;" id="addBookButton">Add collection</button>
     </div>
-    <div>
+    <div style=" padding-bottom: 1%;">
       <p style="display: inline-block;"> select language to auto query</p>
     <select class = "ui search dropdown" type="text" style="margin: auto;display: inline-block;justify-content: center;margin-left: 5%;"class = "ui dropdown" id="selectLanguage" >  
       <option value="latin">Latin</option>
@@ -54,10 +54,12 @@
       <option value="nl">Dutch</option>
       <option value="es">Spanish</option>
       <option value="pt">Portuguese</option>
+      <option value="ja">Japanese(beta)</option>
+      <option value="zh">Chinese(beta)</option>
     </select>
     </div>
     <button style = "display: Block;margin-left: auto;margin-right: auto;" class = "ui button primary" type="submit">Add</button>
-    <div style = "border: 1px double;border-color: #5a4f4d; border-radius: 2%;margin-top: 2%;">
+    <div class = "ui container"style = "border: 1px double;border-color: #5a4f4d; border-radius: 2%;margin-top: 2%;">
       <div style = "margin-left: 10%;"class = "ui container" id="vocabInfoInfs"></div>
       <div style = "margin-left: 10%;"class = "ui container" id="vocabInfo"></div>
       <button style = "display: none;margin-left: auto;margin-right: auto;" class = "ui button" id= "addAuto">Add to database</button>

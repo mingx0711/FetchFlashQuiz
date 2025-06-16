@@ -66,8 +66,8 @@ document.getElementById('addVocabForm').addEventListener('submit', function(e) {
               getLatinAttributes(doc,word);
             } else if(language == 'de'){
               getGermanAttributes(doc,word);
-            } else{
-              getLinkedAttributes(doc,word,language)
+            }else{
+              getLinkedAttributes(doc,word,language);
             }
     })
     updateLanguageList(language);
@@ -76,6 +76,16 @@ document.getElementById('addVocabForm').addEventListener('submit', function(e) {
 
 
 });
+function getLanguageCharSetMapping(lang){
+  switch (lang) {
+    case "ja":
+      return "Jpan"
+    case "zh":
+      return "Hani"
+    default:
+      return "Latn"
+  }
+}
 function updateLanguageList(lang){
   chrome.storage.local.get({ languageList: {}}, (data) => {
 
@@ -105,7 +115,7 @@ function initializeConjugations(conjugations){
 
 }
 async function getLatinAttributes(doc,word){
-  const book = document.getElementById('bookSelector').value;
+  const book = document.getElementById('bookSelector').value?document.getElementById('bookSelector').value:"Latin";
   const pronounciation = document.getElementById('pronounciation').value;
   const gender = document.getElementById('gender').value;
   let conjugations = {};
@@ -121,7 +131,7 @@ async function getLatinAttributes(doc,word){
       const parentElement = spanElement.parentElement.parentElement.parentElement.parentElement;
       
       if (parentElement) {
-        console.log(parentElement)
+        //console.log(parentElement)
         verbInflectionTableNew = parentElement
         if(verbInflectionTableNew.classList.contains("roa-inflection-table")){
           isVerb = true
@@ -231,11 +241,12 @@ async function getLatinAttributes(doc,word){
     }
     var etym;
     if(!hasEytm){etym = ""}else{
-    const nextElem = h2Parent.nextElementSibling;
-    etym = nextElem.innerText;
+      const nextElem = h2Parent.nextElementSibling;
+      etym = nextElem.innerText;
+      etym = etym.replace(/\.mw[\s\S]*\}/, '');
     }
-    console.log(etym);
-    vocab = {word,definition,snoozed: false,book,pronounciation,gender,conjugations,seen:0,quizResults: ['n','n','n','n'],hasChecked:true,etym:hasEytm?etym:""}
+    //console.log(etym);
+    vocab = {word,definition,snoozed: false,book,pronounciation,language:"la",gender,conjugations,seen:0,quizResults: ['n','n','n','n'],hasChecked:true,etym:hasEytm?etym:""}
     vocabInfo.innerHTML=""
     vocabInfo.innerHTML+=' word: <span style="font-weight: bold;">'+vocab.word + '</span>'
     vocabInfo.innerHTML+='<br>| \n definition: <span style="font-weight: bold;">'+vocab.definition+ '</span>'
@@ -352,11 +363,18 @@ async function getLatinAttributes(doc,word){
       
     var etym;
     if(!hasEytm){etym = ""}else{
+      while(h2Parent.nextElementSibling){
+        if(h2Parent.nextElementSibling.tagName === 'P'){
+            break;
+        }
+        h2Parent = h2Parent.nextElementSibling
+      }
     const nextElem = h2Parent.nextElementSibling;
     etym = nextElem.innerText;
+    etym = etym.replace(/\.mw[\s\S]*\}/, '');
     }
-      console.log(etym);
-      vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,conjugations,hasChecked:true,seen:0,quizResults: ['n','n','n','n'],etym:hasEytm?etym:""}
+      //console.log(etym);
+      vocab = {word,definition,snoozed: false,book,pronounciation,language:"la",gender:autoGender?autoGender:gender,conjugations,hasChecked:true,seen:0,quizResults: ['n','n','n','n'],etym:hasEytm?etym:""}
       vocabInfo.innerHTML=""
       vocabInfo.innerHTML+=' word: <span style="font-weight: bold;">'+vocab.word + '</span>'
       vocabInfo.innerHTML+='<br> \n definition: <span style="font-weight: bold;">'+vocab.definition+ '</span>'
@@ -415,13 +433,27 @@ async function getLatinAttributes(doc,word){
   }
 }
 async function getLinkedAttributes(doc,word,lang){
+  var mention = getLanguageCharSetMapping(lang)
   document.getElementById('vocabInfo').innerHTML = ""
   document.getElementById('vocabInfoInfs').innerHTML = ""
   const book = document.getElementById('bookSelector').value;
   const pronounciation = document.getElementById('pronounciation').value;
   const gender = document.getElementById('gender').value;
-  const baseFormQuery = 'span.form-of-definition-link i[class="Latn mention"][lang="'+lang+'"]'
+  const baseFormQuery = 'span.form-of-definition-link i[class="' +mention+' mention"][lang="'+lang+'"]'
   const hasBaseForm = doc.querySelector(baseFormQuery);
+  const queryWord = 'strong.'+mention+'.headword[lang="'+lang+'"]'
+  let isWord = doc.querySelector(queryWord);
+  let title = null;
+  console.log(word.length)
+    console.log(lang)
+  if(word.length === 1){
+    return getEasyAttributes(doc,word,lang)
+  }
+  if(mention==='Jpan'){
+    title = getJapaneseBaseText(doc);
+  }else if(lang === 'zh'){
+    title = getChineseBaseText(doc);
+  }
   if(hasBaseForm){
     const anchorTag = hasBaseForm.querySelector('a');
     if (anchorTag) {
@@ -447,7 +479,7 @@ async function getLinkedAttributes(doc,word,lang){
     let finalStr = noDiacritics.replace(/-/g, "");
     let baseDoc;        
     let finallinkText = removeDiacritics(linkText)
-
+    console.log(finallinkText)
     if(finalStr.trim()!=linkText.trim())  {
       var url = usingLocal?`http://localhost:3000/fetch/${linkText}`:`https://en.wiktionary.org/wiki/${finallinkText}`
       await fetch(url)
@@ -456,27 +488,51 @@ async function getLinkedAttributes(doc,word,lang){
         // Parse the returned HTML and extract the inflection table
         const parser = new DOMParser();
         baseDoc = parser.parseFromString(html, 'text/html');
-        getEasyAttributes(baseDoc,linkText,lang);
+        getEasyAttributes(baseDoc,linkText,lang,"Latn");
       })
         document.getElementById("vocabInfo").textContent+","+definition
         definition = document.getElementById("vocabInfo").textContent+","+definition
-        vocab = {word,definition,snoozed: false,book,pronounciation,gender,hasChecked:true,seen:0,quizResults: ['n','n','n','n']}
+        vocab = {word,definition,snoozed: false,book,language:lang,pronounciation,gender,hasChecked:true,seen:0,quizResults: ['n','n','n','n']}
     }
    
   }
+  }else if(title){
+    console.log(title,word)
+    var url = usingLocal?`http://localhost:3000/fetch/${title}`:`https://en.wiktionary.org/wiki/${title}`
+    await fetch(url)
+    .then(response => response.text())
+    .then(html => {
+      // Parse the returned HTML and extract the inflection table
+      const parser = new DOMParser();
+      let baseDoc;        
+      baseDoc = parser.parseFromString(html, 'text/html');
+      getEasyAttributes(baseDoc,title,lang,mention);
+    })
+      document.getElementById("vocabInfo").textContent+","+definition
+      //definition = document.getElementById("vocabInfo").textContent+","+definition
+      //vocab = {word,definition,snoozed: false,book,pronounciation,gender,hasChecked:true,seen:0,quizResults: ['n','n','n','n']}
   }else{ 
     getEasyAttributes(doc,word,lang)
   }
 }
 async function getEasyAttributes(doc,word,lang){
-  
+  let mention = getLanguageCharSetMapping(lang)
   document.getElementById('vocabInfo').innerHTML = ''
   document.getElementById('vocabInfo').style.display = ""
-  const book = document.getElementById('bookSelector').value;
+  let book = document.getElementById('bookSelector').value?document.getElementById('bookSelector').value:(lang?convertFromAbbr(lang):"Default");
   const pronounciation = document.getElementById('pronounciation').value;
   const gender = document.getElementById('gender').value;
-  const queryWord = 'strong.Latn.headword[lang="'+lang+'"]'
-  const isWord = doc.querySelector(queryWord);
+  const queryWord = 'strong.'+mention+'.headword[lang="'+lang+'"]'
+  let isWord = doc.querySelector(queryWord);
+  if(lang === "zh"&&!isWord){
+      isWord = doc.querySelector('strong.Hant.headword[lang="zh"]')
+      if(!isWord){
+        isWord = doc.querySelector('strong.Hans.headword[lang="zh"]');
+        mention = "Hans"
+      }else{
+        mention = "Hant"
+      }
+  }
   if(isWord){
     const grannyElement = isWord.parentElement.parentElement;
     const closestOl = grannyElement.nextElementSibling;
@@ -488,7 +544,7 @@ async function getEasyAttributes(doc,word,lang){
       definition = liElement.textContent.trim()
       definition = definition.replace(/ *\([^)]*\) */g, "");
     }
-    const spanElement = doc.querySelector('span.Latn.form-of.lang-'+lang+'[lang="'+lang+'"]');
+    const spanElement = doc.querySelector('span.'+mention+'.form-of.lang-'+lang+'[lang="'+lang+'"]');
     let isVerb = false;
     let verbInflectionTableNew;
     if (spanElement) {
@@ -542,15 +598,46 @@ async function getEasyAttributes(doc,word,lang){
     }
     var etym;
     if(!hasEytm){etym = ""}else{
-    const nextElem = h2Parent.nextElementSibling;
-    etym = nextElem.innerText;
+      while(h2Parent.nextElementSibling){
+        if(h2Parent.nextElementSibling.tagName === 'P'){
+            break;
+        }
+        h2Parent = h2Parent.nextElementSibling
+      }
+      let nextElem = h2Parent.nextElementSibling;
+      while(nextElem.tagName === 'P'){
+         etym += nextElem.innerText;
+         nextElem = nextElem.nextElementSibling;
+      }
+    if(etym.includes("This etymology is missing or incomplete")){
+      etym = ""
+    }else{
+      etym = etym.replace(/\.mw[\s\S]*\}/, '');
+      etym = etym.replace('undefined', '');
+      }
     }
-    console.log("Eytm?" + hasEytm)
+    let pronounciationText = null;
+    if(lang === 'ja'){
+      let jpPronounciation = doc.querySelector('[title="w:Tokyo dialect"]');
+      if(jpPronounciation){
+        let jpPronounciationParent = jpPronounciation.parentElement.parentElement
+        pronounciationText = jpPronounciationParent.nextElementSibling.innerText;
+        }
+    }else if (lang === 'zh'){
+      let zhPronounciation = doc.querySelector('[title="w:Pinyin"]');
+      if(zhPronounciation){
+        let zhPronounciationParent = zhPronounciation.parentElement.parentElement
+        pronounciationText = zhPronounciationParent.nextElementSibling.innerText;
+      }
+    }
     document.getElementById('vocabInfo').innerHTML += '<span style="font-weight: bold;">'+definition+'</span>'
+    if(pronounciationText!=null){
+      document.getElementById('vocabInfo').innerHTML += ("<br>|pronounciation:"+pronounciationText)
+    }
     document.getElementById('vocabInfo').innerHTML += autoGender?("|gender:"+autoGender):""
     document.getElementById('vocabInfo').innerHTML += "<br>" + etym
-    console.log(book)
-    vocab = {word,definition,snoozed: false,book,pronounciation,gender:autoGender?autoGender:gender,hasChecked:true,seen:0,quizResults: ['n','n','n','n'],etym:hasEytm?etym:""}
+    vocab = {word,definition,snoozed: false,book,language:lang,pronounciation:pronounciationText,gender:autoGender?autoGender:gender,hasChecked:true,seen:0,quizResults: ['n','n','n','n'],etym:hasEytm?etym:""}
+    console.log(vocab)
     if(isVerb){
       switch(lang){
         case 'fr':
@@ -565,6 +652,31 @@ async function getEasyAttributes(doc,word,lang){
     document.getElementById('vocabInfo').style.display = 'block'
     document.getElementById('vocabInfo').innerHTML = "word could need correct capitalizations, be a special word, or doesnot exist in the language"
   }
+}
+function getChineseBaseText(doc){
+  const bolds = doc.querySelectorAll('b');
+  for (const b of bolds) {
+    if (b.textContent.includes('see')) {
+      const span = b.querySelector('span[class*="Han"]');
+      if (span) {
+        const link = span.querySelector('a');
+        if (link) {
+          return link.getAttribute('title')
+        } else {
+        }
+      } else {
+      }
+    }
+  }
+}
+function getJapaneseBaseText(doc){
+ const table = doc.querySelectorAll('span[class*="Jpan"]');
+    for (const t of table) {
+      let a = t.querySelector('a[title][href]');
+      if (a) {
+        return a.getAttribute('title');
+      }
+    }
 }
 function convertFromAbbr(lang){
 switch (lang) {
@@ -735,10 +847,10 @@ function getGermanAttributes(doc,word){
   }
 function populateBookSelector() {
   chrome.storage.local.get({ bookList: [] }, (result) => {
-    const bookList = result.bookList||"Default";
+    const bookList = result.bookList||["Default"];
     chrome.storage.local.get('lastBook', function(data) {
       const lastBook = data.lastBook?data.lastBook:(result.bookList?result.bookList[0]:"Default");
-      console.log(data.lastBook)
+      //console.log(data.lastBook)
     if(lastBook){
         document.getElementById('bookSelector').innerHTML = ""
     if(lastBook!=""||lastBook==="addNew"){
@@ -757,7 +869,6 @@ function populateBookSelector() {
         }else{
           option.textContent  = book;
           option.value = book;
-
           document.getElementById('bookSelector').add(option);
         }
       });
@@ -771,7 +882,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
   const selectLanguage = document.getElementById('selectLanguage');
   chrome.storage.local.get('languageList',function(data){
     if(data.languageList){
-      console.log(data.languageList)
+      //console.log(data.languageList)
       let optionsArray = Array.from(selectLanguage.options);
       optionsArray.sort((a, b) => {
         const valueA = data.languageList[a.value] || 0;  // default to 0 if not in the dictionary
@@ -779,7 +890,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         return valueB - valueA;  // Descending order
       });
       selectLanguage.innerHTML = '';
-      console.log(optionsArray)
+      //console.log(optionsArray)
       optionsArray.forEach(option => {
         selectLanguage.add(option);
       });
@@ -801,7 +912,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     }else{
       document.getElementById('tipsBox1').style.display='none';
     }      
-    console.log(data.hideBox1)
+    //console.log(data.hideBox1)
 
   });
   chrome.storage.local.get('hideBox0',function(data){
@@ -810,7 +921,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     }else{
       document.getElementById('tipsBox0').style.display='none';
     } 
-    console.log(data.hideBox0)
+    //console.log(data.hideBox0)
 
   });
   document.getElementById('hideTips1').addEventListener('click', function(e) {
@@ -864,12 +975,12 @@ function syncBook(){
     bookList.push(...distinctBooks);
     bookList = Array.from(new Set(bookList));
     bookList = bookList.filter(Boolean)
-    console.log(bookList)
+    //console.log(bookList)
     chrome.storage.local.set({ bookList: bookList }, () => {
       if (chrome.runtime.lastError) {
         console.error("Error saving bookList:", chrome.runtime.lastError);
       } else {
-        console.log("bookList saved:", bookList);
+        //console.log("bookList saved:", bookList);
       }
     });
   });
@@ -877,7 +988,7 @@ function syncBook(){
   
 }
 document.getElementById('addAuto').addEventListener('click', function(e) {
-  const book = document.getElementById('bookSelector').value;
+  const book = document.getElementById('bookSelector').value?document.getElementById('bookSelector').value:(lang?convertFromAbbr(lang):"Default");
   chrome.storage.local.get('vocabList', function(data) {
     let vocabList = data.vocabList || [];
     if (vocabList.some(item=>item.word === vocab.word&&item.book === vocab.book)){

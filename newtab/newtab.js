@@ -1160,6 +1160,7 @@ function showNextVocab(collection = currentCollectionSelection) {
       if(currentCollection[currentVocabIndex].etym){
         const eytmText = currentCollection[currentVocabIndex].etym;
         etymDiv.textContent = eytmText.replace(/\.mw[\s\S]*\}/, '');
+        etymDiv.textContent = eytmText.replace('undefined', '');
       }else{
         etymDiv.textContent = ""
       }

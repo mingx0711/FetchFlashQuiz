@@ -611,7 +611,9 @@ async function getEasyAttributes(doc,word,lang){
       let nextElem = h2Parent.nextElementSibling;
       if(lang === 'ja'|| lang === 'zh'){
         while(nextElem.tagName === 'P'){
-          etym += nextElem.innerText;
+          if(nextElem.innerText!==undefined&&nextElem.innerText!==""){
+            etym += nextElem.innerText;
+          }
           nextElem = nextElem.nextElementSibling;
         }
       }else{

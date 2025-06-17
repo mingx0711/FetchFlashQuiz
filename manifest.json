@@ -19,7 +19,8 @@
     "newtab": "newtab/newtab.html"
   },
   "background": {
-    "service_worker": "server.js"
+    "scripts": ["background.js"],
+    "persistent": false
   }, 
   "host_permissions": [
     "https://en.wiktionary.org/*"

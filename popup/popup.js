@@ -22,7 +22,6 @@ document.getElementById('addVocabForm').addEventListener('submit', function(e) {
   const pronounciation = document.getElementById('pronounciation').value;
   const gender = document.getElementById('gender').value;
   chrome.storage.local.set({ lastBook: book }, function() {});
-
   if(definition && definition!=""){
     chrome.storage.local.get('vocabList', function(data) {
       let vocabList = data.vocabList || [];

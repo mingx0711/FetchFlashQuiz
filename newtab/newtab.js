@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
       vocabList = data.vocabList;
       currentVocabIndex = -1;
       missingCount = vocabList
-      .filter(item => !item.hasOwnProperty('hasChecked'))
+      .filter(item => !item.hasOwnProperty('hasChecked')|| item.hasChecked !== true)
       .length;
       if(missingCount>0){
         fetchInfo.textContent = missingCount + ' words may be missing etymology, inflection, or gender. Click here to fetch their info in the background from Wiktionary.'
@@ -106,12 +106,11 @@ function sleep(maxMs, minMs) {
 }
 async function fetchInfoFromWik(vocab){
   var language = vocab.language?vocab.language: vocab.book
-  console.log(vocab)
-  console.log(language)
-  var word = vocab.word
+  var word = vocab.word.replace(/\(.*?\)/g, "").replace(/\/.*/g, "").replace(/[!?]/g, "").trim();
   if(language!="de"){
       word = removeDiacritics(word)
   }
+    console.log(word)
   var url = `https://en.wiktionary.org/wiki/${word}`
     fetch(url)
     .then(response => {return response.text();})
@@ -1161,7 +1160,7 @@ function showNextVocab(collection = currentCollectionSelection) {
       if(currentCollection[currentVocabIndex].etym){
         const etymText = currentCollection[currentVocabIndex].etym;
         const etymSize =
-        maxSize - ( (maxSize - minSize) * ( Math.min(etymText.length, 400) / 400) );
+        maxSize - ( (maxSize - minSize) * ( Math.min(etymText.length, 500) / 500) );
         etymDiv.textContent = etymText.replace(/\.mw[\s\S]*\}/, '');
         etymDiv.textContent = etymDiv.textContent.replace('undefined', '');
         etymDiv.style.fontSize = etymSize.toFixed(1) + 'vw';
@@ -1496,18 +1495,8 @@ function quizStyle5(){
   isPairCorrect = Math.random() < 0.5;
   
   if (!isPairCorrect) {
-    let incorrectVocab;
-    do {
-      const randomIndex = Math.floor(Math.random() * eligibleOptions.length);
-      incorrectVocab = eligibleOptions[randomIndex];
-    } 
-    while (incorrectVocab.word === currentQuizWord);
-    do {
-      const randomIndex = Math.floor(Math.random() * eligibleOptions.length);
-      incorrectVocab = eligibleOptions[randomIndex];
-    } 
-    while (incorrectVocab.gender === currentQuizWord.gender);
-    
+    var incorrectVocab = ["neuter", "masculine", "feminine"].filter(item => item !== currentQuizDefinition);
+    currentQuizDefinition = getRandomElement(incorrectVocab);
   }
     document.getElementById('quizQuestion').textContent = `What is the gender of "${correctVocab.word}"?`;
   

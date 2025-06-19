@@ -1,5 +1,6 @@
 let vocab = {}
 let def;
+
 let usingLocal = false;
 let lastClick = new Date(2025, 5, 12);
 document.getElementById('selectLanguage').addEventListener('change', function() {
@@ -125,7 +126,7 @@ async function getLatinAttributes(doc,word){
   let verbInflectionTableNew;
   let isVerb = false;
   const spanElement = doc.querySelector('span.Latn.form-of.lang-la[lang="la"]');
-
+  //console.log(word);
   if (spanElement) {
       // Get its parent element
       const parentElement = spanElement.parentElement.parentElement.parentElement.parentElement;
@@ -254,6 +255,7 @@ async function getLatinAttributes(doc,word){
     vocabInfo.innerHTML+="<br>| \n collection: "+vocab.book
     vocabInfo.innerHTML+="<br>| \n eytmology: "+vocab.etym
     conjugations.type = 'latin';
+    console.log(vocab)
     document.getElementById("addAuto").style.display = 'block'
     }
   else {
@@ -386,6 +388,7 @@ async function getLatinAttributes(doc,word){
       vocabInfo.innerHTML+="<br> \n eytmology: "+vocab.etym
       conjugations.type = 'latin';
       document.getElementById("addAuto").style.display = 'block'
+          console.log(vocab)
      }else{
       const latinElement = doc.querySelector('span.form-of-definition-link i.Latn.mention[lang="la"]');
       if(latinElement){
@@ -517,6 +520,7 @@ async function getLinkedAttributes(doc,word,lang){
   }
 }
 async function getEasyAttributes(doc,word,lang){
+  console.log(word)
   let mention = getLanguageCharSetMapping(lang)
   document.getElementById('vocabInfo').innerHTML = ''
   document.getElementById('vocabInfo').style.display = ""
@@ -997,12 +1001,15 @@ function syncBook(){
   
 }
 document.getElementById('addAuto').addEventListener('click', function(e) {
-  const book = document.getElementById('bookSelector').value?document.getElementById('bookSelector').value:(lang?convertFromAbbr(lang):"Default");
+  const currentVocab = vocab; 
+  const book = document.getElementById('bookSelector').value;
+  console.log(vocab)
   chrome.storage.local.get('vocabList', function(data) {
+    console.log(currentVocab); 
     let vocabList = data.vocabList || [];
-    if (vocabList.some(item=>item.word === vocab.word&&item.book === vocab.book)){
+    if (vocabList.some(item=>item.word === currentVocab.word&&item.book === currentVocab.book)){
     }else{
-      vocabList.push(vocab);
+      vocabList.push(currentVocab);
     }
     // Append the new word, definition, and snoozed field
     chrome.storage.local.set({ lastBook: book }, function() {});

@@ -2,6 +2,7 @@ const fetchTip = document.getElementById('fetchTip');
 const fetchInfo = document.getElementById('fetchInfo');
 let isQuiz = false;
 var missingCount;
+let needDiatricts = ["de","fr"]
 document.addEventListener('DOMContentLoaded', function() {
   chrome.storage.local.get('currentCollectionSelection', function(data){
     currentCollectionSelection = data.currentCollectionSelection || []
@@ -83,21 +84,24 @@ fetchInfo.addEventListener('mouseleave', () => {
 });
 var keepGoing = true;
 fetchInfo.addEventListener('click', async () => {
-  if(fetchInfo.textContent.includes('fetching')){
+  if (fetchInfo.textContent.includes('fetching')) {
     fetchInfo.textContent = missingCount + ' words may be missing etymology, inflection, or gender. Click here to fetch their info in the background from Wiktionary.'
     keepGoing = false;
-  }else{
+  } else {
     keepGoing = true;
-    for (const item of vocabList) {
-      if(!keepGoing){break;}
-      if(!item.hasChecked||item.hasChecked!=true){
-        console.log(new Date().toLocaleTimeString());        
-        fetchInfoFromWik(item);
-        missingCount --;
-        fetchInfo.textContent = 'fetching...' + missingCount + " words left"
-        await sleep(30000,100000)
-      }
-    };
+    while (keepGoing) {
+      // Always get the latest vocabList from storage
+      const data = await new Promise(resolve => chrome.storage.local.get('vocabList', resolve));
+      vocabList = data.vocabList || [];
+      // Find the next word that needs to be fetched
+      const item = vocabList.find(item => !item.hasChecked || item.hasChecked !== true);
+      if (!item) break; // No more items to fetch
+      console.log(new Date().toLocaleTimeString());
+      await fetchInfoFromWik(item);
+      missingCount--;
+      fetchInfo.textContent = 'fetching...' + missingCount + " words left";
+      await sleep(60000, 300000);
+    }
   }
 });
 function sleep(maxMs, minMs) {
@@ -105,34 +109,37 @@ function sleep(maxMs, minMs) {
   return new Promise(resolve => setTimeout(resolve, sleepMs));
 }
 async function fetchInfoFromWik(vocab){
-  var language = vocab.language?vocab.language: vocab.book
-  var word = vocab.word.replace(/\(.*?\)/g, "").replace(/\/.*/g, "").replace(/[!?]/g, "").trim();
-  if(language!="de"){
-      word = removeDiacritics(word)
-  }
-    console.log(word)
-  var url = `https://en.wiktionary.org/wiki/${word}`
-    fetch(url)
-    .then(response => {return response.text();})
-    .then(html => {
-      // Parse the returned HTML and extract the inflection table
-       const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            if (language == "Latin"){
-              getLatinAttributes(doc,vocab);
-            }else{
-              language = convertToAbbr(language)
-              getEasyAttributes(doc,vocab,language)
-            }
-        })
-    .catch(err => {
-     vocab.hasChecked = true;
-      vocabList = vocabList.map(item =>
-      item.word === vocab.word
-      ? vocab      
-      : item         
-      );
-    chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
+    console.log(vocabList.length)
+    var language = vocab.language?vocab.language: vocab.book
+    language = convertToAbbr(language)
+    var word = vocab.word.replace(/\(.*?\)/g, "").replace(/\/.*/g, "").replace(/[!?]/g, "").trim();
+    if(!needDiatricts.includes(language)){
+        word = removeDiacritics(word)
+      }
+    console.log(vocab.word+"-----"+word+"-----"+language );
+    var url = `https://en.wiktionary.org/wiki/${word}`
+      fetch(url)
+      .then(response => {return response.text();})
+      .then(html => {
+        // Parse the returned HTML and extract the inflection table
+        const parser = new DOMParser();
+              const doc = parser.parseFromString(html, 'text/html');
+              if (language == "la"){
+                getLatinAttributes(doc,vocab);
+              }else{
+                getEasyAttributes(doc,vocab,language)
+              }
+              vocab.hasChecked = true;
+          })
+      .catch(err => {
+      vocab.hasChecked = true;
+        vocabList = vocabList.map(item =>
+        item.word === vocab.word
+        ? vocab      
+        : item         
+        );
+        
+      chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
     })
 }
 function getLanguageCharSetMapping(lang){
@@ -411,7 +418,6 @@ async function getLatinAttributes(doc,vocab){
       ? vocab      // replace the entire object
       : item         // leave everything else alone
     );
-    console.log(vocab)
     chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
      }else{
       const isLatinWord = doc.querySelector('strong.Latn.headword[lang="la"]');
@@ -424,7 +430,6 @@ async function getLatinAttributes(doc,vocab){
       ? vocab      // replace the entire object
       : item         // leave everything else alone
     );
-    console.log(vocab)
     chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
       }
     }
@@ -564,7 +569,12 @@ async function getEasyAttributes(doc,vocab,lang){
     console.log(vocab)
   }else{
     vocab.hasChecked = true;
-    console.log(vocab + " does not exist in wiktionary")
+    vocabList = vocabList.map(item =>
+    item.word === vocab.word
+      ? vocab      // replace the entire object
+      : item         // leave everything else alone
+    );
+    console.log(vocab.word + " does not exist in wiktionary")
     chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
   }
 }
@@ -1213,7 +1223,6 @@ function enterAutoPlay(){
       intervalSeconds = history[history.length - 1].value;
      // console.log('Loaded interval from history:', intervalSeconds);
     }
-    console.log(intervalSeconds)
 
     timerId = setInterval(() => {
       showNextItem();
@@ -1874,14 +1883,14 @@ function showCorrectAnswer() {
       vocabFlashcard.textContent+= " pronounciation:"
       vocabFlashcard.textContent+= correctVocab.pronounciation
     } 
-    if(conjToTest.length>0&&quizType=="6"){
+    if(conjToTest && conjToTest.length>0&&quizType=="6"){
       vocabFlashcard.innerHTML+= String.fromCodePoint(0x1F4A0);
       vocabFlashcard.textContent+= correctConj
       vocabFlashcard.textContent+= " is one of the "
       vocabFlashcard.textContent+= makeStringReadable(conjToTest.toString())
       vocabFlashcard.textContent+= "form of "
       vocabFlashcard.textContent+= correctVocab.word
-    }if(conjToTest.length>0&&quizType=="7"){
+    }if(conjToTest && conjToTest.length>0&&quizType=="7"){
       vocabFlashcard.innerHTML+= String.fromCodePoint(0x1F4A0);
       vocabFlashcard.textContent+= wordToTest
       vocabFlashcard.textContent+= " is one of the "

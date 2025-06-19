@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Instant Dicitionary & Vocabs",
-  "version": "1.9.3",
+  "version": "1.9.3.1",
   "description": "Looks up words for various languages, Display&Quiz them in new tab ",
   "permissions": ["storage","*://*.wiktionary.org/*"],
   
@@ -25,6 +25,4 @@
   "host_permissions": [
     "https://en.wiktionary.org/*"
   ]
-
-  
 }

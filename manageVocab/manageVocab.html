@@ -100,7 +100,21 @@
   <div id="fileInputContainer">
     <input type="file" id="fileInput" accept=".json" />
   </div>
-
+<button id="searchEditVocabBtn" class="ui button">Search/Edit Vocab</button>
+<div id="searchEditVocabContainer" style="display:none; margin-top: 20px;margin-left: 3%;">
+  <input type="text" id="searchVocabInput" placeholder="Enter word to search" />
+  <button id="doSearchVocabBtn" class="ui button">Search</button>
+  <form id="editVocabForm" style="display:none; margin-top: 10px;margin-left: 3%;">
+    <label>Word: <input type="text" id="editWord" /></label><br>
+    <label>Definition: <input type="text" id="editDefinition" /></label><br>
+    <label>Book: <input type="text" id="editCollection" /></label><br>
+    <label>Pronounciation: <input type="text" id="editPronounciation" /></label><br>
+    <label>Etymology: <input type="text" id="editEtym" /></label><br>
+    <label>Has Checked: <input type="checkbox" id="editHasChecked" /></label><br>
+    <button type="submit" class="ui button">Save Changes</button>
+  </form>
+  <div id="searchEditVocabMsg" style="color: red; margin-top: 10px;"></div>
+</div>
 <pre id="output"></pre>
   <!-- <button class="ui button" style = "background-color:#d3d7bf" id="exportTotxt"> Export vocabs to text(formatted for bulk import)</button> -->
   <div id="popup-overlay"></div>
@@ -169,5 +183,7 @@
     </div>
   <script src="../libs/papaparse.js"></script>
   <script src="manageVocab.js"></script>
+  <!-- Add this to your HTML -->
+
 </body>
 </html>

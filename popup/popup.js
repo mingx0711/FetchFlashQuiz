@@ -1014,7 +1014,7 @@ document.getElementById('addAuto').addEventListener('click', function(e) {
     // Append the new word, definition, and snoozed field
     chrome.storage.local.set({ lastBook: book }, function() {});
     // Save updated vocab list to Chrome storage
-    chrome.storage.local.set({ vocabList: vocabList }, function() {
+  chrome.storage.local.set({ vocabList: vocabList }, function() {
       chrome.storage.local.get('bookList', function(data) {
         let bookList = data.bookList || [];
         if(!bookList.includes(book)){
@@ -1036,3 +1036,14 @@ document.getElementById('addAuto').addEventListener('click', function(e) {
     });
   });
 });
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    removeDiacritics,
+    getLanguageCharSetMapping,
+    convertFromAbbr,
+    formatLanguage,
+    getChineseBaseText,
+    getJapaneseBaseText
+  };
+}

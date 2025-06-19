@@ -24,34 +24,9 @@ document.getElementById('addVocabForm').addEventListener('submit', function(e) {
   const gender = document.getElementById('gender').value;
   chrome.storage.local.set({ lastBook: book }, function() {});
   if(definition && definition!=""){
-    chrome.storage.local.get('vocabList', function(data) {
-      let vocabList = data.vocabList || [];
-      // Append the new word, definition, and snoozed field
-      vocabList.push({ word, definition, snoozed: false , book, gender,pronounciation,seen: 0, quizResults: ['n','n','n','n']});
-      chrome.storage.local.set({ lastBook: book }, function() {});
-      // Save updated vocab list to Chrome storage
-      chrome.storage.local.set({ vocabList: vocabList }, function() {
-        chrome.storage.local.get('bookList', function(data) {
-          let bookList = data.bookList || [];
-          if(!bookList.includes(book)){
-            bookList.push(book);
-          }
-          chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
-    
-        })
-        // Show a message indicating the word was added
-        const messageDiv = document.getElementById('message');
-        messageDiv.textContent = `The word "${word}" has been added to the list.`;
-  
-        // Clear form fields
-        document.getElementById('addVocabForm').reset();
-  
-        // Clear the message after a few seconds
-        setTimeout(() => {
-          messageDiv.textContent = '';
-        }, 3000);
-      });
-    });
+    const vocabItem = { word, definition, snoozed: false , book, gender,pronounciation,seen: 0, quizResults: ['n','n','n','n']};
+    saveVocabItem(vocabItem);
+    document.getElementById('addVocabForm').reset();
   }else{
     if(!needDiatricts.includes(language)){
       word = removeDiacritics(word)
@@ -102,6 +77,34 @@ function updateLanguageList(lang){
 }
 function removeDiacritics(str) {
   return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function showMessage(msg){
+  const messageDiv = document.getElementById('message');
+  messageDiv.textContent = msg;
+  setTimeout(() => {
+    messageDiv.textContent = '';
+  }, 3000);
+}
+
+function saveVocabItem(item){
+  chrome.storage.local.get('vocabList', function(data){
+    let vocabList = data.vocabList || [];
+    if(!vocabList.some(v=>v.word === item.word && v.book === item.book)){
+      vocabList.push(item);
+    }
+    chrome.storage.local.set({ lastBook: item.book }, function() {});
+    chrome.storage.local.set({ vocabList }, function(){
+      chrome.storage.local.get('bookList', function(d){
+        let bookList = d.bookList || [];
+        if(!bookList.includes(item.book)){
+          bookList.push(item.book);
+        }
+        chrome.storage.local.set({ vocabList }, function(data){});
+      });
+      showMessage(`The word "${item.word}" has been added to the list.`);
+    });
+  });
 }
 function initializeConjugations(conjugations){
     conjugations.pos = 'verb'
@@ -1001,38 +1004,7 @@ function syncBook(){
   
 }
 document.getElementById('addAuto').addEventListener('click', function(e) {
-  const currentVocab = vocab; 
-  const book = document.getElementById('bookSelector').value;
+  const currentVocab = vocab;
   console.log(vocab)
-  chrome.storage.local.get('vocabList', function(data) {
-    console.log(currentVocab); 
-    let vocabList = data.vocabList || [];
-    if (vocabList.some(item=>item.word === currentVocab.word&&item.book === currentVocab.book)){
-    }else{
-      vocabList.push(currentVocab);
-    }
-    // Append the new word, definition, and snoozed field
-    chrome.storage.local.set({ lastBook: book }, function() {});
-    // Save updated vocab list to Chrome storage
-    chrome.storage.local.set({ vocabList: vocabList }, function() {
-      chrome.storage.local.get('bookList', function(data) {
-        let bookList = data.bookList || [];
-        if(!bookList.includes(book)){
-          bookList.push(book);
-        }
-        chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
-      })
-      // Show a message indicating the word was added
-      const messageDiv = document.getElementById('message');
-      messageDiv.textContent = `The word has been added to the list.`;
-
-      // Clear form fields
-      //document.getElementById('addVocabForm').reset();
-
-      // Clear the message after a few seconds
-      setTimeout(() => {
-        messageDiv.textContent = '';
-      }, 3000);
-    });
-  });
+  saveVocabItem(currentVocab);
 });

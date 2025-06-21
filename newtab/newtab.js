@@ -93,7 +93,7 @@ focusButton.addEventListener('click', () => {
         if(currentVocabIndex>=0&&currentVocabIndex<vocabList.length){
           const currentItem = vocabList[currentVocabIndex];
           currentItem.focus = false;
-          console.log(currentItem+" is not focused");
+          //console.log(currentItem+" unfocused");
           vocabList = vocabList.map(item =>
             item.word === currentItem.word
               ? currentItem      // replace the entire object
@@ -111,7 +111,7 @@ focusButton.addEventListener('click', () => {
         if(currentVocabIndex>=0&&currentVocabIndex<vocabList.length){
           const currentItem = vocabList[currentVocabIndex];
           currentItem.focus = true;
-          console.log(currentItem.word +" is focused");
+          //console.log(currentItem.word +" is focused");
           vocabList = vocabList.map(item =>
             item.word === currentItem.word
               ? currentItem      // replace the entire object
@@ -1148,13 +1148,15 @@ function showNextVocab(collection = currentCollectionSelection) {
       currentVocabIndex = Math.floor(Math.random()*currentCollection.length);
       const currentFocusedWords = currentCollection.filter(word => word.focus);
       const focusedWordRatio = 10*(currentFocusedWords.length / currentCollection.length);
-      //console.log(currentFocusedWords)
-      //console.log("focused word ratio", focusedWordRatio)
       if((Math.random()< focusedWordRatio)&&currentFocusedWords.length>0){
-        //console.log("showing a random focused word")
         const randomIndex = Math.floor(Math.random() * currentFocusedWords.length);
         const randomFocusedWord = currentFocusedWords[randomIndex];
         currentVocabIndex = currentCollection.findIndex(item => item === randomFocusedWord);
+      }
+      if(currentCollection[currentVocabIndex].focus){
+        focusButton.innerHTML = '\u2B50'
+      }else{
+        focusButton.innerHTML = '&#9734;';
       }
       while (nextIndex !== startIndex && currentCollection[currentVocabIndex].snoozed) {
         currentVocabIndex = (nextIndex + 1) % currentCollection.length;

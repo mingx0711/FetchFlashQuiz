@@ -1099,6 +1099,16 @@ function showNextVocab(collection = currentCollectionSelection) {
       currentVocabIndex = null;
     } else {
       currentVocabIndex = Math.floor(Math.random()*currentCollection.length);
+      const currentFocusedWords = currentCollection.filter(word => word.focus);
+      const focusedWordRatio = 10*(currentFocusedWords.length / currentCollection.length);
+      //console.log(currentFocusedWords)
+      //console.log("focused word ratio", focusedWordRatio)
+      if((Math.random()< focusedWordRatio)&&currentFocusedWords.length>0){
+        //console.log("showing a random focused word")
+        const randomIndex = Math.floor(Math.random() * currentFocusedWords.length);
+        const randomFocusedWord = currentFocusedWords[randomIndex];
+        currentVocabIndex = currentCollection.findIndex(item => item === randomFocusedWord);
+      }
       while (nextIndex !== startIndex && currentCollection[currentVocabIndex].snoozed) {
         currentVocabIndex = (nextIndex + 1) % currentCollection.length;
        // console.log("le word has been snoozy shouldnt show up ")
@@ -1223,7 +1233,6 @@ function enterAutoPlay(){
       intervalSeconds = history[history.length - 1].value;
      // console.log('Loaded interval from history:', intervalSeconds);
     }
-
     timerId = setInterval(() => {
       showNextItem();
     }, intervalSeconds * 1000);

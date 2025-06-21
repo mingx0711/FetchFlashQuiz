@@ -81,6 +81,7 @@ document.getElementById('doSearchVocabBtn').addEventListener('click', function()
     document.getElementById('editPronounciation').value = vocab.pronounciation || '';
     document.getElementById('editEtym').value = vocab.etym || '';
     document.getElementById('editHasChecked').checked = vocab.hasChecked || false;
+    document.getElementById('editFocus').checked = vocab.hasChecked || false;
     document.getElementById('editVocabForm').style.display = 'block';
     msgDiv.textContent = '';
     // Store original word for update
@@ -135,31 +136,31 @@ function updateVocabList(vocabList, collection = ["all"]) {
       const vocabDivDiv = document.createElement('div');
       wordDiv.textContent = ` ${entry.word}`;
       wordDiv.style.width = '20vw';
-      wordDiv.style.fontSize = '160%';
+      wordDiv.style.fontSize = '3vh';
       wordDiv.style.marginRight  = '10px';
       
       if(entry.pronounciation!=""&&entry.pronounciation!=undefined){
         const pronounciationDiv = document.createElement('div');
         pronounciationDiv.textContent =  `${entry.pronounciation}`;
-        pronounciationDiv.style.fontSize = '70%';
+        pronounciationDiv.style.fontSize = '2.5vh';
         wordDiv.appendChild(pronounciationDiv);
       }
       if(entry.gender!=""&&entry.gender!=undefined){
         const genderDiv = document.createElement('div');
         genderDiv.textContent =  `${entry.gender}`;
-        genderDiv.style.fontSize = '60%';
+        genderDiv.style.fontSize = '2vh';
         wordDiv.appendChild(genderDiv);
       }
       const definitionDiv = document.createElement('div');
       definitionDiv.textContent = `${entry.definition}`;
       definitionDiv.style.width = '20vw';
-      definitionDiv.style.fontSize = '160%';
+      definitionDiv.style.fontSize = '3vh';
       definitionDiv.style.marginRight  = '10px';
 
       const bookDiv = document.createElement('div');
       bookDiv.textContent = `${entry.book}`;
       bookDiv.style.width = '10vw';
-      bookDiv.style.fontSize = '100%';
+      bookDiv.style.fontSize = '3vh';
       bookDiv.style.marginRight  = '10px';
   
       const quizResultsDiv = document.createElement('div');
@@ -199,11 +200,27 @@ function updateVocabList(vocabList, collection = ["all"]) {
           updateVocabList(vocabList);  // Update the displayed list
         });
       });
-      
+
+      const importantButton = document.createElement('button');
+      importantButton.classList.add("ui","button");
+      importantButton.style.width = '100px'
+      importantButton.textContent = entry.focus ? 'Unfocus' : 'Focus';
+      importantButton.addEventListener('click', function() {
+        const match = vocabList.find(item => item.word === vocabList[index].word)
+        match.focus = match.focus ? false : true;
+        chrome.storage.local.set({ vocabList: vocabList }, function() {
+          updateVocabList(vocabList);  // Update the displayed list
+        });
+      });
+      snoozeButton.style.fontSize = '2vh';
+      deleteButton.style.fontSize = '2vh';
+      importantButton.style.fontSize = '2vh';
+
       vocabDiv.appendChild(wordDiv);
       vocabDiv.appendChild(definitionDiv);
       vocabDiv.appendChild(bookDiv);
       vocabDiv.appendChild(quizResultsDiv);
+      vocabDiv.appendChild(importantButton);
       vocabDiv.appendChild(deleteButton);
       vocabDiv.appendChild(snoozeButton);
       vocabDiv.style.backgroundColor='white';
@@ -211,7 +228,7 @@ function updateVocabList(vocabList, collection = ["all"]) {
       if(entry.etym!=undefined&&entry.etym!=""){
         const etymDiv = document.createElement('div');
         etymDiv.textContent = `-${entry.etym}`;
-        etymDiv.style.fontSize = '100%';
+        etymDiv.style.fontSize = '2vh';
         etymDiv.style.left = '5%';
         etymDiv.style.marginTop = '10px';
         etymContainerDiv.appendChild(etymDiv);

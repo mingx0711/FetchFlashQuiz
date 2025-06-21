@@ -19,9 +19,8 @@
     "newtab": "newtab/newtab.html"
   },
   "background": {
-    "scripts": ["background.js"],
-    "persistent": false
-  }, 
+    "service_worker": "background.js"
+  },
   "host_permissions": [
     "https://en.wiktionary.org/*"
   ]

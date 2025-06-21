@@ -111,6 +111,7 @@
     <label>Pronounciation: <input type="text" id="editPronounciation" /></label><br>
     <label>Etymology: <input type="text" id="editEtym" /></label><br>
     <label>Has Checked: <input type="checkbox" id="editHasChecked" /></label><br>
+    <label>Focus: <input type="checkbox" id="editFocus" /></label><br>
     <button type="submit" class="ui button">Save Changes</button>
   </form>
   <div id="searchEditVocabMsg" style="color: red; margin-top: 10px;"></div>
@@ -165,10 +166,11 @@
     <div style = "display: flex;flex-wrap: wrap;"id="displayBookList"></div>
   </div>
   <div class="container" style =" display: flex;">
-    <div  class="ui box" style = "margin-left:10px; width: 20vw; font-size: 150%;" text-align = "left" > <b>Word</b> </div>
-    <div  class="ui box" style = "width: 20vw; font-size: 150%;"  text-align = "left"> <b>Definition</b> </div>
-    <div  class="ui box" style = "width: 10vw; font-size: 150%;"  text-align = "left"> <b>Collection</b> </div>
-    <div  class="ui box"  style = "width: 25vw; font-size: 150%;" text-align = "left"><b>Last 4 quiz results</b></div>
+    <div  class="ui box" style = "margin-left:10px; width: 20vw; font-size: 3vh;" text-align = "left" > <b>Word</b> </div>
+    <div  class="ui box" style = "width: 20vw; font-size: 3vh;"  text-align = "left"> <b>Definition</b> </div>
+    <div  class="ui box" style = "width: 10vw; font-size: 3vh;"  text-align = "left"> <b>Collection</b> </div>
+    <div  class="ui box"  style = "width: 25vw; font-size: 3vh;" text-align = "left"><b>Last 4 quiz results</b></div>
+    <div  class="ui box" style = "width: 25vw; font-size: 2vh;"text-align = "left">Focused words will show up 10x as frequently; Snoozed words will not show in flashcards.</div>
   </div>
   <div id="vocabList"></div>
   <button class="ui button" id="clearButton">Clear Data</button>

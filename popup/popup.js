@@ -1,6 +1,8 @@
 let vocab = {}
 let def;
-
+chrome.runtime.onInstalled.addListener(function() {
+  chrome.tabs.create({ url: "https://mingx0711.github.io/" });
+});
 let usingLocal = false;
 let lastClick = new Date(2025, 5, 12);
 document.getElementById('selectLanguage').addEventListener('change', function() {
@@ -1007,7 +1009,9 @@ document.getElementById('addAuto').addEventListener('click', function(e) {
   chrome.storage.local.get('vocabList', function(data) {
     console.log(currentVocab); 
     let vocabList = data.vocabList || [];
-    if (vocabList.some(item=>item.word === currentVocab.word&&item.book === currentVocab.book)){
+     const index = vocabList.findIndex(item => item.word === currentVocab.word && item.book === currentVocab.book);
+    if (index !== -1 && !vocabList[index].etym && currentVocab.etym) {
+      vocabList[index] = currentVocab; // Update the existing entry
     }else{
       vocabList.push(currentVocab);
     }

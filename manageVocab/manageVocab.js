@@ -81,7 +81,7 @@ document.getElementById('doSearchVocabBtn').addEventListener('click', function()
     document.getElementById('editPronounciation').value = vocab.pronounciation || '';
     document.getElementById('editEtym').value = vocab.etym || '';
     document.getElementById('editHasChecked').checked = vocab.hasChecked || false;
-    document.getElementById('editFocus').checked = vocab.hasChecked || false;
+    document.getElementById('editFocus').checked = vocab.focus || false;
     document.getElementById('editVocabForm').style.display = 'block';
     msgDiv.textContent = '';
     // Store original word for update

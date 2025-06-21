@@ -76,6 +76,53 @@ intervalInput.addEventListener('input', (e) => {
     );
   }
 });
+const focusButton = document.getElementById('focusButton');
+const focusTip = document.getElementById('focusTip');
+focusButton.addEventListener('mouseenter',() => {
+    focusTip.style.display = ''
+});
+focusButton.addEventListener('mouseleave', () => {
+    focusTip.style.display = 'none'
+});
+focusButton.addEventListener('click', () => {
+  if(focusButton.innerHTML.includes('\u2B50')){
+    focusButton.innerHTML = '&#9734';
+     chrome.storage.local.get('vocabList', function(data) {
+      if (data.vocabList) {
+        vocabList = data.vocabList;
+        if(currentVocabIndex>=0&&currentVocabIndex<vocabList.length){
+          const currentItem = vocabList[currentVocabIndex];
+          currentItem.focus = false;
+          console.log(currentItem+" is not focused");
+          vocabList = vocabList.map(item =>
+            item.word === currentItem.word
+              ? currentItem      // replace the entire object
+              : item         // leave everything else alone
+          );
+          chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
+        }
+      }
+    });
+  }else{
+    focusButton.innerHTML = '&#11088'
+    chrome.storage.local.get('vocabList', function(data) {
+      if (data.vocabList) {
+        vocabList = data.vocabList;
+        if(currentVocabIndex>=0&&currentVocabIndex<vocabList.length){
+          const currentItem = vocabList[currentVocabIndex];
+          currentItem.focus = true;
+          console.log(currentItem.word +" is focused");
+          vocabList = vocabList.map(item =>
+            item.word === currentItem.word
+              ? currentItem      // replace the entire object
+              : item         // leave everything else alone
+          );
+          chrome.storage.local.set({ vocabList: vocabList }, function(data) {})
+        }
+      }
+    });
+  }
+});
 fetchInfo.addEventListener('mouseenter',() => {
     fetchTip.style.display = ''
 });

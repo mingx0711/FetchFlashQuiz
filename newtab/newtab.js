@@ -3,6 +3,78 @@ const fetchInfo = document.getElementById('fetchInfo');
 let isQuiz = false;
 var missingCount;
 let needDiatricts = ["de","fr"]
+const langMap = {
+  de: 'German',
+  es: 'Spanish',
+  fr: 'French',
+  it: 'Italian',
+  en: 'English',
+  pt: 'Portuguese',
+  ru: 'Russian',
+  zh: 'Chinese',
+  ja: 'Japanese',
+  ko: 'Korean',
+  ar: 'Arabic',
+  nl: 'Dutch',
+  sv: 'Swedish',
+  no: 'Norwegian',
+  da: 'Danish',
+  fi: 'Finnish',
+  pl: 'Polish',
+  tr: 'Turkish',
+  el: 'Greek',
+  he: 'Hebrew',
+  hi: 'Hindi',
+  bn: 'Bengali',
+  la: 'Latin',
+  vi: 'Vietnamese',
+  id: 'Indonesian',
+  ms: 'Malay',
+  th: 'Thai',
+  ro: 'Romanian',
+  cs: 'Czech',
+  hu: 'Hungarian',
+  sk: 'Slovak',
+  bg: 'Bulgarian',
+  uk: 'Ukrainian',
+  fa: 'Persian',
+  sw: 'Swahili',
+};
+function convertToAbbr(name) {
+  // case‐insensitive lookup
+  return nameToAbbr[name.toLowerCase()] || name;
+}
+const nameToAbbr = Object
+  .entries(langMap)                      // [[ 'de','German'], …]
+  .reduce((acc, [k, v]) => {
+    acc[v.toLowerCase()] = k;
+    return acc;
+  }, {});
+function loadVoices() {
+  return new Promise(resolve => {
+    let voices = speechSynthesis.getVoices();
+    if (voices.length) return resolve(voices);
+    speechSynthesis.onvoiceschanged = () => resolve(speechSynthesis.getVoices());
+  });
+}
+
+function getSpeechLang(code) {
+  const langMap = {
+    "de": "de-DE",     // German
+    "fr": "fr-FR",     // French
+    "it": "it-IT",     // Italian
+    "es": "es-ES",     // Spanish
+    "en": "en-US",     // English (US)
+    "en-gb": "en-GB",  // English (UK)
+    "zh": "zh-CN",     // Chinese (Simplified)
+    "zh-tw": "zh-TW",  // Chinese (Traditional)
+    "ja": "ja-JP",     // Japanese
+    "ko": "ko-KR",     // Korean
+    "ru": "ru-RU",     // Russian
+    "la": "it-IT"      // Latin fallback (to Italian)
+  };
+  return langMap[code.toLowerCase()] || "en-US"; // Default fallback
+}
 document.addEventListener('DOMContentLoaded', function() {
   chrome.storage.local.get('currentCollectionSelection', function(data){
     currentCollectionSelection = data.currentCollectionSelection || []
@@ -778,43 +850,7 @@ function getSpanishVerbInflections(doc){
     return conjugations;
 
 }
-const langMap = {
-  de: 'German',
-  es: 'Spanish',
-  fr: 'French',
-  it: 'Italian',
-  en: 'English',
-  pt: 'Portuguese',
-  ru: 'Russian',
-  zh: 'Chinese',
-  ja: 'Japanese',
-  ko: 'Korean',
-  ar: 'Arabic',
-  nl: 'Dutch',
-  sv: 'Swedish',
-  no: 'Norwegian',
-  da: 'Danish',
-  fi: 'Finnish',
-  pl: 'Polish',
-  tr: 'Turkish',
-  el: 'Greek',
-  he: 'Hebrew',
-  hi: 'Hindi',
-  bn: 'Bengali',
-  la: 'Latin',
-  vi: 'Vietnamese',
-  id: 'Indonesian',
-  ms: 'Malay',
-  th: 'Thai',
-  ro: 'Romanian',
-  cs: 'Czech',
-  hu: 'Hungarian',
-  sk: 'Slovak',
-  bg: 'Bulgarian',
-  uk: 'Ukrainian',
-  fa: 'Persian',
-  sw: 'Swahili',
-};
+
 
 function getChineseBaseText(doc){
   const bolds = doc.querySelectorAll('b');
@@ -850,19 +886,6 @@ function convertFromAbbr(lang) {
   return langMap[lang] || 'Unknown';
 }
 
-// now build a reverse map (value → key):
-const nameToAbbr = Object
-  .entries(langMap)                      // [[ 'de','German'], …]
-  .reduce((acc, [k, v]) => {
-    acc[v.toLowerCase()] = k;
-    return acc;
-  }, {});
-
-// reverse converter:
-function convertToAbbr(name) {
-  // case‐insensitive lookup
-  return nameToAbbr[name.toLowerCase()] || 'unknown';
-}
 window.addEventListener('resize', adjustFontSize);
 adjustFontSize();
 changeIntervalBtn.addEventListener('click', () => {
@@ -1112,7 +1135,6 @@ function changeColor(palette){
 
 }
 function showNextVocab(collection = currentCollectionSelection) {
- // console.log("current collection", collection)
   let currentCollection = [];
   document.getElementById('quizContainer').style.display = 'none';
   document.getElementById('trueFalseContainer').style.display = 'none';
@@ -1183,7 +1205,6 @@ function showNextVocab(collection = currentCollectionSelection) {
           currentVocabIndex = Math.floor(Math.random()*vocabList.length);
         }
       }
-      
      // console.log(currentCollection[currentVocabIndex]);
       const vocabFlashcard = document.getElementById('vocabFlashcard');
       let wordDiv = document.getElementById('wordDiv');
@@ -1207,6 +1228,22 @@ function showNextVocab(collection = currentCollectionSelection) {
        word = currentCollection[currentVocabIndex].word;
        definition = currentCollection[currentVocabIndex].definition;
       }
+      document.getElementById('speak').addEventListener('click',async function () {
+      speechSynthesis.cancel();
+      const currentWord = currentCollection[currentVocabIndex].word;
+      console.log(currentCollection[currentVocabIndex])
+      var language = currentCollection[currentVocabIndex].language?currentCollection[currentVocabIndex].language: currentCollection[currentVocabIndex].book
+      language = convertToAbbr(language)
+      console.log(language)
+      const currentLang = getSpeechLang(language);
+      console.log(currentLang)
+      const utterance = new SpeechSynthesisUtterance(currentWord);
+      utterance.lang = currentLang;
+      const voices = await loadVoices();
+      const voice = voices.find(v => v.lang === currentLang);
+      if (voice) utterance.voice = voice;
+      speechSynthesis.speak(utterance);
+      });
       const maxSize = 3
       const minSize = 1
       const clamped = Math.min(definition.length, 200);
@@ -1293,7 +1330,6 @@ function enterAutoPlay(){
     autoPlayBtn.innerText = String.fromCodePoint(0x25B6);
     clearInterval(timerId)
   }
-
 }
 function snoozeCurrentVocab() {
   if (currentVocabIndex !== null && currentVocabIndex !== -1) {

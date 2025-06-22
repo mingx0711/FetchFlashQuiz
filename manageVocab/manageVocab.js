@@ -58,7 +58,37 @@ document.getElementById('searchEditVocabBtn').addEventListener('click', function
   document.getElementById('searchEditVocabMsg').textContent = '';
   document.getElementById('searchVocabInput').value = '';
 });
-
+const searchBox = document.getElementById("searchVocabInput");
+const searchOptions = document.getElementById("searchOptions");
+searchBox.addEventListener("input", () => {
+  const query = searchBox.value.toLowerCase();
+   if (!query || query.length < 3) {
+    searchOptions.style.display = "none";
+    return;
+  }
+    searchOptions.innerHTML = ""; // clear previous
+    chrome.storage.local.get('vocabList', function(data) {
+      let vocabList = data.vocabList || [];
+      const matches = vocabList.filter(v => v.word && v.word.toLowerCase().includes(query));
+      if(matches.length === 0) {
+        searchOptions.style.display = "none";
+        return;
+      }
+      matches.forEach(match => {
+      const option = document.createElement("option");
+      option.value = match.word;
+      option.textContent = match.word;
+      searchOptions.appendChild(option);
+    });
+        searchOptions.style.display = "block";
+  });
+});
+searchOptions.addEventListener("change", () => {
+  const selected = searchOptions.value;
+  searchBox.value = selected;
+  searchOptions.innerHTML = "";
+  searchOptions.style.display = "none";
+});
 document.getElementById('doSearchVocabBtn').addEventListener('click', function() {
   const searchWord = document.getElementById('searchVocabInput').value.trim();
   const msgDiv = document.getElementById('searchEditVocabMsg');
@@ -75,9 +105,20 @@ document.getElementById('doSearchVocabBtn').addEventListener('click', function()
       return;
     }
     // Populate form
-    document.getElementById('editWord').value = vocab.word || '';
+    document.getElementById('editWord').innerHTML = "Word: " + vocab.word || '';
     document.getElementById('editDefinition').value = vocab.definition || '';
-    document.getElementById('editCollection').value = vocab.book || '';
+    console.log(vocab.book)
+    chrome.storage.local.get({ bookList: [] }, (result) => {
+      const bookList = result.bookList || [];
+      bookList.forEach(book => {
+      const option = document.createElement("option");
+      option.value = book;
+      option.textContent = book;
+      document.getElementById('editCollection').appendChild(option);
+      });
+      document.getElementById('editCollection').value = vocab.book || '';
+    });
+    document.getElementById('editGender').value = vocab.gender || '';
     document.getElementById('editPronounciation').value = vocab.pronounciation || '';
     document.getElementById('editEtym').value = vocab.etym || '';
     document.getElementById('editHasChecked').checked = vocab.hasChecked || false;
@@ -92,10 +133,10 @@ document.getElementById('doSearchVocabBtn').addEventListener('click', function()
 document.getElementById('editVocabForm').addEventListener('submit', function(e) {
   e.preventDefault();
   const originalWord = e.target.dataset.originalWord;
-  const newWord = document.getElementById('editWord').value.trim();
   const newDefinition = document.getElementById('editDefinition').value.trim();
   const newBook = document.getElementById('editCollection').value.trim();
-  const newPronounciation = document.getElementById('editPronounciation').value.trim();
+  const newPronounciation = document.getElementById('editGender').value.trim();
+  const newGender = document.getElementById('editPronounciation').value.trim();
   const newEtym = document.getElementById('editEtym').value.trim();
   const newChecked = document.getElementById('editHasChecked').checked;
   chrome.storage.local.get('vocabList', function(data) {
@@ -105,10 +146,10 @@ document.getElementById('editVocabForm').addEventListener('submit', function(e) 
       document.getElementById('searchEditVocabMsg').textContent = 'Original word not found.';
       return;
     }
-    vocabList[idx].word = newWord;
     vocabList[idx].definition = newDefinition;
     vocabList[idx].book = newBook;
     vocabList[idx].pronounciation = newPronounciation;
+    vocabList[idx].gender = newGender;
     vocabList[idx].etym = newEtym;
     vocabList[idx].hasChecked = newChecked;
     chrome.storage.local.set({ vocabList }, function() {
@@ -639,9 +680,10 @@ document.addEventListener('click', function(event) {
   const form = document.getElementById('searchEditVocabContainer');
   const searchBtn = document.getElementById('searchEditVocabBtn');
   const searchContainer = document.getElementById('searchEditVocabContainer');
+  const searchOptions = document.getElementById('searchOptions');
   if (!form || form.style.display === 'none') return;
   // If the click is outside the form and not on the search button or inside the search container
-  if (!form.contains(event.target) && !searchBtn.contains(event.target) && !searchContainer.contains(event.target)) {
+  if (!form.contains(event.target) &&!searchOptions.contains(event.target) && !searchBtn.contains(event.target) && !searchContainer.contains(event.target)) {
     form.style.display = 'none';
   }
 });

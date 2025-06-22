@@ -100,18 +100,62 @@
   <div id="fileInputContainer">
     <input type="file" id="fileInput" accept=".json" />
   </div>
-<button id="searchEditVocabBtn" class="ui button">Search/Edit Vocab</button>
-<div id="searchEditVocabContainer" style="display:none; margin-top: 20px;margin-left: 3%;">
-  <input type="text" id="searchVocabInput" placeholder="Enter word to search" />
-  <button id="doSearchVocabBtn" class="ui button">Search</button>
+<button id="searchEditVocabBtn" class="ui button" style = "background-color: #fdf4e2;">Search/Edit Vocab</button>
+<div id="searchEditVocabContainer" style="display:none; margin-top: 20px;margin-left: 3%; margin-top: 10px;
+  margin-left: 3%;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 10px;">
+  <div class="ui input">
+      <input type="text" id="searchVocabInput" style = "size:50" placeholder="Enter word to search" />
+  </div>
+    <button id="doSearchVocabBtn" class="ui button">Search</button>
+  <select id="searchOptions" size="5" style="display:none;"></select>
   <form id="editVocabForm" style="display:none; margin-top: 10px;margin-left: 3%;">
-    <label>Word: <input type="text" id="editWord" /></label><br>
-    <label>Definition: <input type="text" id="editDefinition" /></label><br>
-    <label>Book: <input type="text" id="editCollection" /></label><br>
-    <label>Pronounciation: <input type="text" id="editPronounciation" /></label><br>
-    <label>Etymology: <input type="text" id="editEtym" /></label><br>
-    <label>Has Checked: <input type="checkbox" id="editHasChecked" /></label><br>
-    <label>Focus: <input type="checkbox" id="editFocus" /></label><br>
+    <p style = "color: #fa578e;"> It is recommened to edit vocabs when the app is not fetching words in the newtab</p>
+    <div class="ui input">
+    <label id = "editWord" style="margin-top: 5%; font-size: 3vh;font-weight: bold;">Word: </label><br>
+    </div>
+    <div class="ui form form-row">Definition:
+      <textarea id="editDefinition" style="width: 50vh; height: 20vh; padding: 8px 10px;
+      box-sizing: border-box;
+      word-wrap: break-word;
+      overflow-wrap: break-word;" "></textarea>
+    </div>
+    <div class="ui select">
+    <label>Book: <select type="text" id="editCollection" style="margin-top: 1%;"/></select></label><br>
+    </div>
+    <div class="ui input">
+    <label>Pronounciation: <input type="text" id="editPronounciation" style="margin-top: 2%;"/></label><br>
+    </div>
+    <br>
+    <div class="ui input">
+    <label>Gender: <select type="text" id="editGender" style="margin-top: 2%;"/>
+    <option value="">no gender</option>
+    <option value="feminine">feminine</option>
+    <option value="masculine">masculine</option>
+    <option value="neuter">neuter</option>
+    <option value="common">common</option>
+    </select></label>
+    <br>
+    </div>
+     <div class="ui form form-row">Etymology:
+    <textarea id="editEtym" style="width: 50vh; height: 20vh; padding: 8px 10px;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;"></textarea>
+    </div>
+    <div class="ui input">
+    <label>Has Checked: <input type="checkbox" id="editHasChecked" style="margin-top: 2%;"/></label><br>
+    </div>
+    <br>
+    <div class="ui input">
+    <label>Focus: <input type="checkbox" id="editFocus" style="margin-top: 2%;"/></label><br>
+    </div>
+    <br>
     <button type="submit" class="ui button">Save Changes</button>
   </form>
   <div id="searchEditVocabMsg" style="color: red; margin-top: 10px;"></div>

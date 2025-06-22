@@ -1148,7 +1148,10 @@ function showNextVocab(collection = currentCollectionSelection) {
       currentVocabIndex = Math.floor(Math.random()*currentCollection.length);
       const currentFocusedWords = currentCollection.filter(word => word.focus);
       const focusedWordRatio = 10*(currentFocusedWords.length / currentCollection.length);
-      if((Math.random()< focusedWordRatio)&&currentFocusedWords.length>0){
+      const displayFocused = (currentCollection.length > 500)? 0.15 : focusedWordRatio;
+      const displayProb = Math.max(displayFocused, 0.15); // Ensure at least a 10% chance
+      if((Math.random()< displayProb)&&currentFocusedWords.length>0){
+        console.log("displaying focused word")
         const randomIndex = Math.floor(Math.random() * currentFocusedWords.length);
         const randomFocusedWord = currentFocusedWords[randomIndex];
         currentVocabIndex = currentCollection.findIndex(item => item === randomFocusedWord);

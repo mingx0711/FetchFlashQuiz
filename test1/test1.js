@@ -62,27 +62,28 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   document.getElementById('correctDefinition').style.display = 'none';
 
-  document.getElementById('reviewWrongWords').addEventListener('click', function() {
-    console.log("Reviewing wrong words");
-    if (!wrongVocabs.length) {
-      alert("No wrong words to review!");
-      return;
-    }
-    // Filter filteredVocabList to only include wrong words
-    filteredVocabList = filteredVocabList.filter(x => wrongVocabs.includes(x.word));
-    // Optionally reset counters and start review
-    currentQuizNo = 0;
-    totalNoCount = filteredVocabList.length;
-    correctCount = 0;
-    totalCountYet = 0;
-    recordHistory = [];
-    if (filteredVocabList.length === 0) {
-      alert("No matching words found in the current collection.");
-      return;
-    }
-    document.getElementById('showTestResult').style.display = 'none';
-    showNextItem();
-  });
+  // document.getElementById('reviewWrongWords').addEventListener('click', function() {
+  //   console.log("Reviewing wrong words");
+  //   if (!wrongVocabs.length) {
+  //     alert("No wrong words to review!");
+  //     return;
+  //   }
+  //   // Filter filteredVocabList to only include wrong words
+  //   filteredVocabList = filteredVocabList.filter(x => wrongVocabs.includes(x.word));
+  //   console.log("Filtered vocab list for review:", filteredVocabList);
+  //   // Optionally reset counters and start review
+  //   currentQuizNo = 0;
+  //   totalNoCount = filteredVocabList.length;
+  //   correctCount = 0;
+  //   totalCountYet = 0;
+  //   recordHistory = [];
+  //   if (filteredVocabList.length === 0) {
+  //     alert("No matching words found in the current collection.");
+  //     return;
+  //   }
+  //   document.getElementById('showTestResult').style.display = 'none';
+  //   showNextItem();
+  // });
 
   document.getElementById('trueButton').addEventListener('click', function() {
     checkTrueFalse(true);
@@ -158,7 +159,7 @@ function populateBookSelector() {
 
 function showNextItem() {
   document.getElementById('wrongCountDiv').textContent = `${currentQuizNo} / ${totalNoCount}`;
-  if(currentQuizNo >= totalNoCount){
+  if(currentQuizNo >= filteredVocabList.length ) {
     document.getElementById("donzo").style.display = 'block';
     document.getElementById("quizContainer").style.display = 'none';
     document.getElementById('trueFalseContainer').style.display = 'none';
@@ -237,20 +238,6 @@ function quizStyle1() {
   document.getElementById('incorrectMessage').style.display = 'none';
   document.getElementById('correctDefinition').style.display = 'none';
   document.getElementById('nextAfterIncorrectButton').style.display = 'none';
-}
-window.addEventListener('resize', adjustFontSize);
-adjustFontSize();
-
-function adjustFontSize(){
-  const screenWidth = window.innerWidth;
-  let fontSize1 = screenWidth / 29;
-  const options = document.querySelectorAll('.quiz-option');
-  options.forEach(option => {
-    option.style.fontSize = fontSize1;  // Set font size to 24px
-  });
-  const option1 = document.querySelector('option1');
-  option1.style.fontSize = fontSize1;
-
 }
   function quizStyle2() {
     // Quiz Style 2: Ask for the word given a definition
@@ -892,11 +879,15 @@ function adjustFontSize(){
     }
   }
   function endTest(){
+    currentQuizNo = 0;
+    totalNoCount = 0;
+    document.getElementById("incorrectMessage").style.display = 'none';
     document.getElementById("end").style.display = 'none';
     document.getElementById("correctCountDiv").style.display = 'none';
     document.getElementById("donzo").style.display = 'none';
     document.getElementById("quizContainer").style.display = 'none';
     document.getElementById('trueFalseContainer').style.display = 'none';
+        document.getElementById('correctDefinition').style.display = 'none';
     const showTestResult = document.getElementById('showTestResult');
     showTestResult.style.display = '';
     let quizStats = analyzeByQuizStyle(recordHistory);
@@ -1024,72 +1015,72 @@ function adjustFontSize(){
   return averages;
 }
   function drawCorrectnessTrend(recordHistories, currentRecord) {
-  // recordHistories: array of arrays (each is a test session's recordHistory)
-  // currentRecord: array (the current test's recordHistory)
-
-  // Calculate correctness for each history
-  const correctnessList = recordHistories.map(history => {
-    const total = history.length;
-    const correct = history.filter(item => item.correct === 't').length;
-    return total ? (correct / total) * 100 : 0;
-  });
-
-  // Calculate current test correctness
-  const currentTotal = currentRecord.length;
-  const currentCorrect = currentRecord.filter(item => item.correct === 't').length;
-  const currentCorrectness = currentTotal ? (currentCorrect / currentTotal) * 100 : 0;
-
-  // Calculate average of previous histories
-  const prevAvg = correctnessList.length
-    ? correctnessList.reduce((a, b) => a + b, 0) / correctnessList.length
-    : 0;
-
-  // Prepare data for chart
-  const labels = correctnessList.map((_, i) => `Test ${i + 1}`);
-  labels.push('Current Test');
-
-  const data = [...correctnessList, currentCorrectness];
-
-  // Draw chart
-  const ctx = document.getElementById('trendChart').getContext('2d');
-  if (window.trendChartInstance) window.trendChartInstance.destroy(); // Prevent overlap
-
-  window.trendChartInstance = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Correctness (%)',
-        data: data,
-        borderColor: '#4caf50',
-        backgroundColor: 'rgba(76, 175, 80, 0.1)',
-        fill: true,
-        tension: 0.2,
-        pointBackgroundColor: labels.map((l, i) =>
-          i === data.length - 1
-            ? (currentCorrectness >= prevAvg ? '#2196f3' : '#e91e63')
-            : '#4caf50'
-        ),
-        pointRadius: labels.map((l, i) => i === data.length - 1 ? 7 : 4)
-      }]
-    },
-    options: {
-      responsive: false,
-      plugins: {
-        title: {
-          display: true,
-          text: `Correctness Trend (Current: ${currentCorrectness.toFixed(2)}%, History Avg: ${prevAvg.toFixed(2)}%)`
-        },
-        legend: { display: false }
+    // Only use the last 7 histories (so with currentRecord, you get 8 points)
+    const recentHistories = recordHistories.slice(-7);
+  
+    // Calculate correctness for each history
+    const correctnessList = recentHistories.map(history => {
+      const total = history.length;
+      const correct = history.filter(item => item.correct === 't').length;
+      return total ? (correct / total) * 100 : 0;
+    });
+  
+    // Calculate current test correctness
+    const currentTotal = currentRecord.length;
+    const currentCorrect = currentRecord.filter(item => item.correct === 't').length;
+    const currentCorrectness = currentTotal ? (currentCorrect / currentTotal) * 100 : 0;
+  
+    // Calculate average of previous histories
+    const prevAvg = correctnessList.length
+      ? correctnessList.reduce((a, b) => a + b, 0) / correctnessList.length
+      : 0;
+  
+    // Prepare data for chart
+    const labels = correctnessList.map((_, i) => `Test ${recordHistories.length - correctnessList.length + i + 1}`);
+    labels.push('Current Test');
+  
+    const data = [...correctnessList, currentCorrectness];
+  
+    // Draw chart
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    if (window.trendChartInstance) window.trendChartInstance.destroy(); // Prevent overlap
+  
+    window.trendChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Correctness (%)',
+          data: data,
+          borderColor: '#4caf50',
+          backgroundColor: 'rgba(76, 175, 80, 0.1)',
+          fill: true,
+          tension: 0.2,
+          pointBackgroundColor: labels.map((l, i) =>
+            i === data.length - 1
+              ? (currentCorrectness >= prevAvg ? '#2196f3' : '#e91e63')
+              : '#4caf50'
+          ),
+          pointRadius: labels.map((l, i) => i === data.length - 1 ? 7 : 4)
+        }]
       },
-      scales: {
-        y: {
-          min: 0,
-          max: 100,
-          title: { display: true, text: 'Correctness (%)' }
+      options: {
+        responsive: false,
+        plugins: {
+          title: {
+            display: true,
+            text: `Correctness Trend (Current: ${currentCorrectness.toFixed(2)}%, History Avg: ${prevAvg.toFixed(2)}%)`
+          },
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            min: 0,
+            max: 100,
+            title: { display: true, text: 'Correctness (%)' }
+          }
         }
       }
-    }
-  });
-}
+    });
+  }
 

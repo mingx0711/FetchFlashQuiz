@@ -3,6 +3,47 @@
 <head>
   <title>Test Flashcards</title>
   <style>
+    #containerLine {
+      margin: 40px auto;
+      border: 3px solid #5a4f4d;
+      border-radius: 18px;
+      background: #f9f7f6;
+      box-shadow: 0 4px 24px rgba(90,79,77,0.08), 0 1.5px 6px rgba(90,79,77,0.10);
+      width: 540px;
+      max-width: 95vw;
+      position: relative;
+      padding: 0;
+    }
+    .init-container {
+      margin: 24px auto;
+      border: 3px dashed #b8a9a7;
+      border-radius: 12px;
+      background: #fffdfa;
+      height: auto;
+      width: 500px;
+      max-width: 90vw;
+      position: relative;
+      padding: 32px 24px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .init-container b {
+      font-size: 1.5vw;
+      margin-bottom: 32px;
+      display: block;
+      color: #5a4f4d;
+    }
+    #bookSelector {
+      margin-bottom: 32px;
+      font-size: 1.1vw;
+      width: 80%;
+      min-width: 180px;
+      max-width: 320px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #b8a9a7;
+    }
     body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
     .flashcard { margin: 10px 0; padding: 20px; border: 1px solid #ccc; border-radius: 4px; display: inline-block; }
     #nextButton { margin-top: 10px; }
@@ -12,6 +53,100 @@
     #correctMessage { color: green; }
     #incorrectMessage { color: red; }
     #nextAfterIncorrectButton { display: none; margin-top: 10px; }
+    .quiz-container, .true-false-container {
+      display: none;
+      margin: 0 auto 18px auto;
+      max-width: 600px;
+      background: #fffdfa;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      padding: 24px 0 18px 0;
+    }
+    .quiz-container p, .true-false-container p {
+      font-size: 2.5vw;
+      margin-bottom: 18px;
+      color: #5a4f4d;
+      font-weight: bold;
+    }
+    .quiz-option, .true-false-container .ui.button {
+      font-size: 1.5vw;
+      margin: 10px 12px 0 12px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: 2px solid #b8a9a7;
+      background: #fdf4e2;
+      color: #4b5437;
+      font-weight: bold;
+      transition: background 0.2s, box-shadow 0.2s;
+      min-width: 120px;
+      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      display: inline-block;
+    }
+    .quiz-option:hover, .true-false-container .ui.button:hover {
+      background: #ffe9c7;
+      box-shadow: 0 4px 16px rgba(90,79,77,0.10);
+    }
+    #counter {
+      font-size: 2vw;
+      color: #5a4f4d;
+      margin: 18px 0 10px 0;
+      font-weight: bold;
+      text-align: center;
+    }
+    #correctMessage, #incorrectMessage {
+      display: none;
+      font-weight: bold;
+      margin: 18px auto 0 auto;
+      width: 320px;
+      font-size: 2vw;
+      text-align: center;
+      border-radius: 8px;
+      padding: 10px 0;
+    }
+    #correctMessage {
+      color: #2e7d32;
+      background: #e6f7e6;
+    }
+    
+    #testCollectionBtn:hover {
+      background: #ffe9c7;
+      box-shadow: 0 4px 16px rgba(90,79,77,0.10);
+    }
+    .ui.segment#wrongCountDiv {
+      margin: 30px auto 10px auto;
+      max-width: 600px;
+      background: #fffdfa;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(90,79,77,0.08), 0 1.5px 6px rgba(90,79,77,0.10);
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #5a4f4d;
+      text-align: center;
+    }
+    #incorrectMessage {
+      color: #c62828;
+      background: #ffeaea;
+    }
+    #correctDefinition {
+      background-color: #ebebe9;
+      height: 120px;
+      font-size: 1.5vw;
+      margin: 18px auto 0 auto;
+      border-radius: 10px;
+      padding: 18px 0;
+      max-width: 90vw;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #quizChart1,#trendChart {
+    max-width: 500px;
+    max-height: 300px;
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+    display: block;
+  }
   </style>
   <link rel="stylesheet" href="../libs/semantic.css">
 </head>
@@ -25,8 +160,7 @@
     " id="initContainer">
     <b style="font-size: 1.5vw;">Select the collection that you want to test. You can close this tab anytime you want, the result of a test will be updated in /manageVocabs</b>
       <select class = "ui search dropdown" id="bookSelector" style="margin:auto; 
-    margin-top: 50px;
-    margin-bottom: 50px;
+    margin-bottom: 20px;
     display: block;
     font-size: 1vwpx;
     ">
@@ -56,13 +190,22 @@
     <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;" class="ui button" id="trueButton">True</button>
     <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;" class="ui button" id="falseButton">False</button>
   </div>
+  <p style="font-size: 2vh; position: fixed; bottom: 5%; right: 10%;"id="correctCountDiv"></p>
+  <button style="font-size: 2.5vh;position: fixed; bottom: 10%; right: 10%;display : none" class="ui button" id="end">End Test</button>
   <p class = "ui message" id="correctMessage" style="margin: auto ;width: 300px; margin-top: 10px ; font-size:2vw; text-align: center;">Correct!</p>
   <p class = "ui message" id="incorrectMessage" style=" text-align: center;">Incorrect! The correct definition is:</p>
   <div id="correctDefinition" class="ui flashcard" style = "background-color:#ebebe9;height:200px; font-size: 2vw ;margin: auto ;"></div>
   <button class = "ui button"id="snoozeButton">Snooze</button>
   <button class = "ui button"id="nextButton">Next</button>
   <button class = "ui button" id="nextAfterIncorrectButton" style="position: relative ; left:50% ; margin-top: 50px">Next</button>
-
+  <div class="container" style="top: 2%;margin: auto ; display: none;" id="showTestResult">
+    <h2 style="font-size: 3vw; color: #5a4f4d;">Test Results</h2>
+   <canvas id="quizChart1" width="600" height="300"></canvas>
+   <canvas id="trendChart" width="600" height="300"></canvas>
+    <button class="ui button" id="reviewWrongWords">Retest on incorrect words</button>
+    <script src="chart.js"></script>
   <script src="test1.js"></script>
+  </div>
+  
 </body>
 </html>

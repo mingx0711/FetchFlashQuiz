@@ -41,7 +41,6 @@ const langMap = {
   sw: 'Swahili',
 };
 function convertToAbbr(name) {
-  // case‐insensitive lookup
   return nameToAbbr[name.toLowerCase()] || name;
 }
 const nameToAbbr = Object
@@ -902,6 +901,9 @@ changeIntervalBtn.addEventListener('click', () => {
   document.getElementById('testButton').addEventListener('click', function() {
     chrome.tabs.create({ url: 'test1/test1.html' });
   });
+  document.getElementById('listeningTestButton').addEventListener('click', function() {
+    chrome.tabs.create({ url: 'ListeningTest/test2.html' });
+  });
   document.getElementById('falseButton').addEventListener('click', function() {
     checkTrueFalse(false);
   });
@@ -1118,7 +1120,8 @@ function changeColor(palette){
   document.getElementById('testButton').style.boxShadow = selectedPalette.buttonShadow;
 
   document.getElementById('snoozeButton').style.backgroundColor = selectedPalette.Snooze;
-  document.getElementById('snoozeButton').style.boxShadow = selectedPalette.buttonShadow;
+  document.getElementById('listeningTestButton').style.backgroundColor = selectedPalette.Snooze;
+  document.getElementById('listeningTestButton').style.boxShadow = selectedPalette.buttonShadow;
   document.getElementById('divider').style.backgroundColor = selectedPalette.Snooze;
   document.getElementById('nextButton').style.backgroundColor = selectedPalette.Snooze;
   document.getElementById('nextButton').style.boxShadow = selectedPalette.buttonShadow;
@@ -1266,7 +1269,7 @@ function showNextVocab(collection = currentCollectionSelection) {
       if(currentCollection[currentVocabIndex].etym){
         const etymText = currentCollection[currentVocabIndex].etym;
         const etymSize =
-        maxSize - ( (maxSize - minSize) * ( Math.min(etymText.length, 500) / 500) );
+        maxSize - ( (maxSize - minSize) * ( Math.min(etymText.length, 300) / 300) );
         etymDiv.textContent = etymText.replace(/\.mw[\s\S]*\}/, '');
         etymDiv.textContent = etymDiv.textContent.replace('undefined', '');
         etymDiv.style.fontSize = etymSize.toFixed(1) + 'vw';

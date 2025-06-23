@@ -8,6 +8,12 @@ let filteredVocabList =[]
 let totalNoCount = null;
 let currentQuizNo = 0;
 let wordToTest = "";
+let recordHistory = [];
+let correctCount = 0;
+let totalCountYet = 0;
+let currentTest;
+let wrongVocabs = [];
+let quizChartInstance = null; // Add this at the top of your file (or outside the function)
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('wrongCountDiv').style.display = 'none';
   document.getElementById('vocabFlashcard').style.display = 'none';
@@ -37,6 +43,11 @@ document.addEventListener('DOMContentLoaded', function() {
     showNextItem();
   });
 
+  document.getElementById('end').addEventListener('click', function() {
+
+    endTest();
+  });
+
   document.getElementById('nextAfterIncorrectButton').addEventListener('click', function() {
     document.getElementById('incorrectMessage').style.display = 'none';
     document.getElementById('correctDefinition').style.display = 'none';
@@ -51,6 +62,28 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   document.getElementById('correctDefinition').style.display = 'none';
 
+  document.getElementById('reviewWrongWords').addEventListener('click', function() {
+    console.log("Reviewing wrong words");
+    if (!wrongVocabs.length) {
+      alert("No wrong words to review!");
+      return;
+    }
+    // Filter filteredVocabList to only include wrong words
+    filteredVocabList = filteredVocabList.filter(x => wrongVocabs.includes(x.word));
+    // Optionally reset counters and start review
+    currentQuizNo = 0;
+    totalNoCount = filteredVocabList.length;
+    correctCount = 0;
+    totalCountYet = 0;
+    recordHistory = [];
+    if (filteredVocabList.length === 0) {
+      alert("No matching words found in the current collection.");
+      return;
+    }
+    document.getElementById('showTestResult').style.display = 'none';
+    showNextItem();
+  });
+
   document.getElementById('trueButton').addEventListener('click', function() {
     checkTrueFalse(true);
   });
@@ -62,7 +95,6 @@ document.addEventListener('DOMContentLoaded', function() {
 );
 
 function displayTests(bookSelected){
-  console.log(bookSelected)
   chrome.storage.local.get('vocabList', function(data) {
     if (data.vocabList) {
       vocabList = data.vocabList;
@@ -71,8 +103,6 @@ function displayTests(bookSelected){
         console.log("novocab1");
         document.getElementById('vocabFlashcard').textContent = "Come back after theres more vocabs";
       }else{
-        console.log(bookSelected)
-        console.log(vocabList)
         if(bookSelected === "All collections"){
           filteredVocabList = vocabList;
         }else{
@@ -80,7 +110,7 @@ function displayTests(bookSelected){
         }
         totalNoCount = filteredVocabList.length;
         document.getElementById('wrongCountDiv').textContent = `"${currentQuizNo}" / ${totalNoCount}"`;
-        console.log(filteredVocabList)
+        document.getElementById('end').style.display = '';
         if (filteredVocabList.length === 0) {
           document.getElementById('vocabFlashcard').textContent = "No vocabulary to test.";
           document.getElementById('nextButton').style.display = 'none';
@@ -188,7 +218,7 @@ function quizStyle1() {
       i--;
     }
   }
-
+  currentTest = {quizStyle:"Ask for definition", vocab: correctVocab.word, book: correctVocab.book};
   shuffleArray(options);
   console.log(filteredVocabList[currentVocabIndex].word);
 
@@ -246,7 +276,8 @@ function adjustFontSize(){
         i--;
       }
     }
-  
+    currentTest = {quizStyle:"Ask for word", vocab: correctVocab.word, book: correctVocab.book};
+
     shuffleArray(options);
   
     document.getElementById('quizQuestion').textContent = `What is the word for "${correctVocab.definition}"?`;
@@ -281,7 +312,7 @@ function adjustFontSize(){
     quizType = 'truefalse';
   
     isPairCorrect = Math.random() < 0.5;
-  
+      currentTest = {quizStyle:"True or False - definition", vocab: correctVocab.word, book: correctVocab.book};
     if (!isPairCorrect) {
       let incorrectVocab;
       do {
@@ -316,7 +347,8 @@ function adjustFontSize(){
       quizStyle1();
       return;
     }
-  
+    currentTest = {quizStyle:"Ask for pronounciation", vocab: correctVocab.word, book: correctVocab.book};
+
     const correctVocab = eligibleVocab[currentVocabIndex];
     currentQuizWord = correctVocab.word;
     console.log(currentQuizWord);
@@ -372,8 +404,6 @@ function adjustFontSize(){
         .filter(item => item.gender && item.gender !== "" && item.gender !== "undefined") // Filter out items without "book" or where "book" is "a"
         .map(item => item.gender) 
     )];
-    console.log("gendersInTheCollection",gendersInTheCollection);
-    console.log(eligibleVocab)
     if (eligibleVocab.length <= 1 || gendersInTheCollection.size <2) {
       quizStyle2();
       return;
@@ -394,7 +424,8 @@ function adjustFontSize(){
         currentQuizDefinition = gendersInTheCollection[Math.floor(Math.random()*gendersInTheCollection.length)];
       }
     }
-    
+        currentTest = {quizStyle:"Ask for gender", vocab: correctVocab.word, book: correctVocab.book};
+
       document.getElementById('quizQuestion').textContent = `What is the gender of "${correctVocab.word}"?`;
       
       document.getElementById('trueFalseQuestion').textContent = `Is the gender of "${currentQuizWord}" "${currentQuizDefinition}"?`;
@@ -527,8 +558,9 @@ function adjustFontSize(){
     let questionText = ""
     let options = []
     console.log(correctVocab.word)
-    if((getRandomNumber(1,9))>=8){
+    if((getRandomNumber(1,9))>=9){
       if(conjugations.group&&conjugations.group!=""){
+            currentTest = {quizStyle:"Ask for word group", vocab: correctVocab.word, book: correctVocab.book};
         questionText = "what is the group of " + correctVocab.word
         correctAnswer =  conjugations.group;
         console.log(correctAnswer)
@@ -558,6 +590,7 @@ function adjustFontSize(){
       }
     }else{
       quizType = "6"
+      currentTest = {quizStyle:"Give inflection, ask type of inflection", vocab: correctVocab.word, book: correctVocab.book};
       if(conjugations.pos=="verb"){
         const typeOfVerbToTest = getRandomNumber(1,10)
         numberOfFields = getRandomNumber(1, 5);
@@ -663,6 +696,7 @@ function adjustFontSize(){
     let correctAnswer;
     let questionText = ""
     let options = []
+    currentTest = {quizStyle:"Give type of inflection, ask inflection", vocab: correctVocab.word, book: correctVocab.book};
     wordToTest = getRandomWordFromConjugations(conjugations)
     const subFields = findSubfieldsForWord(wordToTest,conjugations)
     conjToTest = Object.values(subFields);
@@ -722,7 +756,7 @@ function adjustFontSize(){
     const correctDefinition = document.getElementById('correctDefinition');
     const result = button.textContent === correctAnswer ? 't' : 'f';
     updateQuizResults(result);
-  
+    
     if (button.textContent === correctAnswer) {
       button.classList.add('correct');
       correctMessage.style.display = 'block';
@@ -734,6 +768,7 @@ function adjustFontSize(){
     } else {
       incorrectMessage.style.display = 'block';
       showCorrectAnswer();
+            wrongVocabs.push(currentQuizWord);
       document.getElementById('nextAfterIncorrectButton').style.display = 'Block';
     }
   }
@@ -794,7 +829,6 @@ function adjustFontSize(){
     const correctDefinition = document.getElementById('correctDefinition');
    
     if (isTrue === isPairCorrect) {
-      
       updateQuizResults('t');
       correctMessage.style.display = 'block';
       setTimeout(() => {
@@ -806,7 +840,7 @@ function adjustFontSize(){
       incorrectMessage.style.display = 'block';
       showCorrectAnswer();
       document.getElementById('nextAfterIncorrectButton').style.display = 'block';
-  
+      wrongVocabs.push(currentQuizWord);
     }
     document.getElementById('trueFalseContainer').style.display = 'none';
   
@@ -818,8 +852,10 @@ function adjustFontSize(){
     }
   }
   function updateQuizResults(result) {
+    
+      currentTest.correct = result;
     console.log(currentVocabIndex);
-    console.log(filteredVocabList[currentVocabIndex]);
+    totalCountYet+= 1;
     if (currentVocabIndex !== null && filteredVocabList[currentVocabIndex].quizResults) {
       let quizResults =  filteredVocabList[currentVocabIndex].quizResults;
       quizResults.unshift(result);
@@ -837,8 +873,13 @@ function adjustFontSize(){
     }
     if (result === 't'){
       currentQuizNo += 1;
-      //removeCurrentVocab();
+      correctCount += 1;
     }
+    recordHistory.push(currentTest);
+    console.log("currentTest",currentTest);
+    console.log("recordHistory",recordHistory);
+    const correctRate = (correctCount / totalCountYet) * 100;
+    document.getElementById('correctCountDiv').innerHTML = `<span style="color: green;">${currentQuizNo}</span> / ${totalCountYet}  CorrectRate: ${correctRate.toFixed(2)}%`;
   }
   
   function removeCurrentVocab() {
@@ -850,3 +891,205 @@ function adjustFontSize(){
       });
     }
   }
+  function endTest(){
+    document.getElementById("end").style.display = 'none';
+    document.getElementById("correctCountDiv").style.display = 'none';
+    document.getElementById("donzo").style.display = 'none';
+    document.getElementById("quizContainer").style.display = 'none';
+    document.getElementById('trueFalseContainer').style.display = 'none';
+    const showTestResult = document.getElementById('showTestResult');
+    showTestResult.style.display = '';
+    let quizStats = analyzeByQuizStyle(recordHistory);
+    buildChartPerQuiz(quizStats);
+    chrome.storage.local.get('recordHistories', function(result) {
+      let histories = result.recordHistories || [];
+      // Get the current book (from your UI or state)
+      const currentBook = document.getElementById('bookSelector').value;
+      buildChartPerQuiz(quizStats, histories, currentBook);
+      drawCorrectnessTrend(histories, recordHistory);
+      histories.push(recordHistory);
+      chrome.storage.local.set({ recordHistories: histories }, function() {
+      console.log('Record history saved successfully.');
+      });
+    });
+  }
+    function analyzeByQuizStyle(data) {
+    const stats = {};
+  
+    // First, count totals
+    for (const item of data) {
+      const style = item.quizStyle;
+      const isCorrect = item.correct === "t";
+  
+      if (!stats[style]) {
+        stats[style] = { correct: 0, incorrect: 0, total: 0 };
+      }
+  
+      if (isCorrect) stats[style].correct++;
+      else stats[style].incorrect++;
+      stats[style].total++;
+    }
+  
+    // Now, convert to percentages
+    Object.keys(stats).forEach(style => {
+      const s = stats[style];
+      stats[style] = {
+        correct: s.total ? (s.correct / s.total) * 100 : 0,
+        incorrect: s.total ? (s.incorrect / s.total) * 100 : 0
+      };
+    });
+  
+    return stats;
+  }
+  function buildChartPerQuiz(quizStats, recordHistories = [], currentBook = "") {
+    const styles = Object.keys(quizStats);
+    const correctCounts = styles.map(style => quizStats[style].correct);
+
+    // Calculate average correctness for each style from history
+    let avgCorrectness = [];
+    if (recordHistories.length && currentBook) {
+      const avgByStyle = getAverageCorrectnessByStyle(recordHistories, currentBook);
+      avgCorrectness = styles.map(style => avgByStyle[style] !== undefined ? avgByStyle[style] : 0);
+    }
+
+    const datasets = [
+      {
+        label: 'Current Correct (%)',
+        data: correctCounts,
+        barPercentage: 0.4,
+        backgroundColor: '#9FC87E'
+      }
+    ];
+
+    if (avgCorrectness.length) {
+      datasets.push({
+        label: 'History Avg Correct (%)',
+        data: avgCorrectness,
+        barPercentage: 0.4,
+        backgroundColor: '#2196f3'
+      });
+    }
+
+    // Destroy previous chart instance if it exists
+    if (quizChartInstance) {
+      quizChartInstance.destroy();
+    }
+
+    quizChartInstance = new Chart(document.getElementById("quizChart1"), {
+      type: 'bar',
+      data: {
+        labels: styles,
+        datasets: datasets
+      },
+      options: {
+        responsive: false,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Quiz Results by Style (Current & History Avg for this collection)'
+          }
+        },
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            min: 0,
+            max: 100,
+            title: { display: true, text: 'Correctness (%)' }
+          }
+        }
+      }
+    });
+  }
+  function getAverageCorrectnessByStyle(recordHistories, book) {
+  const styleTotals = {};
+  const styleCounts = {};
+
+  recordHistories.forEach(history => {
+    history.forEach(item => {
+      if (book && item.book !== book) return;
+      const style = item.quizStyle;
+      if (!styleTotals[style]) {
+        styleTotals[style] = 0;
+        styleCounts[style] = 0;
+      }
+      if (item.correct === 't') styleTotals[style]++;
+      styleCounts[style]++;
+    });
+  });
+
+  const averages = {};
+  Object.keys(styleTotals).forEach(style => {
+    averages[style] = styleCounts[style] ? (styleTotals[style] / styleCounts[style]) * 100 : 0;
+  });
+  return averages;
+}
+  function drawCorrectnessTrend(recordHistories, currentRecord) {
+  // recordHistories: array of arrays (each is a test session's recordHistory)
+  // currentRecord: array (the current test's recordHistory)
+
+  // Calculate correctness for each history
+  const correctnessList = recordHistories.map(history => {
+    const total = history.length;
+    const correct = history.filter(item => item.correct === 't').length;
+    return total ? (correct / total) * 100 : 0;
+  });
+
+  // Calculate current test correctness
+  const currentTotal = currentRecord.length;
+  const currentCorrect = currentRecord.filter(item => item.correct === 't').length;
+  const currentCorrectness = currentTotal ? (currentCorrect / currentTotal) * 100 : 0;
+
+  // Calculate average of previous histories
+  const prevAvg = correctnessList.length
+    ? correctnessList.reduce((a, b) => a + b, 0) / correctnessList.length
+    : 0;
+
+  // Prepare data for chart
+  const labels = correctnessList.map((_, i) => `Test ${i + 1}`);
+  labels.push('Current Test');
+
+  const data = [...correctnessList, currentCorrectness];
+
+  // Draw chart
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  if (window.trendChartInstance) window.trendChartInstance.destroy(); // Prevent overlap
+
+  window.trendChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Correctness (%)',
+        data: data,
+        borderColor: '#4caf50',
+        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+        fill: true,
+        tension: 0.2,
+        pointBackgroundColor: labels.map((l, i) =>
+          i === data.length - 1
+            ? (currentCorrectness >= prevAvg ? '#2196f3' : '#e91e63')
+            : '#4caf50'
+        ),
+        pointRadius: labels.map((l, i) => i === data.length - 1 ? 7 : 4)
+      }]
+    },
+    options: {
+      responsive: false,
+      plugins: {
+        title: {
+          display: true,
+          text: `Correctness Trend (Current: ${currentCorrectness.toFixed(2)}%, History Avg: ${prevAvg.toFixed(2)}%)`
+        },
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          min: 0,
+          max: 100,
+          title: { display: true, text: 'Correctness (%)' }
+        }
+      }
+    }
+  });
+}
+

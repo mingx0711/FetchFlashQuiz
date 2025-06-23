@@ -7,7 +7,8 @@ let isPairCorrect = null;
 let filteredVocabList =[]
 let totalNoCount = null;
 let currentQuizNo = 0;
-
+let correctCount = 0;
+let totalCount = 0;
 document.addEventListener('DOMContentLoaded', function() {
   chrome.storage.local.get('vocabList', function(data) {
     if (data.vocabList) {
@@ -66,9 +67,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   }
 );
-  
-
-
 function showNextItem() {
   document.getElementById('wrongCountDiv').textContent = `${currentQuizNo} / ${totalNoCount}`;
   if(currentQuizNo >= totalNoCount){
@@ -258,6 +256,7 @@ function quizStyle1() {
     }
   }
   function checkTrueFalse(isTrue) {
+
     const correctMessage = document.getElementById('correctMessage');
     const incorrectMessage = document.getElementById('incorrectMessage');
     const correctDefinition = document.getElementById('correctDefinition');
@@ -288,6 +287,7 @@ function quizStyle1() {
     }
   }
   function updateQuizResults(result) {
+    totalCount += 1;
     if (currentVocabIndex !== null && filteredVocabList[currentVocabIndex].quizResults) {
       let quizResults =  filteredVocabList[currentVocabIndex].quizResults;
       quizResults.unshift(result);
@@ -304,6 +304,7 @@ function quizStyle1() {
       });
     }
     if (result === 't'){
+      correctCount += 1;
       currentQuizNo += 1;
       //removeCurrentVocab();
     }

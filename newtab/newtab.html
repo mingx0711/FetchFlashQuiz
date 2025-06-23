@@ -10,13 +10,98 @@
             height: 60vh;
             width: 80vw;
             margin: auto; padding: 20px; border: 10px solid; border-radius: 25px; display: inline-block; }
-    #snoozeButton, #nextButton {  position: relative; left: 20%;text-align: center; margin-top: 100px; margin-left: 25px; }
-    .quiz-container, .true-false-container {top: 40%; transform: translateY(20%); text-align: center; margin: 10px 0; padding: 20px; border: 1px solid #ccc; border-radius: 4px;display: none; }
-    .quiz-option { margin-top: 20px; display: block; width: 800px; border: 30px;border-color: #272623;}
+    #nextButton {  position: relative; left: 20%;text-align: center; margin-top: 100px; margin-left: 25px; }
+    .quiz-container, .true-false-container {top: 40%; transform: translateY(20%); text-align: center; width:80vw; margin: 10px 0; padding: 20px; border: 1px solid #ccc; border-radius: 4px;display: none; }
+    .quiz-option { margin-top: 20px; display: block; border: 30px;border-color: #272623;}
     #correctMessage, #incorrectMessage { display: none; font-weight: bold; }
     #correctMessage { color: green; }
     #incorrectMessage { color: red; }
     #nextAfterIncorrectButton { display: none; margin-top: 10px; }
+     .quiz-container, .true-false-container {
+      display: none;
+      margin: 0 auto 18px auto;
+      background: #fffdfa;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      padding: 24px 0 18px 0;
+    }
+    .quiz-container p, .true-false-container p {
+      font-size: 3.5vh;
+      margin-bottom: 18px;
+      color: #5a4f4d;
+      font-weight: bold;
+    }
+    .quiz-option, .true-false-container .ui.button {
+      font-size: 1.5vh;
+      margin: 10px 12px 0 12px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: 2px solid #b8a9a7;
+      font-weight: bold;
+      background: #fdf4e2;
+      color: #4b5437;
+      transition: background 0.2s, box-shadow 0.2s;
+      width: 60vw;
+      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      display: inline-block;
+    }
+    .quiz-option:hover, .true-false-container .ui.button:hover {
+      background: #ffe9c7;
+      box-shadow: 0 4px 16px rgba(90,79,77,0.10);
+    }
+    #counter {
+      font-size: 2vw;
+      color: #5a4f4d;
+      margin: 18px 0 10px 0;
+      font-weight: bold;
+      text-align: center;
+    }
+    #correctMessage, #incorrectMessage {
+      display: none;
+      font-weight: bold;
+      margin: 18px auto 0 auto;
+      width: 320px;
+      font-size: 2vw;
+      text-align: center;
+      border-radius: 8px;
+      padding: 10px 0;
+    }
+    #correctMessage {
+      color: #2e7d32;
+      background: #e6f7e6;
+    }
+    
+    #testCollectionBtn:hover {
+      background: #ffe9c7;
+      box-shadow: 0 4px 16px rgba(90,79,77,0.10);
+    }
+    .ui.segment#wrongCountDiv {
+      margin: 30px auto 10px auto;
+      max-width: 600px;
+      background: #fffdfa;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(90,79,77,0.08), 0 1.5px 6px rgba(90,79,77,0.10);
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #5a4f4d;
+      text-align: center;
+    }
+    #incorrectMessage {
+      color: #c62828;
+      background: #ffeaea;
+    }
+    #correctDefinition {
+      background-color: #ebebe9;
+      height: 120px;
+      font-size: 1.5vw;
+      margin: 18px auto 0 auto;
+      border-radius: 10px;
+      padding: 18px 0;
+      max-width: 90vw;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
     #changeInterval {
       background: none;
       border: none;
@@ -40,6 +125,7 @@
 </head>
 <body>
   <div id="vocabFlashcard" class="flashcard" style = "background-color:#ffffff;margin: auto ;">
+      <button class = "ui button"id="snoozeButton" style = "background-color:transparent;position: fixed;bottom:86%;right: 9%;font-weight: bold;font-size:1vw;">Snooze</button>
    <button class = "ui button"id="autoplayButton" style = "position: fixed;bottom:85%;transform: translateX(-50%);left:5%;font-weight: bold;font-size: 2.3vw;">&#9654;</button>
    <button class = "ui button"id="changeInterval" style = "position: fixed;bottom:85%;transform: translateX(-50%);left: 8%;font-weight: bold;font-size: 2.3vw;">&#9881;</button>
    <button class = "ui button"id="focusButton"  style = "position: fixed;background: none;bottom:80%;right:-2%;font-size: 2.3vw;">&#9734;</button>
@@ -69,16 +155,16 @@
 
   </div>
   <div class="quiz-container" style="top: 2%;margin: auto ;border: 10px solid;" id="quizContainer">
-    <p style="font-size: 3.5vw;" id="quizQuestion"></p>
-    <button style="font-size:2vw;margin: auto ;margin-top: 10px; border: 10px; border-radius: 5px; border-color: #607059;" class="ui quiz-option" id="option1"></button>
-    <button style="font-size:2vw;margin: auto ;margin-top: 10px;border: 10px;  border-radius: 5px;border-color: #607059;" class="ui quiz-option" id="option2"></button>
-    <button style="font-size:2vw;margin: auto ;margin-top: 10px;border: 10px;  border-radius: 5px;border-color: #607059;" class="ui quiz-option" id="option3"></button>
-    <button style="font-size:2vw;margin: auto ;margin-top: 10px;border: 10px;  border-radius: 5px;border-color: #607059;" class="ui quiz-option" id="option4"></button>
+    <p style="font-size: 4vh;" id="quizQuestion"></p>
+    <br><button style="font-size:3vh;margin: auto ;margin-top: 10px; border: 10px; border-radius: 5px; border-color: #607059;" class="ui quiz-option" id="option1"></button>
+    <br><button style="font-size:3vh;margin: auto ;margin-top: 10px;border: 10px;  border-radius: 5px;border-color: #607059;" class="ui quiz-option" id="option2"></button>
+    <br><button style="font-size:3vh;margin: auto ;margin-top: 10px;border: 10px;  border-radius: 5px;border-color: #607059;" class="ui quiz-option" id="option3"></button>
+    <br><button style="font-size:3vh;margin: auto ;margin-top: 10px;border: 10px;  border-radius: 5px;border-color: #607059;" class="ui quiz-option" id="option4"></button>
   </div>
   <div class="true-false-container"  style="top: 2%;margin: auto ;border: 10px solid;" id="trueFalseContainer">
-    <p style="font-size: 3.5vw;"id="trueFalseQuestion"></p>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 4px;  border-radius: 5px;border-color: #607059;" class="ui button" id="trueButton">True</button>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 4px;  border-radius: 5px;border-color: #607059;" class="ui button" id="falseButton">False</button>
+    <p style="font-size: 4vh;"id="trueFalseQuestion"></p>
+    <button style="font-size: 3vh;margin: auto ;margin-top: 30px;border: 4px;  border-radius: 5px;border-color: #607059;" class="ui button" id="trueButton">True</button>
+    <button style="font-size: 2vh;margin: auto ;margin-top: 30px;border: 4px;  border-radius: 5px;border-color: #607059;" class="ui button" id="falseButton">False</button>
   </div>
   <div class="match-container" style="top: 2%;margin: auto ;" id="matchContainer">
     <p style="font-size: 3.5vw;"id="matchQuestion"></p>
@@ -100,8 +186,8 @@
   <div id="correctDefinition" class="ui flashcard" style = "background-color:#ebebe9;height:200px; font-size: 2vw;margin: auto ;"></div>
   <div style = "display: block;justify-content: center;
             align-items: center;flex-wrap: wrap; padding-top:20px;">
-  <button class = "ui button"id="snoozeButton" style = "border: 3px solid;position: fixed;bottom:19%;transform: translateX(-50%);left: 30%;font-weight: bold;font-size:1vw;">Snooze</button>
   <button class = "ui button"id="nextButton"style = "border: 3px solid;position: fixed;bottom:19%;transform: translateX(-50%);left: 70%;font-weight: bold;font-size:1vw;">Next</button>
+  <button class = "ui button"id="listeningTestButton" style = "border: 3px solid;position: fixed;bottom:19%;transform: translateX(-50%);left: 30%;font-weight: bold;font-size:1vw;">Test your listening</button>
   <button class = "ui button"id="testButton" style = "border: 3px solid;position: fixed;bottom:19%;transform: translateX(-50%);left: 50%;font-weight: bold;font-size:1vw;">Test your vocabs</button>
   <button class = "ui button" id="nextAfterIncorrectButton" style="border: 3px solid;position: relative ; left:50% ; margin-top: 50px">Next</button>
   </div>

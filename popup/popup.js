@@ -119,6 +119,7 @@ function initializeConjugations(conjugations){
 
 }
 async function getLatinAttributes(doc,word){
+  document.getElementById("vocabInfoInfInfs").style.display = 'block'
   const book = document.getElementById('bookSelector').value;
   const pronounciation = document.getElementById('pronounciation').value;
   const gender = document.getElementById('gender').value;
@@ -253,12 +254,14 @@ async function getLatinAttributes(doc,word){
     vocab = {word,definition,snoozed: false,book,pronounciation,language:"la",gender,conjugations,seen:0,quizResults: ['n','n','n','n'],hasChecked:true,etym:hasEytm?etym:""}
     vocabInfo.innerHTML=""
     vocabInfo.innerHTML+=' word: <span style="font-weight: bold;">'+vocab.word + '</span>'
-    vocabInfo.innerHTML+='<br>| \n definition: <span style="font-weight: bold;">'+vocab.definition+ '</span>'
-    vocabInfo.innerHTML+="<br>|\n group: "+vocab.conjugations.group
-    vocabInfo.innerHTML+="<br>| \n collection: "+vocab.book
-    vocabInfo.innerHTML+="<br>| \n eytmology: "+vocab.etym
+    vocabInfo.innerHTML+='<br>\n definition: <span style="font-weight: bold;">'+vocab.definition+ '</span>'
+    vocabInfo.innerHTML+="<br>\n group: "+vocab.conjugations.group
+    vocabInfo.innerHTML+="<br>\n collection: "+vocab.book
+    vocabInfo.innerHTML+="<br>\n eytmology: "+vocab.etym
+      document.getElementById("vocabInfoInfInfs").style.display = 'block'
     conjugations.type = 'latin';
     console.log(vocab)
+    
     document.getElementById("addAuto").style.display = 'block'
     }
   else {
@@ -390,6 +393,7 @@ async function getLatinAttributes(doc,word){
       vocabInfo.innerHTML+="<br> \n collection: "+vocab.book
       vocabInfo.innerHTML+="<br> \n eytmology: "+vocab.etym
       conjugations.type = 'latin';
+        document.getElementById("vocabInfoInfInfs").style.display = 'block'
       document.getElementById("addAuto").style.display = 'block'
           console.log(vocab)
      }else{
@@ -421,9 +425,10 @@ async function getLatinAttributes(doc,word){
             getLatinAttributes(baseDoc,linkText);
           })
         }else{
-              document.getElementById("vocabInfoInfInfs").style.display = 'block'
+          document.getElementById("vocabInfoInfInfs").style.display = 'block'
           document.getElementById('vocabInfo').style.display = 'block'
-      document.getElementById('vocabInfo').innerHTML = 'invalid word(either is one of the special words, does not exist in latin or does not have a normal conjugation table or is not in base form.)'
+          document.getElementById('addAuto').style.display = 'none'
+          document.getElementById('vocabInfo').innerHTML = 'invalid word(either is one of the special words, does not exist in latin or does not have a normal conjugation table or is not in base form.)'
         }
       }
     }else{
@@ -431,7 +436,8 @@ async function getLatinAttributes(doc,word){
       if(isLatinWord){
        getEasyAttributes(doc,word,"la")
       }else{
-            document.getElementById("vocabInfoInfInfs").style.display = 'block'
+         document.getElementById("vocabInfoInfInfs").style.display = 'block'
+          document.getElementById('addAuto').style.display = 'none'
 
         document.getElementById('vocabInfo').style.display = 'block'
         document.getElementById('vocabInfo').innerHTML = 'invalid word(either does not exist in latin or does not have a normal conjugation table or is not in base form.)'
@@ -500,6 +506,7 @@ async function getLinkedAttributes(doc,word,lang){
         baseDoc = parser.parseFromString(html, 'text/html');
         getEasyAttributes(baseDoc,linkText,lang,"Latn");
       })
+        document.getElementById("vocabInfoInfInfs").style.display = 'block'
         document.getElementById("vocabInfo").textContent+","+definition
         definition = document.getElementById("vocabInfo").textContent+","+definition
         vocab = {word,definition,snoozed: false,book,language:lang,pronounciation,gender,hasChecked:true,seen:0,quizResults: ['n','n','n','n']}
@@ -519,6 +526,8 @@ async function getLinkedAttributes(doc,word,lang){
       getEasyAttributes(baseDoc,title,lang,mention);
     })
       document.getElementById("vocabInfo").textContent+","+definition
+      document.getElementById("vocabInfoInfInfs").style.display = 'block'
+
       //definition = document.getElementById("vocabInfo").textContent+","+definition
       //vocab = {word,definition,snoozed: false,book,pronounciation,gender,hasChecked:true,seen:0,quizResults: ['n','n','n','n']}
   }else{ 
@@ -649,11 +658,11 @@ async function getEasyAttributes(doc,word,lang){
         pronounciationText = zhPronounciationParent.nextElementSibling.innerText;
       }
     }
-    document.getElementById('vocabInfo').innerHTML += '<span style="font-weight: bold;">'+definition+'</span>'
+    document.getElementById('vocabInfo').innerHTML += '<span style="font-weight: bold;">'+definition+'</span><br>'
     if(pronounciationText!=null){
-      document.getElementById('vocabInfo').innerHTML += ("<br>|pronounciation:"+pronounciationText)
+      document.getElementById('vocabInfo').innerHTML += ("<br>pronounciation:"+pronounciationText)
     }
-    document.getElementById('vocabInfo').innerHTML += autoGender?("|gender:"+autoGender):""
+    document.getElementById('vocabInfo').innerHTML += autoGender?("gender:"+autoGender):""
     document.getElementById('vocabInfo').innerHTML += "<br>" + etym
     vocab = {word,definition,snoozed: false,book,language:lang,pronounciation:pronounciationText,gender:autoGender?autoGender:gender,hasChecked:true,seen:0,quizResults: ['n','n','n','n'],etym:hasEytm?etym:""}
     console.log(vocab)
@@ -669,6 +678,8 @@ async function getEasyAttributes(doc,word,lang){
     document.getElementById("vocabInfoInfInfs").style.display = 'block'
     document.getElementById("addAuto").style.display = 'block'
   }else{
+    document.getElementById("vocabInfoInfInfs").style.display = 'block'
+    document.getElementById("addAuto").style.display = 'none'
     document.getElementById('vocabInfo').style.display = 'block'
     document.getElementById('vocabInfo').innerHTML = "word could need correct capitalizations, be a special word, or doesnot exist in the language"
   }
@@ -944,6 +955,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
     //console.log(data.hideBox0)
 
   });
+  
+  document.getElementById('closeQuickStart').addEventListener('click', function(e) {
+    document.getElementById('quickstart').style.display='none';
+  })
+  
   document.getElementById('hideTips1').addEventListener('click', function(e) {
     document.getElementById('tipsBox1').style.display='none';
     chrome.storage.local.set({ hideBox1: true }, function(data) {})
@@ -954,11 +970,14 @@ document.addEventListener('DOMContentLoaded', (event) => {
   })
 
 
-  
+  const showQuickStart = document.getElementById('showQuickStart')
   const bookSelector = document.getElementById('bookSelector');
   const newBookField = document.getElementById('newBookField');
   const addBookButton = document.getElementById('addBookButton');
   const newBookInput = document.getElementById('newBook');
+  showQuickStart.addEventListener('click',()=>{
+    document.getElementById('quickstart').style.display = 'block';
+  });
   bookSelector.addEventListener('change', () => {
     if (bookSelector.value === 'addNew') {
       newBookField.style.display = 'block';
@@ -1058,7 +1077,7 @@ document.getElementById('addAuto').addEventListener('click', function(e) {
     console.log(currentVocab); 
     let vocabList = data.vocabList || [];
      const index = vocabList.findIndex(item => item.word === currentVocab.word && item.book === currentVocab.book);
-    if (index !== -1 && !vocabList[index].etym && currentVocab.etym) {
+    if (index !== -1) {
       vocabList[index] = currentVocab; // Update the existing entry
     }else{
       vocabList.push(currentVocab);

@@ -1,5 +1,6 @@
 let vocab = {}
 let def;
+
 chrome.runtime.onInstalled.addListener(function() {
   chrome.tabs.create({ url: "https://mingx0711.github.io/" });
 });
@@ -420,6 +421,7 @@ async function getLatinAttributes(doc,word){
             getLatinAttributes(baseDoc,linkText);
           })
         }else{
+              document.getElementById("vocabInfoInfInfs").style.display = 'block'
           document.getElementById('vocabInfo').style.display = 'block'
       document.getElementById('vocabInfo').innerHTML = 'invalid word(either is one of the special words, does not exist in latin or does not have a normal conjugation table or is not in base form.)'
         }
@@ -429,6 +431,8 @@ async function getLatinAttributes(doc,word){
       if(isLatinWord){
        getEasyAttributes(doc,word,"la")
       }else{
+            document.getElementById("vocabInfoInfInfs").style.display = 'block'
+
         document.getElementById('vocabInfo').style.display = 'block'
         document.getElementById('vocabInfo').innerHTML = 'invalid word(either does not exist in latin or does not have a normal conjugation table or is not in base form.)'
       }
@@ -662,6 +666,7 @@ async function getEasyAttributes(doc,word,lang){
         //   vocab.conjugations = getSpanishVerbInflections(verbInflectionTableNew)
       }
     }
+    document.getElementById("vocabInfoInfInfs").style.display = 'block'
     document.getElementById("addAuto").style.display = 'block'
   }else{
     document.getElementById('vocabInfo').style.display = 'block'
@@ -980,6 +985,49 @@ document.addEventListener('DOMContentLoaded', (event) => {
     }
   });
   populateBookSelector()
+  chrome.storage.local.get('hasQuickStarted', function(data) {
+    if (!data.hasQuickStarted) {
+      document.getElementById('quickstart').style.display = 'block';
+      document.getElementById('addVocabForm').style.display = 'none';
+    } else {
+      document.getElementById('quickstart').style.display = 'none';
+      document.getElementById('addVocabForm').style.display = 'block';
+    }
+    //chrome.storage.local.set({hasQuickStarted:true});
+  });
+    document.querySelectorAll('#quickstart button[data-deck]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const deck = this.getAttribute('data-deck');
+      const url = `https://mingx0711.github.io/Language%20learning/${deck}.json`; // Change to your real URLs
+      console.log(url)
+      const quickstartMsg = document.getElementById('quickstartMessage');
+      quickstartMsg.textContent = "Importing deck...";
+      fetch(url)
+        .then(res => res.json())
+        .then(deckData => {
+          chrome.storage.local.get('vocabList', function(data) {
+            let vocabList = data.vocabList || [];
+            // Avoid duplicates by word+book
+            deckData.vocabList.forEach(newVocab => {
+              if (!vocabList.some(v => v.word === newVocab.word && v.book === newVocab.book)) {
+                vocabList.push(newVocab);
+              }
+            });
+            console.log(vocabList.length)
+            chrome.storage.local.set({ vocabList:vocabList }, function() {
+              quickstartMsg.textContent = "Deck imported! You can now start using your flashcards.";
+              // Set flag so quickstart doesn't show again
+              chrome.storage.local.set({ hasQuickStarted: true }, function() {
+              });
+            });
+          });
+        })
+        .catch(() => {
+          quickstartMsg.textContent = "Failed to import deck. Please try again.";
+        });
+        syncBook()
+    });
+  });
 });
 function syncBook(){
   chrome.storage.local.get('vocabList', function(data) {

@@ -40,9 +40,6 @@ const langMap = {
   fa: 'Persian',
   sw: 'Swahili',
 };
-function convertToAbbr(name) {
-  return nameToAbbr[name.toLowerCase()] || name;
-}
 const nameToAbbr = Object
   .entries(langMap)                      // [[ 'de','German'], …]
   .reduce((acc, [k, v]) => {

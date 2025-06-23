@@ -10,6 +10,12 @@
       margin: 0;
       padding: 0 0 40px 0;
     }
+     body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f7fa;
+      margin: 0;
+      padding: 0 0 40px 0;
+    }
     .ui.message {
       background: #fffdfa;
       border-radius: 12px;
@@ -171,6 +177,63 @@
       background: #ffe9c7;
       box-shadow: 0 4px 16px rgba(90,79,77,0.10);
     }
+    .quickstart-container {
+      display: none;
+      text-align: center;
+      padding: 32px 12px;
+      background: #fffdfa;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(90,79,77,0.08), 0 1.5px 6px rgba(90,79,77,0.10);
+      max-width: 700px;
+      margin: 32px auto 24px auto;
+    }
+    .quickstart-title {
+      font-size: 2vw;
+      color: #5a4f4d;
+      margin-bottom: 8px;
+    }
+    .quickstart-desc {
+      margin-bottom: 24px;
+      color: #4b5437;
+      font-size: 1.1em;
+    }
+    .quickstart-decks {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      align-items: stretch;
+    }
+    .deck-group {
+      margin-bottom: 0;
+    }
+    .deck-label {
+      font-weight: bold;
+      color: #765b56;
+      font-size: 1.2em;
+      margin-bottom: 8px;
+    }
+    .deck-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 0;
+    }
+    .quickstart-message {
+      margin-top: 24px;
+      color: #2e7d32;
+      font-weight: bold;
+      min-height: 24px;
+    }
+    @media (max-width: 700px) {
+      .quickstart-container {
+        max-width: 98vw;
+        padding: 18px 2vw;
+      }
+      .quickstart-title { font-size: 5vw; }
+      .deck-label { font-size: 1.1em; }
+      .deck-buttons .ui.button { font-size: 3vw; min-width: 70px; }
+    }
     @media (max-width: 700px) {
       .ui.message, .ui.container, #addVocabForm { max-width: 98vw; }
       .ui.header { font-size: 5vw; }
@@ -179,11 +242,63 @@
   </style>
 </head>
 <body>
+       <!-- Beautified Quickstart Section -->
+    <div id="quickstart" class="quickstart-container">
+      <h2 class="quickstart-title">Quick Import Vocab Decks</h2>
+      <p class="quickstart-desc">Click a deck below to start quickly:</p>
+            <div id="quickstartMessage" class="quickstart-message"></div>
+      <div class="quickstart-decks">
+        <div class="deck-group">
+          <div class="deck-label">German</div>
+          <div class="deck-buttons">
+            <button class="ui button" data-deck="German/A1">A1</button>
+            <button class="ui button" data-deck="German/A2">A2</button>
+            <button class="ui button" data-deck="German/A2_1">A2_1</button>
+            <button class="ui button" data-deck="German/B1">B1</button>
+            <button class="ui button" data-deck="German/B2">B2</button>
+          </div>
+        </div>
+        <div class="deck-group">
+          <div class="deck-label">Japanese</div>
+          <div class="deck-buttons">
+            <button class="ui button" data-deck="Japanese/N1">N1</button>
+            <button class="ui button" data-deck="Japanese/N2">N2</button>
+            <button class="ui button" data-deck="Japanese/N3">N3</button>
+            <button class="ui button" data-deck="Japanese/N4">N4</button>
+            <button class="ui button" data-deck="Japanese/N5">N5</button>
+          </div>
+        </div>
+        <div class="deck-group">
+          <div class="deck-label">Chinese</div>
+          <div class="deck-buttons">
+            <button class="ui button" data-deck="Chinese/hsk1">HSK1</button>
+            <button class="ui button" data-deck="Chinese/hsk2">HSK2</button>
+            <button class="ui button" data-deck="Chinese/hsk3">HSK3</button>
+            <button class="ui button" data-deck="Chinese/hsk4">HSK4</button>
+            <button class="ui button" data-deck="Chinese/hsk5">HSK5</button>
+            <button class="ui button" data-deck="Chinese/hsk6">HSK6</button>
+          </div>
+        </div>
+        <div class="deck-group">
+          <div class="deck-label">Latin</div>
+          <div class="deck-buttons">
+            <button class="ui button" data-deck="Latin/Latin">Latin</button>
+          </div>
+        </div>
+        <div class="deck-group">
+          <div class="deck-label">Italian</div>
+          <div class="deck-buttons">
+            <button class="ui button" data-deck="Italian/A1">A1</button>
+          </div>
+        </div>
+      </div>
+    </div>
   <div class="ui center aligned basic segment">
     <div class="ui message">
       <h1 class="ui header">Quick lookup</h1>
     </div>
   </div>
+
   <form class="ui center aligned basic segment" id="addVocabForm">
     <div class="ui input">
       <input type="text" id="word" placeholder="Word" required />
@@ -226,11 +341,12 @@
       </select>
     </div>
     <button class="ui button primary" type="submit">Add</button>
-    <div class="ui container">
+   <div id="vocabInfoInfInfs" class="ui container" style = "display: none;">
       <div id="vocabInfoInfs"></div>
       <div id="vocabInfo"></div>
       <button class="ui button" id="addAuto" type="button">Add to database</button>
     </div>
+    <button  style=" display:none" class="ui button" id="addAuto" type="button">Add to database</button>
   </form>
   <div id="message"></div>
   <button class="ui button" id="manageButton">Manage Vocabulary List</button>

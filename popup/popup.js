@@ -508,9 +508,7 @@ async function getLinkedAttributes(doc,word,lang){
       })
         document.getElementById("vocabInfoInfInfs").style.display = 'block'
         document.getElementById("vocabInfo").textContent+","+definition
-        definition = document.getElementById("vocabInfo").textContent+","+definition
-        vocab = {word,definition,snoozed: false,book,language:lang,pronounciation,gender,hasChecked:true,seen:0,quizResults: ['n','n','n','n']}
-    }
+        }
    
   }
   }else if(title){

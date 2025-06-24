@@ -53,7 +53,9 @@ function loadVoices() {
     speechSynthesis.onvoiceschanged = () => resolve(speechSynthesis.getVoices());
   });
 }
-
+function convertToAbbr(name) {
+  return nameToAbbr[name.toLowerCase()] || name;
+}
 function getSpeechLang(code) {
   const langMap = {
     "de": "de-DE",     // German
@@ -876,10 +878,6 @@ function getJapaneseBaseText(doc){
         return title;
       }
     }
-}
-// same as your convertFromAbbr:
-function convertFromAbbr(lang) {
-  return langMap[lang] || 'Unknown';
 }
 
 window.addEventListener('resize', adjustFontSize);

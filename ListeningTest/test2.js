@@ -141,6 +141,8 @@ function listeningTest() {
   enterWords.value = "";
   let quizWords = getRandomUniqueItemsSameLanguage(filteredVocabList, wordAmount);
   let wordString = quizWords.map(item => item.word).join(",");
+  let defString = quizWords.map(item => item.definition).join("&#11045;	");
+  let wordStringToDisplay = quizWords.map(item => item.word).join("&#11045;	");
     document.getElementById('speak').addEventListener('click',async function () {
     speechSynthesis.cancel();
     var language = quizWords[0].language;
@@ -153,7 +155,8 @@ function listeningTest() {
     utterance.rate = playbackSpeed;
     speechSynthesis.speak(utterance);
   });
-  revealedWords.textContent = wordString;
+  
+  revealedWords.innerHTML = wordStringToDisplay+ '<div class = "ui divider"></div>'+defString;
 }
 document.getElementById('revealWordsBtn').addEventListener('click', function() {
   revealedWords.style.display = 'block';

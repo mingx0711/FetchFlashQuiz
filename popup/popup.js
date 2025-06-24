@@ -1015,13 +1015,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
     //chrome.storage.local.set({hasQuickStarted:true});
   });
     document.querySelectorAll('#quickstart button[data-deck]').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', async function() {
       const deck = this.getAttribute('data-deck');
       const url = `https://mingx0711.github.io/Language%20learning/${deck}.json`; // Change to your real URLs
       console.log(url)
       const quickstartMsg = document.getElementById('quickstartMessage');
       quickstartMsg.textContent = "Importing deck...";
-      fetch(url)
+      await fetch(url)
         .then(res => res.json())
         .then(deckData => {
           chrome.storage.local.get('vocabList', function(data) {
@@ -1032,7 +1032,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 vocabList.push(newVocab);
               }
             });
-            console.log(vocabList.length)
             chrome.storage.local.set({ vocabList:vocabList }, function() {
               quickstartMsg.textContent = "Deck imported! You can now start using your flashcards.";
               // Set flag so quickstart doesn't show again

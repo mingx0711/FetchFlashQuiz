@@ -1272,9 +1272,12 @@ function showNextVocab(collection = currentCollectionSelection) {
         etymDiv.textContent = ""
       }
       // Increment the seen count
-      const match = vocabList.find(item => item.word === currentCollection[currentVocabIndex].word);
-      match.seen += 1;
+      chrome.storage.local.get('vocabList', function(data) {
+        vocabList = data.vocabList;
+        const match = vocabList.find(item => item.word === currentCollection[currentVocabIndex].word);
+        match.seen += 1;
       chrome.storage.local.set({ vocabList: vocabList }, function() {
+      });
        // console.log(`Incremented seen count for "${word}".`);
       });
   
@@ -1327,16 +1330,18 @@ function enterAutoPlay(){
   }
 }
 function snoozeCurrentVocab() {
-  if (currentVocabIndex !== null && currentVocabIndex !== -1) {
-    vocabList[currentVocabIndex].snoozed = true;
 
     // Save updated vocab list to Chrome storage
+  chrome.storage.local.get('vocabList', function(data) {
+    vocabList = data.vocabList;
+  if (currentVocabIndex !== null && currentVocabIndex !== -1) {
+    vocabList[currentVocabIndex].snoozed = true;}
     chrome.storage.local.set({ vocabList: vocabList }, function() {
-     // console.log(`Snoozed "${vocabList[currentVocabIndex].word}".`);
-      showNextItem();  // Show the next item (vocab or quiz)
-    });
+  });
+  // console.log(`Snoozed "${vocabList[currentVocabIndex].word}".`);
+  showNextItem();  // Show the next item (vocab or quiz)
+  });
   }
-}
 {function showQuiz() {
   const quizStyle = Math.floor(Math.random() * 10);
  // console.log(quizStyle);
@@ -1383,9 +1388,10 @@ function updateQuizResults(result,word) {
       if (quizResults.length > 4) {
         quizResults.pop(); // Remove the oldest result to keep only the first 4
       }
-      chrome.storage.local.set({ vocabList: vocabList }, function() {
-     // console.log(`Updated quiz results for "${item.word}": ${quizResults}`);
-    });
+      chrome.storage.local.get('vocabList', function(data) {
+          vocabList = data.vocabList;
+          chrome.storage.local.set({ vocabList: vocabList }, function() {});
+        });
     }
 }
 }
@@ -1975,14 +1981,14 @@ function showCorrectAnswer() {
       vocabFlashcard.textContent+= " pronounciation:"
       vocabFlashcard.textContent+= correctVocab.pronounciation
     } 
-    if(conjToTest && conjToTest.length>0&&quizType=="6"){
+    if((conjToTest||false) && conjToTest.length>0&&quizType=="6"){
       vocabFlashcard.innerHTML+= String.fromCodePoint(0x1F4A0);
       vocabFlashcard.textContent+= correctConj
       vocabFlashcard.textContent+= " is one of the "
       vocabFlashcard.textContent+= makeStringReadable(conjToTest.toString())
       vocabFlashcard.textContent+= "form of "
       vocabFlashcard.textContent+= correctVocab.word
-    }if(conjToTest && conjToTest.length>0&&quizType=="7"){
+    }if((conjToTest||false) && conjToTest.length>0&&quizType=="7"){
       vocabFlashcard.innerHTML+= String.fromCodePoint(0x1F4A0);
       vocabFlashcard.textContent+= wordToTest
       vocabFlashcard.textContent+= " is one of the "

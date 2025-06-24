@@ -1015,37 +1015,49 @@ document.addEventListener('DOMContentLoaded', (event) => {
     //chrome.storage.local.set({hasQuickStarted:true});
   });
     document.querySelectorAll('#quickstart button[data-deck]').forEach(btn => {
-    btn.addEventListener('click', async function() {
-      const deck = this.getAttribute('data-deck');
-      const url = `https://mingx0711.github.io/Language%20learning/${deck}.json`; // Change to your real URLs
-      console.log(url)
-      const quickstartMsg = document.getElementById('quickstartMessage');
-      quickstartMsg.textContent = "Importing deck...";
-      await fetch(url)
-        .then(res => res.json())
-        .then(deckData => {
-          chrome.storage.local.get('vocabList', function(data) {
-            let vocabList = data.vocabList || [];
-            // Avoid duplicates by word+book
-            deckData.vocabList.forEach(newVocab => {
-              if (!vocabList.some(v => v.word === newVocab.word && v.book === newVocab.book)) {
-                vocabList.push(newVocab);
-              }
-            });
-            chrome.storage.local.set({ vocabList:vocabList }, function() {
-              quickstartMsg.textContent = "Deck imported! You can now start using your flashcards.";
-              // Set flag so quickstart doesn't show again
-              chrome.storage.local.set({ hasQuickStarted: true }, function() {
+      btn.addEventListener('click', async function() {
+        const deck = this.getAttribute('data-deck');
+        const url = `https://mingx0711.github.io/Language%20learning/${deck}.json`;
+        const quickstartMsg = document.getElementById('quickstartMessage');
+        quickstartMsg.textContent = "Importing deck...";
+        await fetch(url)
+          .then(res => res.json())
+          .then(deckData => {
+            chrome.storage.local.get('vocabList', function(data) {
+              let vocabList = data.vocabList || [];
+              // Avoid duplicates by word+book
+              deckData.vocabList.forEach(newVocab => {
+                if (!vocabList.some(v => v.word === newVocab.word && v.book === newVocab.book)) {
+                  vocabList.push(newVocab);
+                }
               });
+              
+              chrome.storage.local.set({ vocabList:vocabList }, function() {
+                syncBook()
+                // Countdown logic
+                let countdown = 5;
+                quickstartMsg.textContent = `Importing deck  ${countdown}...`;
+                const interval = setInterval(() => {
+                  countdown--;
+                  if (countdown > 0) {
+                    quickstartMsg.textContent = `Importing deck  ${countdown}...`;
+                  } else {
+                    clearInterval(interval);
+                    quickstartMsg.textContent = "Deck imported! You can now start using your flashcards.";
+                    chrome.tabs.create({ url: 'manageVocab/manageVocab.html' });
+                    // Set flag so quickstart doesn't show again
+                    chrome.storage.local.set({ hasQuickStarted: true }, function() {});
+                  }
+                }, 1000);
+              });
+              
             });
+          })
+          .catch(() => {
+            quickstartMsg.textContent = "Failed to import deck. Please try again.";
           });
-        })
-        .catch(() => {
-          quickstartMsg.textContent = "Failed to import deck. Please try again.";
-        });
-        syncBook()
+      });
     });
-  });
 });
 function syncBook(){
   chrome.storage.local.get('vocabList', function(data) {
@@ -1064,6 +1076,7 @@ function syncBook(){
         //console.log("bookList saved:", bookList);
       }
     });
+      console.log(bookList)
   });
   ;})
   

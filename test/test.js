@@ -12,24 +12,25 @@ let totalCount = 0;
 document.addEventListener('DOMContentLoaded', function() {
   chrome.storage.local.get('vocabList', function(data) {
     if (data.vocabList) {
-      console.log(data.vocabList)
       vocabList = data.vocabList;
       currentVocabIndex = -1;
       
       if(vocabList.length<4){
-        console.log("novocab1");
+        //console.log("novocab1");
         document.getElementById('vocabFlashcard').textContent = "Come back after theres more vocabs";
       }else{
-        console.log("filtering")
-        console.log(filteredVocabList)
         filteredVocabList = vocabList.filter(vocab => {
           const results = vocab.quizResults || [];
           return results.filter(result => result === 'f').length > 1;
         });
-        
+        //console.log(filteredVocabList.length)
+        const focusedWords = vocabList.filter(w => w.focus === true);
+        filteredVocabList = [...new Set([...filteredVocabList, ...focusedWords])];
+        //console.log(filteredVocabList.length)
         totalNoCount = filteredVocabList.length;
+        //console.log(filteredVocabList)
         document.getElementById('wrongCountDiv').textContent = `"${currentQuizNo}" / ${totalNoCount}"`;
-        console.log(filteredVocabList)
+        //console.log(filteredVocabList)
         if (filteredVocabList.length === 0) {
           document.getElementById('vocabFlashcard').textContent = "No vocabulary to test.";
           document.getElementById('nextButton').style.display = 'none';
@@ -43,7 +44,6 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('nextButton').addEventListener('click', function() {
     showNextItem();
   });
-
   document.getElementById('nextAfterIncorrectButton').addEventListener('click', function() {
     document.getElementById('incorrectMessage').style.display = 'none';
     document.getElementById('correctDefinition').style.display = 'none';
@@ -78,10 +78,9 @@ function showNextItem() {
     document.getElementById('nextButton').style.display = 'none';
     document.getElementById('quizContainer').style.display = 'none';
     document.getElementById('trueFalseContainer').style.display = 'none';
-    console.log("vocabList");
+    //console.log("vocabList");
 
-    const quizStyle = Math.floor(Math.random() * 3);
-    console.log(quizStyle);
+    const quizStyle = Math.floor(Math.random() * 5);
     switch(quizStyle){
       case 0:
         quizStyle1();
@@ -91,6 +90,12 @@ function showNextItem() {
         break;
       case 2:
         quizStyle3();
+        break;
+      case 3:
+        quizStyle4();
+        break;
+      case 4:
+        quizStyle5();
         break;
     }
   }
@@ -103,7 +108,7 @@ function quizStyle1() {
   } else {
     currentVocabIndex++;
   }
-  console.log(filteredVocabList[currentVocabIndex].word);
+  //console.log(filteredVocabList[currentVocabIndex].word);
 
   const correctVocab = filteredVocabList[currentVocabIndex];
   currentQuizWord = correctVocab.word;
@@ -112,8 +117,8 @@ function quizStyle1() {
 
   const options = [correctVocab.definition];
   
-  console.log(filteredVocabList[currentVocabIndex].word);
-  console.log(options);
+  //console.log(filteredVocabList[currentVocabIndex].word);
+  //console.log(options);
   for (let i = 0; i<3;i++) {    
     const randomIndex = Math.floor(Math.random() * vocabList.length);
     const randomDefinition = vocabList[randomIndex].definition;
@@ -125,7 +130,7 @@ function quizStyle1() {
   }
 
   shuffleArray(options);
-  console.log(filteredVocabList[currentVocabIndex].word);
+  //console.log(filteredVocabList[currentVocabIndex].word);
 
   document.getElementById('quizQuestion').textContent = `What is the definition of "${correctVocab.word}"?`;
   document.getElementById('option1').textContent = options[0];
@@ -222,6 +227,7 @@ function quizStyle1() {
     document.getElementById('correctDefinition').style.display = 'none';
     document.getElementById('nextAfterIncorrectButton').style.display = 'none';
   }
+  
   function checkAnswer(button) {
     const correctAnswer = document.getElementById('quizContainer').dataset.correctAnswer;
     const correctMessage = document.getElementById('correctMessage');
@@ -295,12 +301,12 @@ function quizStyle1() {
         quizResults.pop(); // Remove the oldest result to keep only the last 4
       }
       const match = vocabList.find(item => item.word === filteredVocabList[currentVocabIndex].word);
-      console.log(match.word)
+      //console.log(match.word)
       if(match){
         match.quizResults =quizResults;
       }
       chrome.storage.local.set({ vocabList: vocabList }, function() {
-        console.log(`Updated quiz results for "${match.word}": ${quizResults}`);
+        //console.log(`Updated quiz results for "${match.word}": ${quizResults}`);
       });
     }
     if (result === 't'){
@@ -315,7 +321,7 @@ function quizStyle1() {
       filteredVocabList.splice(currentVocabIndex, 1);
   
       chrome.storage.local.set({ filteredVocabList: vocabList }, function() {
-        console.log(`Removed "${currentQuizWord}" from the filtered vocab list.`);
+        //console.log(`Removed "${currentQuizWord}" from the filtered vocab list.`);
       });
     }
   }

@@ -47,6 +47,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     endTest();
   });
+  
+  document.getElementById('redo').addEventListener('click', function() {
+    document.getElementById('nextAfterIncorrectButton').style.display = "None"
+    document.getElementById('showTestResult').style.display = "None"
+
+    filteredVocabList = filteredVocabList.filter(item => wrongVocabs.includes(item.word));
+    console.log(filteredVocabList)
+    currentQuizNo = 0;
+    wordToTest = "";
+    recordHistory = [];
+    correctCount = 0;
+    totalNoCount = filteredVocabList.length;
+    totalCountYet = 0;
+    currentTest;
+    wrongVocabs = [];
+    showNextItem();
+  });
 
   document.getElementById('nextAfterIncorrectButton').addEventListener('click', function() {
     document.getElementById('incorrectMessage').style.display = 'none';
@@ -844,18 +861,21 @@ function quizStyle1() {
     console.log(currentVocabIndex);
     totalCountYet+= 1;
     if (currentVocabIndex !== null && filteredVocabList[currentVocabIndex].quizResults) {
+      chrome.storage.local.get('vocabList', function(data) {
+      vocabList = data.vocabList; 
+      const match = vocabList.find(item => item.word === filteredVocabList[currentVocabIndex].word);
       let quizResults =  filteredVocabList[currentVocabIndex].quizResults;
       quizResults.unshift(result);
-      if (quizResults.length > 4) {
+        if (quizResults.length > 4) {
         quizResults.pop(); // Remove the oldest result to keep only the last 4
-      }
-      const match = vocabList.find(item => item.word === filteredVocabList[currentVocabIndex].word);
-      console.log(match.word)
-      if(match){
-        match.quizResults =quizResults;
-      }
-      chrome.storage.local.set({ vocabList: vocabList }, function() {
-        console.log(`Updated quiz results for "${match.word}": ${quizResults}`);
+        }  
+        console.log(match.word)
+          if(match){
+            match.quizResults =quizResults;
+          }
+        chrome.storage.local.set({ vocabList: vocabList }, function() {
+          console.log(`Updated quiz results for "${match.word}": ${quizResults}`);
+        });
       });
     }
     if (result === 't'){
@@ -892,6 +912,11 @@ function quizStyle1() {
     showTestResult.style.display = '';
     let quizStats = analyzeByQuizStyle(recordHistory);
     buildChartPerQuiz(quizStats);
+    if (wrongVocabs.length>=4){
+      document.getElementById("redo").style.display = '';
+    }else{
+      document.getElementById("redo").style.display = 'None';
+    }
     chrome.storage.local.get('recordHistories', function(result) {
       let histories = result.recordHistories || [];
       // Get the current book (from your UI or state)

@@ -27,15 +27,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectedCollection = document.getElementById('bookSelector').value;
     // Call the function to display vocab
     displayTests(selectedCollection);
-    document.getElementById('containerLine').style.display = 'none';
-    document.getElementById('wrongCountDiv').style.display = '';
-    document.getElementById('testCollectionBtn').style.display = 'none';
-    document.getElementById('snoozeButton').style.display = '';
-    document.getElementById('nextButton').style.display = '';
-    document.getElementById('initContainer').style.display = 'none';
-    document.getElementById('bookSelector').style.display = 'none';
-    document.getElementById('quizContainer').style.display = '';
-    document.getElementById('nextButton').style.display = 'none';
 
   });
 
@@ -111,29 +102,63 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   }
 );
-
-function displayTests(bookSelected){
+let currentFocus;
+function displayTests(bookSelected) {
   chrome.storage.local.get('vocabList', function(data) {
     if (data.vocabList) {
       vocabList = data.vocabList;
       currentVocabIndex = -1;
-      if(vocabList.length<4){
-        console.log("novocab1");
-        document.getElementById('vocabFlashcard').textContent = "Come back after theres more vocabs";
-      }else{
-        if(bookSelected === "All collections"){
-          filteredVocabList = vocabList;
-        }else{
-          filteredVocabList = vocabList.filter(vocab => vocab.book === bookSelected);
-        }
-        totalNoCount = filteredVocabList.length;
-        document.getElementById('wrongCountDiv').textContent = `"${currentQuizNo}" / ${totalNoCount}"`;
-        document.getElementById('end').style.display = '';
-        if (filteredVocabList.length === 0) {
-          document.getElementById('vocabFlashcard').textContent = "No vocabulary to test.";
-          document.getElementById('nextButton').style.display = 'none';
+      if (vocabList.length < 4) {
+        document.getElementById('vocabFlashcard').textContent = "Come back after there's more vocabs";
+        return;
+      }
+
+      // Filter by book
+      if (bookSelected === "All collections") {
+        filteredVocabList = vocabList;
+      } else {
+        filteredVocabList = vocabList.filter(vocab => vocab.book === bookSelected);
+      }
+
+      // Focus selector logic
+      const focus = document.getElementById('focusSelector') ? document.getElementById('focusSelector').value : "none";
+      currentFocus = focus;
+      if (focus === "gender") {
+        filteredVocabList = filteredVocabList.filter(vocab => vocab.gender && vocab.gender !== "" && vocab.gender !== "undefined");
+        if (filteredVocabList.length < 4) {
+          alert("Not enough entries with gender to make the test.");
           return;
         }
+      } else if (focus === "pronunciation") {
+        filteredVocabList = filteredVocabList.filter(vocab => vocab.pronounciation && vocab.pronounciation !== "");
+        if (filteredVocabList.length < 4) {
+          alert("Not enough entries with pronunciation to make the test.");
+          return;
+        }
+      } else if (focus === "inflection") {
+        filteredVocabList = filteredVocabList.filter(vocab => vocab.conjugations && vocab.conjugations.type && vocab.conjugations.type !== "");
+        if (filteredVocabList.length < 4) {
+          alert("Not enough entries with inflection to make the test.");
+          return;
+        }
+      }
+      
+      document.getElementById('containerLine').style.display = 'none';
+      document.getElementById('wrongCountDiv').style.display = '';
+      document.getElementById('testCollectionBtn').style.display = 'none';
+      document.getElementById('snoozeButton').style.display = '';
+      document.getElementById('nextButton').style.display = '';
+      document.getElementById('initContainer').style.display = 'none';
+      document.getElementById('bookSelector').style.display = 'none';
+      document.getElementById('quizContainer').style.display = '';
+      document.getElementById('nextButton').style.display = 'none';
+      totalNoCount = filteredVocabList.length;
+      document.getElementById('wrongCountDiv').textContent = `"${currentQuizNo}" / ${totalNoCount}"`;
+      document.getElementById('end').style.display = '';
+      if (filteredVocabList.length === 0) {
+        document.getElementById('vocabFlashcard').textContent = "No vocabulary to test.";
+        document.getElementById('nextButton').style.display = 'none';
+        return;
       }
       showNextItem();
     }
@@ -185,30 +210,22 @@ function showNextItem() {
     document.getElementById('nextButton').style.display = 'none';
     document.getElementById('quizContainer').style.display = 'none';
     document.getElementById('trueFalseContainer').style.display = 'none';
-    const quizStyle = Math.floor(Math.random() *7);
-    console.log(quizStyle);
-    switch(quizStyle){
-      case 0:
-        quizStyle1();
-        break;
-      case 1:
-        quizStyle2();
-        break;
-      case 2:
-        quizStyle3();
-        break;
-      case 3:
-        quizStyle4();
-        break;
-      case 4:
-        quizStyle5();
-        break;
-      case 5:
-        quizStyle6();
-        break;
-      case 6:
-        quizStyle7();
-        break;
+    const focusQuizMap = {
+    gender:   [quizStyle5],
+    pronounciation: [quizStyle4],
+    inflection: [quizStyle6, quizStyle7],
+    definition: [quizStyle1, quizStyle2, quizStyle3]
+    };
+    const allQuizStyles = [quizStyle1, quizStyle2, quizStyle3, quizStyle4, quizStyle5, quizStyle6, quizStyle7];
+  if (focusQuizMap[currentFocus]) {
+      const quizStyles = focusQuizMap[currentFocus];
+      // Pick one at random if multiple styles
+      const randomIndex = Math.floor(Math.random() * quizStyles.length);
+      quizStyles[randomIndex]();
+    } else {
+      // No focus: pick any quiz style at random
+      const randomIndex = Math.floor(Math.random() * allQuizStyles.length);
+      allQuizStyles[randomIndex]();
     }
   }
 }

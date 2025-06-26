@@ -35,9 +35,6 @@ chrome.storage.local.getBytesInUse(null, function(bytesInUse) {
 //     });
 //   });
 // });
-document.getElementById('testConj').addEventListener('click', function() {
-  chrome.tabs.create({ url: 'conjTest/conjTest.html' });
-});
 
 // document.getElementById("importButton").addEventListener("click", function() {
 //   chrome.tabs.create({ url: 'inflections/inflections.html' });

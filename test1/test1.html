@@ -9,8 +9,9 @@
       border-radius: 18px;
       background: #f9f7f6;
       box-shadow: 0 4px 24px rgba(90,79,77,0.08), 0 1.5px 6px rgba(90,79,77,0.10);
-      width: 540px;
+      width: 55vw;
       max-width: 95vw;
+      height: 65vh;
       position: relative;
       padding: 0;
     }
@@ -19,18 +20,19 @@
       border: 3px dashed #b8a9a7;
       border-radius: 12px;
       background: #fffdfa;
-      height: auto;
-      width: 500px;
+      height: 60vh;
+      width: 50vw;
       max-width: 90vw;
       position: relative;
       padding: 32px 24px 24px 24px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      gap: 10px; /* Add a gap for nice spacing */
     }
     .init-container b {
       font-size: 1.5vw;
-      margin-bottom: 32px;
+      margin-bottom: 15px;
       display: block;
       color: #5a4f4d;
     }
@@ -152,20 +154,27 @@
 </head>
 <body>
   <div id="containerLine" style="top: 50px;
-  margin: auto ;border: 5px double;border-color: #5a4f4d; border-radius: 3%;
-  height: 330px;width: 530px;position: relative;">
+  margin: auto ;border: 5px double;border-color: #9e7a74; border-radius: 3%;
+  ;position: relative;">
     <div class="init-container" style="top: 10px;
-    margin: auto ;border: 10px dotted;
-    height: 300px;width: 500px;position: relative;
+    margin: auto ;border: 3px;
+    position: relative;
     " id="initContainer">
     <b style="font-size: 1.5vw;">Select the collection that you want to test. You can close this tab anytime you want, the result of a test will be updated in /manageVocabs</b>
       <select class = "ui search dropdown" id="bookSelector" style="margin:auto; 
     margin-bottom: 20px;
     display: block;
     font-size: 1vwpx;
-    ">
-      </select>
-      <button class = "ui button" id="testCollectionBtn">Test Collection</button>
+    "></select>
+    <b style="font-size: 1.5vw;">Anything you want to focus on today?</b>
+    <select style="font-size: 1vw;display: inline-flex;" class="ui search dropdown" id="focusSelector" style="margin:auto; margin-bottom: 20px; display: block; font-size: 1vw;">
+      <option value="none">No, just test</option>
+      <option value="gender">Gender</option>
+      <option value="pronunciation">Pronunciation</option>
+      <option value="definition">Definition</option>
+      <option value="inflection">Inflection</option>
+    </select>
+      <button style="font-size: 1vw;display: inline-flex;" class = "ui button" id="testCollectionBtn">Test Collection</button>
     </div>
   </div>
   

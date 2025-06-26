@@ -251,7 +251,7 @@ async function getLatinAttributes(doc,word){
       etym = etym.replace(/\.mw[\s\S]*\}/, '');
     }
     //console.log(etym);
-    vocab = {word,definition,snoozed: false,book,pronounciation,language:"la",gender,conjugations,seen:0,quizResults: ['n','n','n','n'],hasChecked:true,etym:hasEytm?etym:""}
+    vocab = {word,definition,snoozed: false,book,pronounciation,language:"la",gender,conjugations,seen:0,type:"verb",quizResults: ['n','n','n','n'],hasChecked:true,etym:hasEytm?etym:""}
     vocabInfo.innerHTML=""
     vocabInfo.innerHTML+=' word: <span style="font-weight: bold;">'+vocab.word + '</span>'
     vocabInfo.innerHTML+='<br>\n definition: <span style="font-weight: bold;">'+vocab.definition+ '</span>'

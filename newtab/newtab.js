@@ -896,8 +896,8 @@ changeIntervalBtn.addEventListener('click', () => {
   document.getElementById('testButton').addEventListener('click', function() {
     chrome.tabs.create({ url: 'test1/test1.html' });
   });
-  document.getElementById('listeningTestButton').addEventListener('click', function() {
-    chrome.tabs.create({ url: 'ListeningTest/test2.html' });
+  document.getElementById('learnButton').addEventListener('click', function() {
+    chrome.tabs.create({ url: 'learn/learn.html' });
   });
   document.getElementById('falseButton').addEventListener('click', function() {
     checkTrueFalse(false);
@@ -1115,8 +1115,8 @@ function changeColor(palette){
   document.getElementById('testButton').style.boxShadow = selectedPalette.buttonShadow;
 
   document.getElementById('snoozeButton').style.backgroundColor = selectedPalette.Snooze;
-  document.getElementById('listeningTestButton').style.backgroundColor = selectedPalette.Snooze;
-  document.getElementById('listeningTestButton').style.boxShadow = selectedPalette.buttonShadow;
+  document.getElementById('learnButton').style.backgroundColor = selectedPalette.Snooze;
+  document.getElementById('learnButton').style.boxShadow = selectedPalette.buttonShadow;
   document.getElementById('divider').style.backgroundColor = selectedPalette.Snooze;
   document.getElementById('nextButton').style.backgroundColor = selectedPalette.Snooze;
   document.getElementById('nextButton').style.boxShadow = selectedPalette.buttonShadow;

@@ -141,6 +141,10 @@ function displayTests(bookSelected) {
           alert("Not enough entries with inflection to make the test.");
           return;
         }
+      } else if (focus === "listening") {
+        chrome.tabs.create({ url: 'ListeningTest/test2.html' });
+        window.close();
+        return;
       }
       
       document.getElementById('containerLine').style.display = 'none';

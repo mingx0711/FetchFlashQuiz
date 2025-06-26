@@ -50,13 +50,13 @@ function displayTests(bookSelected) {
         if(bookSelected === "All collections"){
           filteredVocabList = vocabList;
         }else{
-          filteredVocabList = vocabList.filter(vocab => vocab.book === bookSelected);
+          filteredVocabList = vocabList.filter(vocab => vocab.book === bookSelected && vocab.language);
         }
         totalNoCount = filteredVocabList.length;
         document.getElementById('wrongCountDiv').textContent = `"${currentQuizNo}" / ${totalNoCount}"`;
         //document.getElementById('end').style.display = '';
         if (filteredVocabList.length === 0 || filteredVocabList.length < wordAmount) {
-          document.getElementById('quizContainer').textContent = "No eligible vocabulary to test.";
+          document.getElementById('quizContainer').textContent = "No eligible vocabulary to test. If you are using a custom made deck, make sure to add language field to each vocab. check https://mingx0711.github.io/";
           document.getElementById('nextButton').style.display = 'none';
           return;
         }

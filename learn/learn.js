@@ -5,7 +5,7 @@ let currentQuizDefinition = null;
 let quizType = null;
 let isPairCorrect = null;
 let filteredVocabList =[]
-let totalNoCount = null;
+let currentStep = null;
 let currentQuizNo = 0;
 let wordToTest = "";
 let recordHistory = [];
@@ -14,7 +14,7 @@ let totalCountYet = 0;
 let currentTest;
 let totalVocabList = []
 let wrongVocabs = [];
-let quizChartInstance = null; // Add this at the top of your file (or outside the function)
+let learningQueue = [];
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('vocabFlashcard').style.display = 'none';
   document.getElementById('quizContainer').style.display = 'none';
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Get the selected collection from the dropdown
     const selectedCollection = document.getElementById('bookSelector').value;
     // Call the function to display vocab
-    displayItems(selectedCollection);
+    generateLearningQueue(selectedCollection);
   });
 
   document.getElementById('nextButton').addEventListener('click', function() {
@@ -88,7 +88,7 @@ function getLeastLearnedTen(arr) {
     })
     .slice(0, 10);
 }
-function displayItems(bookSelected) {
+function generateLearningQueue(bookSelected) {
   chrome.storage.local.get('vocabList', function(data) {
     if (data.vocabList) {
       vocabList = data.vocabList;
@@ -102,7 +102,7 @@ function displayItems(bookSelected) {
       filteredVocabList = getLeastLearnedTen(filteredVocabList);
       console.log(filteredVocabList)
       document.getElementById('containerLine').style.display = 'none';
-      document.getElementById('testCollectionBtn').style.display = 'none';
+      document.getElementById('start').style.display = 'none';
       document.getElementById('snoozeButton').style.display = '';
       document.getElementById('nextButton').style.display = '';
       document.getElementById('initContainer').style.display = 'none';
@@ -110,32 +110,208 @@ function displayItems(bookSelected) {
       document.getElementById('quizContainer').style.display = '';
       document.getElementById('nextButton').style.display = 'none';
       totalNoCount = filteredVocabList.length;
-      document.getElementById('wrongCountDiv').textContent = `"${currentQuizNo}" / ${totalNoCount}"`;
       document.getElementById('end').style.display = '';
       if (filteredVocabList.length === 0) {
         document.getElementById('vocabFlashcard').textContent = "No vocabulary to test.";
         document.getElementById('nextButton').style.display = 'none';
         return;
       }
-      let learningQueue = [];
       filteredVocabList.forEach(wordObj => {
       // 1. Flashcard
       learningQueue.push({ type: 'flashcard', word: wordObj });
 
       // 2. True/False quiz (quizStyle3), with wrong definition from totalVocabList
-      learningQueue.push({ type: 'quiz3', word: wordObj });
 
       // 3. Randomly quizStyle1 or quizStyle2
       const quizType = Math.random() < 0.5 ? 'quiz1' : 'quiz2';
       learningQueue.push({ type: quizType, word: wordObj });
 
-      const quizType2 = Math.random() < 0.5 ? 'quiz3' : 'quiz2';
-      learningQueue.push({ type: quizType, word: wordObj });
+      if(Math.random() < 0.5){
+        if(wordObj.gender){
+          learningQueue.push({ type: 'quiz5', word: wordObj });
+        }
+        if(wordObj.pronounciation){
+          learningQueue.push({ type: 'quiz4', word: wordObj });
+        }
+      }else{
+        learningQueue.push({ type: 'quiz3', word: wordObj });
+      }
+      if(Math.random() < 0.5){
+        learningQueue.push({ type: 'quiz8', word: wordObj });
+        }
       });
     }
+    const quizTypes = ['quiz1', 'quiz2', 'quiz3', 'quiz4', 'quiz5', 'quiz8'];
+    let randomWords = filteredVocabList.slice();
+    shuffleArray(randomWords);
+    randomWords.slice(0, 8).forEach(wordObj => {
+      const randomQuizType = quizTypes[Math.floor(Math.random() * quizTypes.length)];
+      if(randomQuizType==='quiz4'&&wordObj.pronounciation){
+        learningQueue.push({ type: randomQuizType, word: wordObj });
+      }else{
+        learningQueue.push({ type: 'quiz1', word: wordObj });
+      }
+      if(randomQuizType==='quiz5'&&wordObj.gender){
+        learningQueue.push({ type: randomQuizType, word: wordObj });
+      }else{
+        learningQueue.push({ type: 'quiz2', word: wordObj });
+      }
+    });
+  });
+    currentStep = 0;
+  console.log(learningQueue);
+  showNextLearningStep();
+}
+function showNextLearningStep() {
+  // If queue is empty, finish
+  if (currentStep >= learningQueue.length) {
+    endTest();
+    return;
+  }
+  const step = learningQueue[currentStep];
+    switch (step.type) {
+    case "quiz1":
+      quizStyle1()
+      break;
+
+    case "quiz2":
+      quizStyle2()
+      break;
+
+    case "quiz3":
+      quizStyle4()
+      break;
+
+    case "quiz5":
+      quizStyle5()
+      break;
+    
+    case "quiz4":
+      quizStyle4()
+      break;
+    
+      case "quiz6":
+      quizStyle6()
+      break;
+      case "quiz7":
+      quizStyle7()
+      break;
+      case "quiz8":
+      quizStyle8()
+      break;
+      case "flashcard":
+      quizStyle1()
+      break;
+
+    default:
+      // handle unknown step type
+      console.warn("Unknown step type:", step.type);
+      break;
+  }
+}
+function showNextVocab() {
+  document.getElementById('quizContainer').style.display = 'none';
+  document.getElementById('trueFalseContainer').style.display = 'none';
+  document.getElementById('matchContainer').style.display = 'none';
+  document.getElementById('incorrectMessage').style.display = 'none';
+  document.getElementById('snoozeButton').style.display = '';
+  document.getElementById('nextAfterIncorrectButton').style.display = 'none';
+  document.getElementById('nextButton').style.display = '';
+  correctDefinition.style.display = 'None';
+  
+  const vocabFlashcard = document.getElementById('vocabFlashcard');
+  let wordDiv = document.getElementById('wordDiv');
+  let defDiv = document.getElementById('defDiv');
+  let bookDiv = document.getElementById('bookDiv');
+  let pronounDiv = document.getElementById('pronounDiv');
+  let genderDiv = document.getElementById('genderDiv');
+  let etymDiv = document.getElementById('etymDiv');
+  let word;
+  let definition
+  if (Math.random()<=0.5){
+    const wordObject = steps;
+    if(wordObject.conjugations&&wordObject.conjugations.group!=""){
+      word = getRandomWordFromConjugations(wordObject.conjugations)
+      definition =wordObject.definition+ String.fromCodePoint(0x1F4A0)+"| \n"+makeStringReadable( Object.values(findSubfieldsForWord(word,wordObject.conjugations)).toString())+" for "+wordObject.word; 
+    }else{
+      word = wordObject.word
+      definition = currentCollection[currentVocabIndex].definition;
+    }
+  }else{
+    word = currentCollection[currentVocabIndex].word;
+    definition = currentCollection[currentVocabIndex].definition;
+  }
+    document.getElementById('speak').addEventListener('click',async function () {
+    speechSynthesis.cancel();
+    const currentWord = word;
+    var language = currentCollection[currentVocabIndex].language|| currentCollection[currentVocabIndex].book
+    language = convertToAbbr(language)
+    const currentLang = getSpeechLang(language);
+    const utterance = new SpeechSynthesisUtterance(currentWord);
+    utterance.lang = currentLang;
+    const voices = await loadVoices();
+    const voice = voices.find(v => v.lang === currentLang);
+    if (voice) utterance.voice = voice;
+    speechSynthesis.speak(utterance);
+  });
+  const maxSize = 3
+  const minSize = 1
+  const clamped = Math.min(definition.length, 200);
+    const size =
+    maxSize - ( (maxSize - minSize) * (clamped / 200) );
+  defDiv.style.fontSize = size.toFixed(1) + 'vw';
+  const book = currentCollection[currentVocabIndex].book || '';
+  if(currentCollection[currentVocabIndex].gender){
+    const gender = currentCollection[currentVocabIndex].gender;
+    genderDiv.textContent = gender
+  }else{
+    genderDiv.textContent = ""
+  }
+  if(currentCollection[currentVocabIndex].pronounciation){
+    const pronoun = currentCollection[currentVocabIndex].pronounciation;
+    pronounDiv.textContent = pronoun;
+  }else{
+    pronounDiv.textContent = ""
+  }
+  wordDiv.innerHTML = word.bold();
+  defDiv.textContent =definition;
+  bookDiv.textContent = book;
+  if(currentCollection[currentVocabIndex].etym){
+    const etymText = currentCollection[currentVocabIndex].etym;
+    const etymSize =
+    maxSize - ( (maxSize - minSize) * ( Math.min(etymText.length, 300) / 300) );
+    etymDiv.textContent = etymText.replace(/\.mw[\s\S]*\}/, '');
+    etymDiv.textContent = etymDiv.textContent.replace('undefined', '');
+    etymDiv.style.fontSize = etymSize.toFixed(1) + 'vw';
+  }else{
+    etymDiv.textContent = ""
+  }
+  document.getElementById('quizContainer').style.display = 'none';
+  vocabFlashcard.style.display = 'block';
+}
+function queueQuizzesForWord(wordObj) {
+  const quizTypes = vocabQuizMap[wordObj.word];
+  quizTypes.forEach(qtype => {
+    learningQueue.push({ type: qtype, word: wordObj });
   });
 }
-
+function quizStyle8(){
+  console.log("TBI")
+}
+// Example flashcard display
+function showFlashcard(wordObj) {
+  document.getElementById('vocabFlashcard').style.display = 'block';
+  document.getElementById('quizContainer').style.display = 'none';
+  document.getElementById('trueFalseContainer').style.display = 'none';
+  document.getElementById('wordDiv').textContent = wordObj.word;
+  document.getElementById('defDiv').textContent = wordObj.definition;
+  // After user clicks "Next", queue quizzes for this word
+  document.getElementById('nextButton').onclick = function() {
+    queueQuizzesForWord(wordObj);
+    currentStep++;
+    showNextLearningStep();
+  };
+}
 function populateBookSelector() {
   chrome.storage.local.get({ bookList: [] }, (result) => {
     const bookList = result.bookList||"Default";

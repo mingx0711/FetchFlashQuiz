@@ -217,7 +217,7 @@ function showNextItem() {
     const focusQuizMap = {
     gender:   [quizStyle5],
     pronounciation: [quizStyle4],
-    inflection: [quizStyle6, quizStyle7],
+    inflection: [ quizStyle7],
     definition: [quizStyle1, quizStyle2, quizStyle3]
     };
     const allQuizStyles = [quizStyle1, quizStyle2, quizStyle3, quizStyle4, quizStyle5, quizStyle6, quizStyle7];
@@ -347,8 +347,11 @@ function quizStyle1() {
       currentQuizDefinition = incorrectVocab.definition;
     }
   
-    document.getElementById('trueFalseQuestion').textContent = `Is the definition of "${currentQuizWord}" "${currentQuizDefinition}"?`;
-  
+       const definitionLines = currentQuizDefinition
+      .split(";")
+      .map(line => `<span style="font-weight:normal;">- ${line.trim()}</span>`);
+    document.getElementById('trueFalseQuestion').innerHTML =
+      `Is the definition of "${currentQuizWord}"<br>${definitionLines.join("<br>")}`;
     // Show true/false quiz and hide vocab card
     document.getElementById('trueFalseContainer').style.display = 'block';
     document.getElementById('quizContainer').style.display = 'none';
@@ -372,9 +375,9 @@ function quizStyle1() {
       quizStyle1();
       return;
     }
-    currentTest = {quizStyle:"Ask for pronounciation", vocab: correctVocab.word, book: correctVocab.book};
 
     const correctVocab = eligibleVocab[currentVocabIndex];
+    currentTest = {quizStyle:"Ask for pronounciation", vocab: correctVocab.word, book: correctVocab.book};
     currentQuizWord = correctVocab.word;
     console.log(currentQuizWord);
     currentQuizDefinition = correctVocab.pronounciation;
@@ -494,6 +497,7 @@ function quizStyle1() {
       
   // Helper function to get random subfield from an object
   function getRandomSubfield(obj) {
+    console.log(obj)
     const keys = Object.keys(obj);
     const validKeys = keys.filter(field => (field !== 'pos')&&(field !== 'type'));
     const randomKey = validKeys[Math.floor(Math.random() * keys.length)];
@@ -754,7 +758,7 @@ function quizStyle1() {
     correctConj=correctAnswer;
     shuffleArray(options);
    
-    questionText = `What type conjugation doe  the word "${wordToTest}" belong to?`
+    questionText = `What type of conjugation does the word "${wordToTest}" belong to?`
   
   
   

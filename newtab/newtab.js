@@ -1215,7 +1215,7 @@ function showNextVocab(collection = currentCollectionSelection) {
       let definition
       if (Math.random()<=0.5){
         const wordObject = currentCollection[currentVocabIndex];
-        if(wordObject.conjugations&&wordObject.conjugations.group!=""){
+        if(wordObject&&wordObject.conjugations&&wordObject.conjugations.group!=""){
           word = getRandomWordFromConjugations(wordObject.conjugations)
           definition =wordObject.definition+ String.fromCodePoint(0x1F4A0)+"| \n"+makeStringReadable( Object.values(findSubfieldsForWord(word,wordObject.conjugations)).toString())+" for "+wordObject.word; 
         }else{

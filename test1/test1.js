@@ -202,7 +202,7 @@ function populateBookSelector() {
     
   });
 }
-
+          
 function showNextItem() {
   document.getElementById('wrongCountDiv').textContent = `${currentQuizNo} / ${totalNoCount}`;
   if(currentQuizNo >= filteredVocabList.length ) {
@@ -216,7 +216,7 @@ function showNextItem() {
     document.getElementById('trueFalseContainer').style.display = 'none';
     const focusQuizMap = {
     gender:   [quizStyle5],
-    pronounciation: [quizStyle4],
+    pronounciation: [quizStyle4],                                            
     inflection: [ quizStyle7],
     definition: [quizStyle1, quizStyle2, quizStyle3]
     };

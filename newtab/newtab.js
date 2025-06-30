@@ -428,7 +428,7 @@ async function getLatinAttributes(doc,vocab){
         conjugations.group = declension
       }
       const queryWord = 'strong.Latn.headword[lang="la"]'
-      const isWord = doc.querySelector(queryWord);
+      let isWord = doc.querySelector(queryWord);
       let autoGender = ''
       if(isWord){
         const grannyElement = isWord.parentElement.parentElement;
@@ -558,7 +558,7 @@ function removeDiacritics(str) {
 async function getEasyAttributes(doc,vocab,lang){
   let mention = getLanguageCharSetMapping(lang)
   const queryWord = 'strong.'+mention+'.headword[lang="'+lang+'"]'
-  const isWord = doc.querySelector(queryWord);
+  let isWord = doc.querySelector(queryWord);
   if(lang === "zh"&&!isWord){
       isWord = doc.querySelector('strong.Hant.headword[lang="zh"]')
       if(!isWord){

@@ -890,6 +890,7 @@ function populateBookSelector() {
 
       document.getElementById('bookSelector').add(optionNewSelected)
     }
+    console.log(lastBook)
     // Clear existing options except for the default option
     // Add books as options
     bookList.forEach(book => {

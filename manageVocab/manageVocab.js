@@ -45,9 +45,6 @@ document.getElementById('clearButton').addEventListener('click', function() {
     updateVocabList([]);  // Clear the displayed list
   });
 });
-document.getElementById('startTestButton').addEventListener('click', function() {
-  chrome.tabs.create({ url: 'test/test.html' });
-});
 document.getElementById('searchEditVocabBtn').addEventListener('click', function() {
   const container = document.getElementById('searchEditVocabContainer');
   container.style.display = container.style.display === 'none' ? 'block' : 'none';
@@ -155,7 +152,7 @@ document.getElementById('editVocabForm').addEventListener('submit', function(e) 
     });
   });
 });
-
+let selectedVocab;
 function updateVocabList(vocabList, collection = ["all"]) {
   const vocabListContainer = document.getElementById('vocabList');
   vocabListContainer.innerHTML = '';
@@ -281,7 +278,7 @@ function updateVocabList(vocabList, collection = ["all"]) {
   });
 }
 function getCheckedBooks(){
-  checkedBooks = [];
+  let checkedBooks = [];
   document.querySelectorAll('#displayBookList input[type="checkbox"]').forEach(checkbox => {
       if (checkbox.checked) {
           checkedBooks.push(checkbox.id);
@@ -292,7 +289,7 @@ function getCheckedBooks(){
 function updateCheckedBooks() {
   
   chrome.storage.local.get('vocabList', function(data) {
-    vocabList = data.vocabList || [];
+    let vocabList = data.vocabList || [];
     updateVocabList(vocabList,getCheckedBooks());
   })
 }

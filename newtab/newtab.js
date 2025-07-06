@@ -1,3 +1,4 @@
+import { GenderType } from '../constants.js';
 const fetchTip = document.getElementById('fetchTip');
 const fetchInfo = document.getElementById('fetchInfo');
 let isQuiz = false;
@@ -437,13 +438,13 @@ async function getLatinAttributes(doc,vocab){
           const genderDef = genderSpan.firstChild.textContent;
           switch(genderDef){
             case 'f':
-              autoGender = 'feminine'
+              autoGender = GenderType.FEMININE
               break;
             case 'm':
-              autoGender = 'masculine'
+              autoGender = GenderType.MASCULINE
               break;
             case 'n':
-              autoGender = 'neuter'
+              autoGender = GenderType.NEUTER
               break;
             default:
               break;
@@ -599,13 +600,16 @@ async function getEasyAttributes(doc,vocab,lang){
       const genderDef = genderSpan.firstChild.textContent;
       switch(genderDef){
         case 'f':
-          autoGender = 'feminine'
+          autoGender = GenderType.FEMININE
           break;
         case 'm':
-          autoGender = 'masculine'
+          autoGender = GenderType.MASCULINE
           break;
         case 'n':
-          autoGender = 'neuter'
+          autoGender = GenderType.NEUTER
+          break;
+        case 'c':
+          autoGender = GenderType.COMMON
           break;
         default:
           break;
@@ -902,6 +906,7 @@ changeIntervalBtn.addEventListener('click', () => {
   document.getElementById('falseButton').addEventListener('click', function() {
     checkTrueFalse(false);
   });
+  let selectedbooks;
   chrome.storage.local.get({ bookList: [] }, (result) => {
     chrome.storage.local.get({ currentCollectionSelection}, (data)=> {
     selectedbooks = data.currentCollectionSelection || ""
@@ -1584,10 +1589,7 @@ function quizStyle5(){
     document.getElementById('trueFalseContainer').style.display = 'none';
  // console.log("5, ask for gender")
   const eligibleVocab = vocabList.filter(entry => entry.seen > 3 && entry.gender&& entry.gender!=""&&entry.gender!="undefined");
-  const numberOfDifferentTypes = new Set(vocabList.map(item => item.gender)).size;
- // console.log("numberOfDifferentTypes",numberOfDifferentTypes)
- // console.log(eligibleVocab)
-  const eligibleOptions = vocabList.filter(entry => entry.gender&& entry.gender!=""&&entry.gender!="undefined");
+
 
   if (eligibleVocab.length < 1 || numberOfDifferentTypes <2) {
     showNextVocab();
@@ -1595,14 +1597,15 @@ function quizStyle5(){
   }
   const quizIndex = Math.floor(Math.random() * eligibleVocab.length);
   const correctVocab = eligibleVocab[quizIndex];
+  const eligibleOptions = LanguageGenderMap[correctVocab.language] || []; 
   currentQuizWord = correctVocab.word;
-  currentQuizDefinition = correctVocab.gender.toLowerCase();
+  currentQuizDefinition = correctVocab.gender;
   quizType = 'truefalse';
   
   isPairCorrect = Math.random() < 0.5;
   
   if (!isPairCorrect) {
-    var incorrectVocab = ["neuter", "masculine", "feminine"].filter(item => item !== currentQuizDefinition);
+    var incorrectVocab = eligibleOptions.filter(item => item !== currentQuizDefinition);
     currentQuizDefinition = getRandomElement(incorrectVocab);
   }
     document.getElementById('quizQuestion').textContent = `What is the gender of "${correctVocab.word}"?`;
@@ -1627,11 +1630,6 @@ function quizStyle5(){
         selectedKeys.push(randomKey);
     }
     return selectedKeys;
-}
-function getRandomSubfield(obj) {
-    let keys = Object.keys(obj);
-    let randomKey = keys[Math.floor(Math.random() * keys.length)];
-    return randomKey;
 }
 function getRandomElement(arr) {
     return arr[Math.floor(Math.random() * arr.length)];

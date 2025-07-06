@@ -155,6 +155,7 @@ function hasPronounciation(wordObj){
 }
 let currentFocus;
 function getLeastLearnedAmount(arr) {
+  shuffleArray(arr);
   return arr
     .slice() // make a copy
     .sort((a, b) => {

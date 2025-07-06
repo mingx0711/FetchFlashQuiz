@@ -1,5 +1,6 @@
 let vocab = {}
 let def;
+import { GenderType } from '../constants.js';
 
 chrome.runtime.onInstalled.addListener(function() {
   chrome.tabs.create({ url: "https://mingx0711.github.io/" });
@@ -290,13 +291,13 @@ async function getLatinAttributes(doc,word){
           const genderDef = genderSpan.firstChild.textContent;
           switch(genderDef){
             case 'f':
-              autoGender = 'feminine'
+              autoGender = GenderType.FEMININE
               break;
             case 'm':
-              autoGender = 'masculine'
+              autoGender = GenderType.MASCULINE
               break;
             case 'n':
-              autoGender = 'neuter'
+              autoGender = GenderType.NEUTER
               break;
             default:
               break;
@@ -583,15 +584,19 @@ async function getEasyAttributes(doc,word,lang){
     const genderSpan = grannyElement.querySelector("span.gender");
     if(genderSpan){
       const genderDef = genderSpan.firstChild.textContent;
+      console.log(genderDef)
       switch(genderDef){
         case 'f':
-          autoGender = 'feminine'
+          autoGender = GenderType.FEMININE
           break;
         case 'm':
-          autoGender = 'masculine'
+          autoGender = GenderType.MASCULINE
           break;
         case 'n':
-          autoGender = 'neuter'
+          autoGender = GenderType.NEUTER
+          break;
+        case 'c':
+          autoGender = GenderType.COMMON;
           break;
         default:
           break;
@@ -660,6 +665,9 @@ async function getEasyAttributes(doc,word,lang){
     if(pronounciationText!=null){
       document.getElementById('vocabInfo').innerHTML += ("<br>pronounciation:"+pronounciationText)
     }
+    console.log(autoGender)
+    console.log( GenderType.FEMININE)
+
     document.getElementById('vocabInfo').innerHTML += autoGender?("gender:"+autoGender):""
     document.getElementById('vocabInfo').innerHTML += "<br>" + etym
     vocab = {word,definition,snoozed: false,book,language:lang,pronounciation:pronounciationText,gender:autoGender?autoGender:gender,hasChecked:true,seen:0,quizResults: ['n','n','n','n'],etym:hasEytm?etym:""}

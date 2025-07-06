@@ -198,20 +198,46 @@
     <div style = "display: flex;justify-content: center;
             align-items: center;flex-wrap: wrap;;font-size:0.8vw;"id="displayBookList"></div>
   </div>
-  <div class="ui"  style = "display: flex;position: fixed;justify-content: center;bottom:0%;
-                transform: translateX(-50%);left: 50%;align-items: center;flex-wrap: wrap; padding-top:20px;"> 
-    <button class="ui color-option button" style = "background-color:#f4d6b4;font-size:1vw;" data-palette="Orange">Orange</button>
-    <button class="ui color-option button" data-palette="Yellow" style ="background-color:#fff985;font-size:1vw;">Yellow</button>
-    <button class="ui color-option button" style = "background-color:#c0e175;font-size:1vw;" data-palette="Green">Olive</button>
-    <button class="ui color-option button" style = "background-color:#b8d7ce;font-size:1vw;"data-palette="Teal">Teal</button>
-    <button class="ui color-option button" style = "background-color:#9aacd0;font-size:1vw;"data-palette="Violet">Violet</button>
-    <button class="ui color-option button" style = "background-color:#c1b3df;font-size:1vw;"data-palette="Purple">Purple</button>
-    <button class="ui color-option button" style = "background-color:#f2d9e0;font-size:1vw;"data-palette="Pink">Pink</button>
-    <button class="ui color-option button" style = "background-color:#dcdcdc;font-size:1vw;"data-palette="Basic">Basic</button>
-    <button class="ui color-option button" style = "background-color:#edbaea;font-size:1vw;"data-palette="y2k">y2k</button>
-    <button class="ui color-option button" style = "background-color:#cdc1a4;font-size:1vw;"data-palette="bear">Bear</button>
-    <button class="ui color-option button" style = "background-color:#f5d492;font-size:1vw;"data-palette="calico">Calico</button>
-  </div>
+
+<!-- Wrap your color option buttons in a container with animation styles -->
+<button class="ui circular icon massive button" id="toggleThemeOptions"
+  style="position: fixed; bottom: 3%; right: 3%; z-index: 1001; box-shadow: 0 4px 16px rgba(93, 85, 85, 0.15);">
+&#x1F3A8;
+</button>
+
+<!-- Theme options: hidden by default, unfolds with animation -->
+<div id="themeOptions" style="
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
+  position: fixed;
+  bottom: 80px;
+  right: 3%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 18px 18px 10px 18px;
+  background: rgba(255,255,255,0.98);
+  border-radius: 18px;
+  box-shadow: 0 2px 24px rgba(0,0,0,0.13);
+  z-index: 1000;
+  gap: 10px;
+">
+  <button class="ui circular color-option button" style="background-color:#f4d6b4;" data-palette="Orange" title="Orange"> &#x1F34A;</button>
+  <button class="ui circular color-option button" style="background-color:#fff985;" data-palette="Yellow" title="Banana"> &#x1F34C; </button>
+  <button class="ui circular color-option button" style="background-color:#c0e175;" data-palette="Green" title="Apple">&#x1F34F;</button>
+  <button class="ui circular color-option button" style="background-color:#c5f3ff;" data-palette="Teal" title="Ocean">&#x1F30A;</button>
+  <button class="ui circular color-option button" style="background-color:#9aacd0;" data-palette="Violet" title="Violet">&#x1F52E;</button>
+  <button class="ui circular color-option button" style="background-color:#c1b3df;" data-palette="Purple" title="Grape">&#x1F347;</button>
+  <button class="ui circular color-option button" style="background-color:#f2d9e0;" data-palette="Pink" title="Pink">&#x1F338;</button>
+  <button class="ui circular color-option button" style="background-color:#dcdcdc;" data-palette="Basic" title="Basic">&#x1F418;</button>
+  <button class="ui circular color-option button" style="background-color:#edbaea;" data-palette="y2k" title="y2k">&#x1F351;</button>
+  <button class="ui circular color-option button" style="background-color:#cdc1a4;" data-palette="bear" title="Bear">&#x1F43B;</button>
+  <button class="ui circular color-option button" style="background-color:#f5d492;" data-palette="calico" title="Calico">&#x1F408;</button>
+  <button class="ui circular color-option button" style="background-color:#fffec3;" data-palette="lemon" title="Lemon">&#x1F34B;</button>
+</div>
   <script src="../libs/semantic.css"></script>
   <script type="module" src="newtab.js"></script>
 </body>

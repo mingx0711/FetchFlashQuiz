@@ -30,7 +30,30 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('nextButton').style.display = 'none';
     displayTests(selectedCollection);
   });
+    const allCheckbox = document.querySelector('input[name="coverage"][value="all"]');
+    const otherCheckboxes = Array.from(document.querySelectorAll('input[name="coverage"]:not([value="all"])'));
 
+    // When any other checkbox is checked, uncheck "All"
+    otherCheckboxes.forEach(cb => {
+      cb.addEventListener('change', () => {
+        if (cb.checked) {
+          allCheckbox.checked = false;
+        }
+
+        // If none of the other checkboxes are checked, check "All"
+        const anyChecked = otherCheckboxes.some(cb => cb.checked);
+        if (!anyChecked) {
+          allCheckbox.checked = true;
+        }
+      });
+    });
+
+    // Optional: When "All" is checked, uncheck others
+    allCheckbox.addEventListener('change', () => {
+      if (allCheckbox.checked) {
+        otherCheckboxes.forEach(cb => cb.checked = false);
+      }
+    });
 
   document.getElementById('nextButton').addEventListener('click', function() {
     showNextItem();
@@ -51,6 +74,38 @@ function displayTests(bookSelected) {
           filteredVocabList = vocabList;
         }else{
           filteredVocabList = vocabList.filter(vocab => vocab.book === bookSelected && vocab.language);
+        }
+        const selectedFilters = Array.from(
+          document.querySelectorAll('input[name="coverage"]:checked')
+        ).map(cb => cb.value);
+        if (selectedFilters.includes("all")) {
+          } else {
+            filteredVocabList = filteredVocabList.filter(item => {
+              let match = false;
+
+              if (selectedFilters.includes("learned")) {
+                match = match || item.learnedTime > 0;
+              }
+
+              if (selectedFilters.includes("freq")) {
+                match = match || (
+                  item.quizResults &&
+                  item.quizResults.filter(r => r === 'f').length > 1
+                );
+              }
+
+              if (selectedFilters.includes("focus")) {
+                match = match || item.focus === true;
+              }
+
+              return match;
+            });
+          }
+                  console.log(filteredVocabList)       
+
+          if (filteredVocabList.length < 4) {
+          alert("Not enough eligible entries to make the test.");
+          return;
         }
         totalNoCount = filteredVocabList.length;
         document.getElementById('wrongCountDiv').textContent = `"${currentQuizNo}" / ${totalNoCount}"`;

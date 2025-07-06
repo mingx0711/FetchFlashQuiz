@@ -85,6 +85,33 @@ document.addEventListener('DOMContentLoaded', function() {
         changeColor('Basic'); // Default to palette1 if no previous selection
     }
   });
+   const toggleBtn = document.getElementById('toggleThemeOptions');
+  const themeOptions = document.getElementById('themeOptions');
+  let themeOpen = false;
+
+  toggleBtn.addEventListener('click', function() {
+    themeOpen = !themeOpen;
+    if (themeOpen) {
+      themeOptions.style.maxHeight = '120px';
+      themeOptions.style.opacity = '1';
+    } else {
+      themeOptions.style.maxHeight = '0';
+      themeOptions.style.opacity = '0';
+    }
+  });
+
+  // Optional: Hide theme options if user clicks outside
+  document.addEventListener('click', function(e) {
+    if (
+      themeOpen &&
+      !themeOptions.contains(e.target) &&
+      e.target !== toggleBtn
+    ) {
+      themeOptions.style.maxHeight = '0';
+      themeOptions.style.opacity = '0';
+      themeOpen = false;
+    }
+  });
   chrome.storage.local.get('vocabList', function(data) {
     if (data.vocabList) {
       vocabList = data.vocabList;
@@ -1008,13 +1035,13 @@ function changeColor(palette){
 
     },
     Teal: {
-      vocabFlashcardBg: '#effefb',
-      wordDivColor: '#0e1f20',
-      defDivColor: '#1b3939',
-      Snooze:'#a3c8bf',
-      borderColor:'#225a55',
-      shadow: '12px 12px 2px 0px #4b8176',
-      buttonShadow: '4px 4px 1px 0px #2b4440'
+      vocabFlashcardBg: '#F1F6FF',
+      wordDivColor: '#0E1E38',
+      defDivColor: '#0E1E38',
+      Snooze:'#B6D2FF',
+      borderColor:'#12479D',
+      shadow: '#102850',
+      buttonShadow: '#2F599D'
 
     },
     Violet: {
@@ -1080,6 +1107,15 @@ function changeColor(palette){
       borderColor:'#3d1c0d',
       shadow: '12px 12px 2px 0px #e1882e',
       buttonShadow: '4px 4px 1px 0px #3d1c0d'
+    },
+     lemon: {
+      vocabFlashcardBg: '#FFFDE1',
+      wordDivColor: '#291b05',
+      defDivColor: '#2F9D35',
+      Snooze:'#FFF9A2',
+      borderColor:'#E3BB0A',
+      shadow: '12px 12px 2px 0px rgb(255, 243, 175)',
+      buttonShadow: '4px 4px 1px 0px rgb(245, 232, 167)'
     }
   };
   const selectedPalette = colors[palette];
@@ -1347,7 +1383,7 @@ function snoozeCurrentVocab() {
   showNextItem();  // Show the next item (vocab or quiz)
   });
   }
-{function showQuiz() {
+function showQuiz() {
   const quizStyle = Math.floor(Math.random() * 10);
  // console.log(quizStyle);
   switch(quizStyle){
@@ -1589,7 +1625,7 @@ function quizStyle5(){
     document.getElementById('trueFalseContainer').style.display = 'none';
  // console.log("5, ask for gender")
   const eligibleVocab = vocabList.filter(entry => entry.seen > 3 && entry.gender&& entry.gender!=""&&entry.gender!="undefined");
-
+  const numberOfDifferentTypes = new Set(eligibleOptions.map(item => item.pronounciation)).size;
 
   if (eligibleVocab.length < 1 || numberOfDifferentTypes <2) {
     showNextVocab();
@@ -2032,7 +2068,7 @@ function shuffleArray(array) {
     const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
   }
-}}
+}
 
 function getCheckedBooks(){
   let checkedBooks = [];

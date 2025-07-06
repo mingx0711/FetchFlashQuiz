@@ -24,6 +24,30 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('snoozeButton').style.display = 'none';
   document.getElementById('nextButton').style.display = 'none';
   populateBookSelector();
+  const allCheckbox = document.querySelector('input[name="coverage"][value="all"]');
+const otherCheckboxes = Array.from(document.querySelectorAll('input[name="coverage"]:not([value="all"])'));
+
+// When any other checkbox is checked, uncheck "All"
+  otherCheckboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) {
+        allCheckbox.checked = false;
+      }
+
+      // If none of the other checkboxes are checked, check "All"
+      const anyChecked = otherCheckboxes.some(cb => cb.checked);
+      if (!anyChecked) {
+        allCheckbox.checked = true;
+      }
+    });
+  });
+
+  // Optional: When "All" is checked, uncheck others
+  allCheckbox.addEventListener('change', () => {
+    if (allCheckbox.checked) {
+      otherCheckboxes.forEach(cb => cb.checked = false);
+    }
+  });
   document.getElementById('testCollectionBtn').addEventListener('click', () => {
     // Get the selected collection from the dropdown
     const selectedCollection = document.getElementById('bookSelector').value;
@@ -104,6 +128,11 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   }
 );
+function hasGender(wordObj){
+  return !!(wordObj.gender && wordObj.gender !== undefined&& wordObj.gender !== null && wordObj.gender !== "")
+}
+function hasPronounciation(wordObj){
+  return !!(wordObj.pronounciation && wordObj.pronounciation !== "undefined" && wordObj.pronounciation !== "");}
 let currentFocus;
 function displayTests(bookSelected) {
   chrome.storage.local.get('vocabList', function(data) {
@@ -123,16 +152,17 @@ function displayTests(bookSelected) {
       }
 
       // Focus selector logic
-      const focus = document.getElementById('focusSelector') ? document.getElementById('focusSelector').value : "none";
+      const focus = document.querySelector('input[name="focusOption"]:checked').value;
       currentFocus = focus;
+      console.log(focus)
       if (focus === "gender") {
-        filteredVocabList = filteredVocabList.filter(vocab => vocab.gender && vocab.gender !== "" && vocab.gender !== "undefined");
+        filteredVocabList = filteredVocabList.filter(vocab => hasGender(vocab));
         if (filteredVocabList.length < 4) {
           alert("Not enough entries with gender to make the test.");
           return;
         }
       } else if (focus === "pronunciation") {
-        filteredVocabList = filteredVocabList.filter(vocab => vocab.pronounciation && vocab.pronounciation !== "");
+        filteredVocabList = filteredVocabList.filter(vocab => hasPronounciation(vocab));
         if (filteredVocabList.length < 4) {
           alert("Not enough entries with pronunciation to make the test.");
           return;
@@ -147,20 +177,34 @@ function displayTests(bookSelected) {
         chrome.tabs.create({ url: 'ListeningTest/test2.html' });
         window.close();
         return;
-      } else if (focus === "freq"){
-        var yet = filteredVocabList.filter(
-            item => item.focus )
-          filteredVocabList = filteredVocabList.filter(
-            item => ((item.quizResults.filter(result => result === 'f').length > 1)
-          || (item.focus))
-          );
-          if (filteredVocabList.length < 4) {
-          alert("Not enough entries with inflection to make the test.");
-          return;}
-          
       }
-      
-      document.getElementById('containerLine').style.display = 'none';
+       const selectedFilters = Array.from(
+          document.querySelectorAll('input[name="coverage"]:checked')
+        ).map(cb => cb.value);
+        if (selectedFilters.includes("all")) {
+          } else {
+            filteredVocabList = filteredVocabList.filter(item => {
+              let match = false;
+
+              if (selectedFilters.includes("learned")) {
+                match = match || item.learnedTime > 0;
+              }
+
+              if (selectedFilters.includes("freq")) {
+                match = match || (
+                  item.quizResults &&
+                  item.quizResults.filter(r => r === 'f').length > 1
+                );
+              }
+
+              if (selectedFilters.includes("focus")) {
+                match = match || item.focus === true;
+              }
+
+              return match;
+            });
+          }
+    
       document.getElementById('wrongCountDiv').style.display = '';
       document.getElementById('testCollectionBtn').style.display = 'none';
       document.getElementById('snoozeButton').style.display = '';

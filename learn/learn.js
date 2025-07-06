@@ -148,11 +148,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 );
 function hasGender(wordObj){
-  return wordObj.gender && wordObj.gender !== undefined&& wordObj.gender !== null && wordObj.gender !== ""
+  return !!(wordObj.gender && wordObj.gender !== undefined&& wordObj.gender !== null && wordObj.gender !== "")
 }
 function hasPronounciation(wordObj){
-  return wordObj.pronounciation && wordObj.pronounciation !== null&& wordObj.pronounciation !== undefined && wordObj.pronounciation !== ""
-}
+  return !!(wordObj.pronounciation && wordObj.pronounciation !== "undefined" && wordObj.pronounciation !== "");}
 let currentFocus;
 function getLeastLearnedAmount(arr) {
   shuffleArray(arr);
@@ -324,7 +323,7 @@ function showNextVocab() {
   console.log(wordObj)
     document.getElementById('speak').addEventListener('click',async function () {
     speechSynthesis.cancel();
-    const currentWord = word;
+    const currentWord = word.split('/')[0];;
     var language = wordObj.language|| wordObj.book
     language = convertToAbbr(language)
     const currentLang = getSpeechLang(language);
@@ -567,8 +566,11 @@ function quizStyle3() {
     currentQuizDefinition = incorrectVocab.definition;
   }
 
-  document.getElementById('trueFalseQuestion').textContent = `Is the definition of "${currentQuizWord}" "${currentQuizDefinition}"?`;
-
+ const definitionLines = currentQuizDefinition
+      .split(";")
+      .map(line => `<span style="font-weight:normal;">- ${line.trim()}</span>`);
+    document.getElementById('trueFalseQuestion').innerHTML =
+      `Is the definition of "${currentQuizWord}"<br>${definitionLines.join("<br>")}`;
   // Show true/false quiz and hide vocab card
   document.getElementById('trueFalseContainer').style.display = 'block';
   document.getElementById('quizContainer').style.display = 'none';
@@ -1127,7 +1129,9 @@ function getRandomNumber(min, max) {
     }
   }
   function endTest() {
-    document.getElementById("stepCounter").style.display == 'none'
+    document.getElementById("stepCounter").style.display = 'none'
+    document.getElementById("quizContainer").style.display = 'none'
+    document.getElementById("trueFalseContainer").style.display = 'none'
     // Mark all words in learningQueue as learned
     const seenWords = new Set();
     learningQueue.forEach(item => {

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Test Flashcards</title>
   <style>
@@ -27,12 +28,14 @@
       /* For inner content spacing */
       position: relative;
     }
+
     .init-container b {
       font-size: 1.5vw;
       margin-bottom: 15px;
       display: block;
       color: #5a4f4d;
     }
+
     #bookSelector {
       margin-bottom: 32px;
       font-size: 1.1vw;
@@ -43,31 +46,76 @@
       border-radius: 6px;
       border: 1px solid #b8a9a7;
     }
-    body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
-    .flashcard { margin: 10px 0; padding: 20px; border: 1px solid #ccc; border-radius: 4px; display: inline-block; }
-    #nextButton { margin-top: 10px; }
-    .quiz-container, .true-false-container { display: none; }
-    .quiz-option { margin-top: 10px; display: block; width: 100%; }
-    #correctMessage, #incorrectMessage { display: none; font-weight: bold; }
-    #correctMessage { color: green; }
-    #incorrectMessage { color: red; }
-    #nextAfterIncorrectButton { display: none; margin-top: 10px; }
-    .quiz-container, .true-false-container {
+
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .flashcard {
+      margin: 10px 0;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    #nextButton {
+      margin-top: 10px;
+    }
+
+    .quiz-container,
+    .true-false-container {
+      display: none;
+    }
+
+    .quiz-option {
+      margin-top: 10px;
+      display: block;
+      width: 100%;
+    }
+
+    #correctMessage,
+    #incorrectMessage {
+      display: none;
+      font-weight: bold;
+    }
+
+    #correctMessage {
+      color: green;
+    }
+
+    #incorrectMessage {
+      color: red;
+    }
+
+    #nextAfterIncorrectButton {
+      display: none;
+      margin-top: 10px;
+    }
+
+    .quiz-container,
+    .true-false-container {
       display: none;
       margin: 0 auto 18px auto;
       max-width: 80vw;
       background: #fffdfa;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
       padding: 24px 0 18px 0;
     }
-    .quiz-container p, .true-false-container p {
+
+    .quiz-container p,
+    .true-false-container p {
       font-size: 2.5vw;
       margin-bottom: 18px;
       color: #5a4f4d;
       font-weight: bold;
     }
-    .quiz-option, .true-false-container .ui.button {
+
+    .quiz-option,
+    .true-false-container .ui.button {
       font-size: 1.5vw;
       margin: 10px 12px 0 12px;
       padding: 12px 24px;
@@ -78,13 +126,16 @@
       font-weight: bold;
       transition: background 0.2s, box-shadow 0.2s;
       min-width: 120px;
-      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
       display: inline-block;
     }
-    .quiz-option:hover, .true-false-container .ui.button:hover {
+
+    .quiz-option:hover,
+    .true-false-container .ui.button:hover {
       background: #ffe9c7;
-      box-shadow: 0 4px 16px rgba(90,79,77,0.10);
+      box-shadow: 0 4px 16px rgba(90, 79, 77, 0.10);
     }
+
     #counter {
       font-size: 2vw;
       color: #5a4f4d;
@@ -92,7 +143,9 @@
       font-weight: bold;
       text-align: center;
     }
-    #correctMessage, #incorrectMessage {
+
+    #correctMessage,
+    #incorrectMessage {
       display: none;
       font-weight: bold;
       margin: 18px auto 0 auto;
@@ -102,30 +155,34 @@
       border-radius: 8px;
       padding: 10px 0;
     }
+
     #correctMessage {
       color: #2e7d32;
       background: #e6f7e6;
     }
-    
+
     #testCollectionBtn:hover {
       background: #ffe9c7;
-      box-shadow: 0 4px 16px rgba(90,79,77,0.10);
+      box-shadow: 0 4px 16px rgba(90, 79, 77, 0.10);
     }
+
     .ui.segment#wrongCountDiv {
       margin: 30px auto 10px auto;
       max-width: 600px;
       background: #fffdfa;
       border-radius: 12px;
-      box-shadow: 0 4px 24px rgba(90,79,77,0.08), 0 1.5px 6px rgba(90,79,77,0.10);
+      box-shadow: 0 4px 24px rgba(90, 79, 77, 0.08), 0 1.5px 6px rgba(90, 79, 77, 0.10);
       font-size: 1.2em;
       font-weight: bold;
       color: #5a4f4d;
       text-align: center;
     }
+
     #incorrectMessage {
       color: #c62828;
       background: #ffeaea;
     }
+
     #correctDefinition {
       background-color: #ebebe9;
       height: 120px;
@@ -138,87 +195,104 @@
       align-items: center;
       justify-content: center;
     }
-    #quizChart1,#trendChart {
-    max-width: 500px;
-    max-height: 300px;
-    width: 100%;
-    height: auto;
-    margin: 0 auto;
-    display: block;
-  }
+
+    #quizChart1,
+    #trendChart {
+      max-width: 500px;
+      max-height: 300px;
+      width: 100%;
+      height: auto;
+      margin: 0 auto;
+      display: block;
+    }
   </style>
   <link rel="stylesheet" href="../libs/semantic.css">
 </head>
+
 <body>
-    <div class="init-container" style="top: 10px;
+  <div class="init-container" style="top: 10px;
     margin: auto ;border: 3px;
     position: relative;
     " id="initContainer">
-    <b style="font-size: 1.5vw;">Select the collection that you want to test. You can close this tab anytime you want, the result of a test will be updated in /manageVocabs</b>
-      <select class = "ui search dropdown" id="bookSelector" style="margin:auto; 
+    <b style="font-size: 1.5vw;">Select the collection that you want to test. You can close this tab anytime you want,
+      the result of a test will be updated in /manageVocabs</b>
+    <select class="ui search dropdown" id="bookSelector" style="margin:auto; 
     margin-bottom: 20px;
     display: block;
     font-size: 1vwpx;
     "></select>
     <b style="font-size: 1.5vw;">Anything you want to focus on today?</b>
-<div id="focusSelectorGroup" style="font-size: 1vw; display: flex; flex-wrap: wrap; gap: 1vw; align-items: center; margin-bottom: 20px;">
-    <label><input type="radio" name="focusOption" value="none" checked> No, just test</label>
-    <label><input type="radio" name="focusOption" value="gender"> Gender</label>
-    <label><input type="radio" name="focusOption" value="pronunciation"> Pronunciation</label>
-    <label><input type="radio" name="focusOption" value="definition"> Definition</label>
-    <label><input type="radio" name="focusOption" value="inflection"> Inflection</label>
-    <label><input type="radio" name="focusOption" value="listening"> Listening</label>
-  </div>
-  <label style="font-size: 1.5vw;" class="area-label">Select coverage</label>
-      <div style = "margin-bottom: 5px;font-size: 1vw;"class="checkbox-group">
-        <label><input type="checkbox" name="coverage" value="all" checked> All</label>
-        <label><input type="checkbox" name="coverage" value="learned" > Learned words</label>
-        <label><input type="checkbox" name="coverage" value="focus"> Focused words</label>
-        <label><input type="checkbox" name="coverage" value="freq"> Mistaken words</label>
-      </div>
-      <button style="font-size: 1vw;display: inline-flex;" class = "ui button" id="testCollectionBtn">Test Collection</button>
+    <div id="focusSelectorGroup"
+      style="font-size: 1vw; display: flex; flex-wrap: wrap; gap: 1vw; align-items: center; margin-bottom: 20px;">
+      <label><input type="radio" name="focusOption" value="none" checked> No, just test</label>
+      <label><input type="radio" name="focusOption" value="gender"> Gender</label>
+      <label><input type="radio" name="focusOption" value="pronunciation"> Pronunciation</label>
+      <label><input type="radio" name="focusOption" value="definition"> Definition</label>
+      <label><input type="radio" name="focusOption" value="inflection"> Inflection</label>
+      <label><input type="radio" name="focusOption" value="listening"> Listening</label>
     </div>
+    <label style="font-size: 1.5vw;" class="area-label">Select coverage</label>
+    <div style="margin-bottom: 5px;font-size: 1vw;" class="checkbox-group">
+      <label><input type="checkbox" name="coverage" value="all" checked> All</label>
+      <label><input type="checkbox" name="coverage" value="learned"> Learned words</label>
+      <label><input type="checkbox" name="coverage" value="focus"> Focused words</label>
+      <label><input type="checkbox" name="coverage" value="freq"> Mistaken words</label>
+    </div>
+    <button style="font-size: 1vw;display: inline-flex;" class="ui button" id="testCollectionBtn">Test
+      Collection</button>
   </div>
-  
+  </div>
+
   <div class="ui segment" id="wrongCountDiv"></div>
-  <div style = "display: none; font-size: 2.5vw;" id="donzo" class="ui message">
+  <div style="display: none; font-size: 2.5vw;" id="donzo" class="ui message">
     Congrats, you have gone through all your vocabs
   </div>
-  <div id="vocabFlashcard" class="flashcard" style = "background-color:#ebebe9;margin: auto ;">
-    <div style = "font-size: 2vw;color:#272623;" id="wordDiv"></div>
-    <div class="ui horizontal divider" style = "color:#545150; height: 5px" ></div>
-    <div style = "font-size: 2vw; color:#494845;" id="defDiv"></div>
+  <div id="vocabFlashcard" class="flashcard" style="background-color:#ebebe9;margin: auto ;">
+    <div style="font-size: 2vw;color:#272623;" id="wordDiv"></div>
+    <div class="ui horizontal divider" style="color:#545150; height: 5px"></div>
+    <div style="font-size: 2vw; color:#494845;" id="defDiv"></div>
   </div>
   <div class="quiz-container" style="top: 2%;margin: auto ;" id="quizContainer">
     <p style="font-size: 3.5vw;" id="quizQuestion"></p>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 10px; border: 10px; border-color: #607059;" class="ui quiz-option" id="option1"></button>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 10px;border: 10px; border-color: #607059;" class="ui quiz-option" id="option2"></button>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 10px;border: 10px; border-color: #607059;" class="ui quiz-option" id="option3"></button>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 10px;border: 10px; border-color: #607059;" class="ui quiz-option" id="option4"></button>
+    <button style="font-size: 2vw;margin: auto ;margin-top: 10px; border: 10px; border-color: #607059;"
+      class="ui quiz-option" id="option1"></button>
+    <button style="font-size: 2vw;margin: auto ;margin-top: 10px;border: 10px; border-color: #607059;"
+      class="ui quiz-option" id="option2"></button>
+    <button style="font-size: 2vw;margin: auto ;margin-top: 10px;border: 10px; border-color: #607059;"
+      class="ui quiz-option" id="option3"></button>
+    <button style="font-size: 2vw;margin: auto ;margin-top: 10px;border: 10px; border-color: #607059;"
+      class="ui quiz-option" id="option4"></button>
   </div>
-  <div class="true-false-container"  style="top: 2%;margin: auto ;" id="trueFalseContainer">
-    <p style="font-size: 3.5vw;"id="trueFalseQuestion"></p>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;" class="ui button" id="trueButton">True</button>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;" class="ui button" id="falseButton">False</button>
+  <div class="true-false-container" style="top: 2%;margin: auto ;" id="trueFalseContainer">
+    <p style="font-size: 3.5vw;" id="trueFalseQuestion"></p>
+    <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;" class="ui button"
+      id="trueButton">True</button>
+    <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;" class="ui button"
+      id="falseButton">False</button>
   </div>
-  <p style="font-size: 2vh; position: fixed; bottom: 5%; right: 10%;"id="correctCountDiv"></p>
-  <button style="font-size: 2.5vh;position: fixed; bottom: 10%; right: 10%;display : none" class="ui button" id="end">End Test</button>
-  <p class = "ui message" id="correctMessage" style="margin: auto ;width: 300px; margin-top: 10px ; font-size:2vw; text-align: center;">Correct!</p>
-  <p class = "ui message" id="incorrectMessage" style=" text-align: center;">Incorrect! The correct definition is:</p>
-  <div id="correctDefinition" class="ui flashcard" style = "background-color:#ebebe9;height:200px; font-size: 2vw ;margin: auto ;"></div>
-  <button class = "ui button"id="snoozeButton">Snooze</button>
-  <button class = "ui button"id="nextButton">Next</button>
-  <button class = "ui button" id="nextAfterIncorrectButton" style="position: relative ; left:50% ; margin-top: 50px">Next</button>
+  <p style="font-size: 2vh; position: fixed; bottom: 5%; right: 10%;" id="correctCountDiv"></p>
+  <button style="font-size: 2.5vh;position: fixed; bottom: 10%; right: 10%;display : none" class="ui button"
+    id="end">End Test</button>
+  <p class="ui message" id="correctMessage"
+    style="margin: auto ;width: 300px; margin-top: 10px ; font-size:2vw; text-align: center;">Correct!</p>
+  <p class="ui message" id="incorrectMessage" style=" text-align: center;">Incorrect! The correct definition is:</p>
+  <div id="correctDefinition" class="ui flashcard"
+    style="background-color:#ebebe9;height:200px; font-size: 2vw ;margin: auto ;"></div>
+  <button class="ui button" id="snoozeButton">Snooze</button>
+  <button class="ui button" id="nextButton">Next</button>
+  <button class="ui button" id="nextAfterIncorrectButton"
+    style="position: relative ; left:50% ; margin-top: 50px">Next</button>
   <div class="container" style="top: 2%;margin: auto ; display: none;" id="showTestResult">
     <h2 style="font-size: 3vw; color: #5a4f4d;">Test Results</h2>
-   <canvas id="quizChart1" width="600" height="300"></canvas>
-   <canvas id="trendChart" width="600" height="300"></canvas>
-     <button class = "ui button"id="redo">Redo wrong vocabs</button>
+    <canvas id="quizChart1" width="600" height="300"></canvas>
+    <canvas id="trendChart" width="600" height="300"></canvas>
+    <button class="ui button" id="redo">Redo wrong vocabs</button>
 
   </div>
-       <script src="chart.js"></script>
+  <script src="chart.js"></script>
   <script type="module" src="test1.js"></script>
   </div>
-  
+
 </body>
+
 </html>

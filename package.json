@@ -8,7 +8,9 @@
     "test": "jest"
   },
   "jest": {
-    "testMatch": ["**/__tests__/**/*.test.js"]
+    "testMatch": [
+      "**/__tests__/**/*.test.js"
+    ]
   },
   "devDependencies": {
     "jest": "^30.0.2",

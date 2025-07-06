@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Test Flashcards</title>
   <link rel="stylesheet" href="../libs/semantic.css">
@@ -11,17 +12,19 @@
       padding: 0 0 40px 0;
       text-align: center;
     }
+
     .ui.segment#wrongCountDiv {
       margin: 30px auto 10px auto;
       max-width: 600px;
       background: #fffdfa;
       border-radius: 12px;
-      box-shadow: 0 4px 24px rgba(90,79,77,0.08), 0 1.5px 6px rgba(90,79,77,0.10);
+      box-shadow: 0 4px 24px rgba(90, 79, 77, 0.08), 0 1.5px 6px rgba(90, 79, 77, 0.10);
       font-size: 1.2em;
       font-weight: bold;
       color: #5a4f4d;
       text-align: center;
     }
+
     h1 {
       font-size: 2.5vw;
       color: #5a4f4d;
@@ -29,6 +32,7 @@
       margin-bottom: 18px;
       font-weight: bold;
     }
+
     #donzo.ui.message {
       display: none;
       font-size: 1.5vw;
@@ -41,54 +45,64 @@
       font-weight: bold;
       text-align: center;
     }
+
     .flashcard {
       background-color: #ebebe9;
       margin: 24px auto 18px auto;
       padding: 32px 24px;
       border: 2px solid #b8a9a7;
       border-radius: 16px;
-      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
       display: flex;
       flex-direction: column;
       align-items: center;
       max-width: 600px;
       min-width: 220px;
     }
+
     #wordDiv {
       font-size: 2.5vw;
       color: #272623;
       font-weight: bold;
       margin-bottom: 10px;
     }
+
     .ui.horizontal.divider {
       width: 80%;
       margin: 10px auto;
       border-top: 2px solid #545150;
       height: 0;
     }
+
     #defDiv {
       font-size: 2vw;
       color: #494845;
       margin-top: 10px;
     }
-    .quiz-container, .true-false-container {
+
+    .quiz-container,
+    .true-false-container {
       margin: 0 auto 18px auto;
       max-width: 600px;
       background: #fffdfa;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
       padding: 24px 0 18px 0;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
-    .quiz-container p, .true-false-container p {
+
+    .quiz-container p,
+    .true-false-container p {
       font-size: 2.5vw;
       margin-bottom: 18px;
       color: #5a4f4d;
       font-weight: bold;
     }
-    .quiz-option, .true-false-container .ui.button {
+
+    .quiz-option,
+    .true-false-container .ui.button {
       font-size: 1.5vw;
       margin: 10px 12px 0 12px;
       padding: 12px 24px;
@@ -99,13 +113,16 @@
       font-weight: bold;
       transition: background 0.2s, box-shadow 0.2s;
       min-width: 120px;
-      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
       display: inline-block;
     }
-    .quiz-option:hover, .true-false-container .ui.button:hover {
+
+    .quiz-option:hover,
+    .true-false-container .ui.button:hover {
       background: #ffe9c7;
-      box-shadow: 0 4px 16px rgba(90,79,77,0.10);
+      box-shadow: 0 4px 16px rgba(90, 79, 77, 0.10);
     }
+
     #counter {
       font-size: 2vw;
       color: #5a4f4d;
@@ -113,7 +130,9 @@
       font-weight: bold;
       text-align: center;
     }
-    #correctMessage, #incorrectMessage {
+
+    #correctMessage,
+    #incorrectMessage {
       display: none;
       font-weight: bold;
       margin: 18px auto 0 auto;
@@ -123,14 +142,17 @@
       border-radius: 8px;
       padding: 10px 0;
     }
+
     #correctMessage {
       color: #2e7d32;
       background: #e6f7e6;
     }
+
     #incorrectMessage {
       color: #c62828;
       background: #ffeaea;
     }
+
     #correctDefinition {
       background-color: #ebebe9;
       height: 120px;
@@ -143,6 +165,7 @@
       align-items: center;
       justify-content: center;
     }
+
     .bottom-buttons {
       display: flex;
       justify-content: center;
@@ -151,6 +174,7 @@
       margin: 30px auto 0 auto;
       max-width: 600px;
     }
+
     .bottom-buttons .ui.button {
       font-weight: bold;
       font-size: 1.2vw;
@@ -159,27 +183,59 @@
       background: #fdf4e2;
       transition: background 0.2s, box-shadow 0.2s;
       min-width: 120px;
-      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
       margin: 0 10px;
     }
+
     .bottom-buttons .ui.button:hover {
       background: #ffe9c7;
-      box-shadow: 0 4px 16px rgba(90,79,77,0.10);
+      box-shadow: 0 4px 16px rgba(90, 79, 77, 0.10);
     }
+
     #nextAfterIncorrectButton {
       display: none;
       margin-top: 10px;
     }
+
     @media (max-width: 700px) {
-      .ui.segment#wrongCountDiv, .flashcard, .quiz-container, .true-false-container, .bottom-buttons { max-width: 98vw; min-width: 0; }
-      #wordDiv { font-size: 5vw; }
-      #defDiv { font-size: 4vw; }
-      .quiz-option, .true-false-container .ui.button, .bottom-buttons .ui.button { font-size: 3vw; min-width: 80px; }
-      #correctMessage, #incorrectMessage { font-size: 3vw; width: 90vw; }
-      #correctDefinition { font-size: 3vw; }
+
+      .ui.segment#wrongCountDiv,
+      .flashcard,
+      .quiz-container,
+      .true-false-container,
+      .bottom-buttons {
+        max-width: 98vw;
+        min-width: 0;
+      }
+
+      #wordDiv {
+        font-size: 5vw;
+      }
+
+      #defDiv {
+        font-size: 4vw;
+      }
+
+      .quiz-option,
+      .true-false-container .ui.button,
+      .bottom-buttons .ui.button {
+        font-size: 3vw;
+        min-width: 80px;
+      }
+
+      #correctMessage,
+      #incorrectMessage {
+        font-size: 3vw;
+        width: 90vw;
+      }
+
+      #correctDefinition {
+        font-size: 3vw;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="ui segment" id="wrongCountDiv"></div>
   <h1>Test Flashcards</h1>
@@ -215,4 +271,5 @@
   </footer>
   <script src="test.js"></script>
 </body>
+
 </html>

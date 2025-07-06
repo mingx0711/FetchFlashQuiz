@@ -4,14 +4,14 @@ let currentQuizWord = null;
 let currentQuizDefinition = null;
 let quizType = null;
 let isPairCorrect = null;
-let filteredVocabList =[]
+let filteredVocabList = []
 let currentQuizNo = 0;
 let wordToTest = "";
 let correctCount = 0;
 let totalCountYet = 0;
 let wordAmount = 3;
 let playbackSpeed = 1;
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('wrongCountDiv').style.display = 'none';
   document.getElementById('quizContainer').style.display = 'none';
   document.getElementById('nextButton').style.display = 'none';
@@ -30,80 +30,80 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('nextButton').style.display = 'none';
     displayTests(selectedCollection);
   });
-    const allCheckbox = document.querySelector('input[name="coverage"][value="all"]');
-    const otherCheckboxes = Array.from(document.querySelectorAll('input[name="coverage"]:not([value="all"])'));
+  const allCheckbox = document.querySelector('input[name="coverage"][value="all"]');
+  const otherCheckboxes = Array.from(document.querySelectorAll('input[name="coverage"]:not([value="all"])'));
 
-    // When any other checkbox is checked, uncheck "All"
-    otherCheckboxes.forEach(cb => {
-      cb.addEventListener('change', () => {
-        if (cb.checked) {
-          allCheckbox.checked = false;
-        }
+  // When any other checkbox is checked, uncheck "All"
+  otherCheckboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) {
+        allCheckbox.checked = false;
+      }
 
-        // If none of the other checkboxes are checked, check "All"
-        const anyChecked = otherCheckboxes.some(cb => cb.checked);
-        if (!anyChecked) {
-          allCheckbox.checked = true;
-        }
-      });
-    });
-
-    // Optional: When "All" is checked, uncheck others
-    allCheckbox.addEventListener('change', () => {
-      if (allCheckbox.checked) {
-        otherCheckboxes.forEach(cb => cb.checked = false);
+      // If none of the other checkboxes are checked, check "All"
+      const anyChecked = otherCheckboxes.some(cb => cb.checked);
+      if (!anyChecked) {
+        allCheckbox.checked = true;
       }
     });
+  });
 
-  document.getElementById('nextButton').addEventListener('click', function() {
+  // Optional: When "All" is checked, uncheck others
+  allCheckbox.addEventListener('change', () => {
+    if (allCheckbox.checked) {
+      otherCheckboxes.forEach(cb => cb.checked = false);
+    }
+  });
+
+  document.getElementById('nextButton').addEventListener('click', function () {
     showNextItem();
   });
-  }
+}
 );
 
 function displayTests(bookSelected) {
-  chrome.storage.local.get('vocabList', function(data) {
+  chrome.storage.local.get('vocabList', function (data) {
     if (data.vocabList) {
       vocabList = data.vocabList;
       currentVocabIndex = -1;
-      if(vocabList.length<4){
+      if (vocabList.length < 4) {
         console.log("novocab1");
         document.getElementById('vocabFlashcard').textContent = "Come back after theres more vocabs";
-      }else{
-        if(bookSelected === "All collections"){
+      } else {
+        if (bookSelected === "All collections") {
           filteredVocabList = vocabList;
-        }else{
+        } else {
           filteredVocabList = vocabList.filter(vocab => vocab.book === bookSelected && vocab.language);
         }
         const selectedFilters = Array.from(
           document.querySelectorAll('input[name="coverage"]:checked')
         ).map(cb => cb.value);
         if (selectedFilters.includes("all")) {
-          } else {
-            filteredVocabList = filteredVocabList.filter(item => {
-              let match = false;
+        } else {
+          filteredVocabList = filteredVocabList.filter(item => {
+            let match = false;
 
-              if (selectedFilters.includes("learned")) {
-                match = match || item.learnedTime > 0;
-              }
+            if (selectedFilters.includes("learned")) {
+              match = match || item.learnedTime > 0;
+            }
 
-              if (selectedFilters.includes("freq")) {
-                match = match || (
-                  item.quizResults &&
-                  item.quizResults.filter(r => r === 'f').length > 1
-                );
-              }
+            if (selectedFilters.includes("freq")) {
+              match = match || (
+                item.quizResults &&
+                item.quizResults.filter(r => r === 'f').length > 1
+              );
+            }
 
-              if (selectedFilters.includes("focus")) {
-                match = match || item.focus === true;
-              }
+            if (selectedFilters.includes("focus")) {
+              match = match || item.focus === true;
+            }
 
-              return match;
-            });
-          }
-                  console.log(filteredVocabList)       
+            return match;
+          });
+        }
+        console.log(filteredVocabList)
 
-          if (filteredVocabList.length < 4) {
+        if (filteredVocabList.length < 4) {
           alert("Not enough eligible entries to make the test.");
           return;
         }
@@ -147,43 +147,43 @@ function getSpeechLang(code) {
 }
 function populateBookSelector() {
   chrome.storage.local.get({ bookList: [] }, (result) => {
-    const bookList = result.bookList||"Default";
-    chrome.storage.local.get('lastBook', function(data) {
-      const lastBook = data.lastBook||"Default";
+    const bookList = result.bookList || "Default";
+    chrome.storage.local.get('lastBook', function (data) {
+      const lastBook = data.lastBook || "Default";
       console.log(lastBook)
-    if(lastBook){
+      if (lastBook) {
         document.getElementById('bookSelector').innerHTML = ""
-    if(lastBook!=""||lastBook==="addNew"){
-      optionNewSelected = document.createElement('option');
-      optionNewSelected.textContent  = lastBook;
-      optionNewSelected.value = lastBook;
-      optionNewSelected.selected = true;
+        if (lastBook != "" || lastBook === "addNew") {
+          optionNewSelected = document.createElement('option');
+          optionNewSelected.textContent = lastBook;
+          optionNewSelected.value = lastBook;
+          optionNewSelected.selected = true;
 
-      document.getElementById('bookSelector').add(optionNewSelected)
-    }
-    // Clear existing options except for the default option
-    // Add books as options
-    bookList.forEach(book => {
-        let option = document.createElement('option');
-        if(book === data.lastBook){
-        }else{
-          option.textContent  = book;
-          option.value = book;
-
-          document.getElementById('bookSelector').add(option);
+          document.getElementById('bookSelector').add(optionNewSelected)
         }
-      });
+        // Clear existing options except for the default option
+        // Add books as options
+        bookList.forEach(book => {
+          let option = document.createElement('option');
+          if (book === data.lastBook) {
+          } else {
+            option.textContent = book;
+            option.value = book;
+
+            document.getElementById('bookSelector').add(option);
+          }
+        });
       }
     });
-    
+
   });
 }
 
 function showNextItem() {
-  if(filteredVocabList.length<3){
+  if (filteredVocabList.length < 3) {
     document.getElementById("quizContainer").style.display = 'none';
-  }else{
-    listeningTest() 
+  } else {
+    listeningTest()
   }
 }
 const quizContainer = document.getElementById('quizContainer');
@@ -198,7 +198,7 @@ function listeningTest() {
   let wordString = quizWords.map(item => item.word).join(",");
   let defString = quizWords.map(item => item.definition).join("&#11045;	");
   let wordStringToDisplay = quizWords.map(item => item.word).join("&#11045;	");
-    document.getElementById('speak').addEventListener('click',async function () {
+  document.getElementById('speak').addEventListener('click', async function () {
     speechSynthesis.cancel();
     var language = quizWords[0].language;
     const currentLang = getSpeechLang(language);
@@ -210,10 +210,10 @@ function listeningTest() {
     utterance.rate = playbackSpeed;
     speechSynthesis.speak(utterance);
   });
-  
-  revealedWords.innerHTML = wordStringToDisplay+ '<div class = "ui divider"></div>'+defString;
+
+  revealedWords.innerHTML = wordStringToDisplay + '<div class = "ui divider"></div>' + defString;
 }
-document.getElementById('revealWordsBtn').addEventListener('click', function() {
+document.getElementById('revealWordsBtn').addEventListener('click', function () {
   revealedWords.style.display = 'block';
 });
 const nextButton = document.getElementById('nextButton');

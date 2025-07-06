@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Test Listening</title>
   <link rel="stylesheet" href="../libs/semantic.css">
@@ -11,17 +12,19 @@
       padding: 0 0 40px 0;
       text-align: center;
     }
+
     #containerLine {
       margin: 40px auto;
       border: 3px solid #5a4f4d;
       border-radius: 18px;
       background: #f9f7f6;
-      box-shadow: 0 4px 24px rgba(90,79,77,0.08), 0 1.5px 6px rgba(90,79,77,0.10);
+      box-shadow: 0 4px 24px rgba(90, 79, 77, 0.08), 0 1.5px 6px rgba(90, 79, 77, 0.10);
       width: 540px;
       max-width: 95vw;
       position: relative;
       padding: 0;
     }
+
     .init-container {
       margin: 24px auto;
       border: 3px dashed #b8a9a7;
@@ -35,12 +38,14 @@
       flex-direction: column;
       align-items: center;
     }
+
     .init-container b {
       font-size: 1.5vw;
       margin-bottom: 32px;
       display: block;
       color: #5a4f4d;
     }
+
     #bookSelector {
       margin-bottom: 32px;
       font-size: 1.1vw;
@@ -51,6 +56,7 @@
       border-radius: 6px;
       border: 1px solid #b8a9a7;
     }
+
     .init-container .area-label {
       font-weight: bold;
       font-size: 1.1vw;
@@ -58,6 +64,7 @@
       display: block;
       color: #4b5437;
     }
+
     .init-container .radio-group {
       display: flex;
       gap: 18px;
@@ -66,6 +73,7 @@
       font-size: 2vh;
       margin-bottom: 18px;
     }
+
     #testCollectionBtn {
       font-size: 1.1vw;
       font-weight: bold;
@@ -74,42 +82,47 @@
       background: #fdf4e2;
       border: 2px solid #b8a9a7;
       color: #5a4f4d;
-      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
       transition: background 0.2s;
       margin-bottom: 10px;
     }
+
     #testCollectionBtn:hover {
       background: #ffe9c7;
-      box-shadow: 0 4px 16px rgba(90,79,77,0.10);
+      box-shadow: 0 4px 16px rgba(90, 79, 77, 0.10);
     }
+
     .ui.segment#wrongCountDiv {
       margin: 30px auto 10px auto;
       max-width: 600px;
       background: #fffdfa;
       border-radius: 12px;
-      box-shadow: 0 4px 24px rgba(90,79,77,0.08), 0 1.5px 6px rgba(90,79,77,0.10);
+      box-shadow: 0 4px 24px rgba(90, 79, 77, 0.08), 0 1.5px 6px rgba(90, 79, 77, 0.10);
       font-size: 1.2em;
       font-weight: bold;
       color: #5a4f4d;
       text-align: center;
     }
+
     .quiz-container {
       margin: 30px auto 0 auto;
       max-width: 600px;
       background: #fffdfa;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
       padding: 32px 24px 24px 24px;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
+
     #quizQuestion {
       font-size: 2.5vw;
       margin-bottom: 18px;
       color: #5a4f4d;
       font-weight: bold;
     }
+
     #speak {
       background: transparent;
       border: none;
@@ -120,9 +133,11 @@
       color: #5a4f4d;
       transition: color 0.2s;
     }
+
     #speak:hover {
       color: #b8a9a7;
     }
+
     #revealWordsBtn {
       margin-top: 18px;
       font-size: 20px;
@@ -132,13 +147,15 @@
       background: #fdf4e2;
       border: 2px solid #b8a9a7;
       color: #5a4f4d;
-      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
       transition: background 0.2s;
     }
+
     #revealWordsBtn:hover {
       background: #ffe9c7;
-      box-shadow: 0 4px 16px rgba(90,79,77,0.10);
+      box-shadow: 0 4px 16px rgba(90, 79, 77, 0.10);
     }
+
     #revealedWords {
       margin-top: 18px;
       display: none;
@@ -150,6 +167,7 @@
       width: 90%;
       word-break: break-word;
     }
+
     #enterWords {
       width: 90%;
       min-height: 80px;
@@ -164,6 +182,7 @@
       margin-left: auto;
       margin-right: auto;
     }
+
     #nextButton {
       margin: 32px auto 0 auto;
       font-size: 20px;
@@ -172,24 +191,50 @@
       background: #fdf4e2;
       border: 2px solid #b8a9a7;
       color: #5a4f4d;
-      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
       transition: background 0.2s;
       display: block;
     }
+
     #nextButton:hover {
       background: #ffe9c7;
-      box-shadow: 0 4px 16px rgba(90,79,77,0.10);
+      box-shadow: 0 4px 16px rgba(90, 79, 77, 0.10);
     }
+
     @media (max-width: 700px) {
-      #containerLine, .init-container, .quiz-container { max-width: 98vw; min-width: 0; }
-      #bookSelector { font-size: 3vw; }
-      .init-container b { font-size: 3vw; }
-      #quizQuestion { font-size: 5vw; }
-      #revealWordsBtn, #testCollectionBtn, #nextButton { font-size: 3vw; }
-      #enterWords { font-size: 3vw; }
+
+      #containerLine,
+      .init-container,
+      .quiz-container {
+        max-width: 98vw;
+        min-width: 0;
+      }
+
+      #bookSelector {
+        font-size: 3vw;
+      }
+
+      .init-container b {
+        font-size: 3vw;
+      }
+
+      #quizQuestion {
+        font-size: 5vw;
+      }
+
+      #revealWordsBtn,
+      #testCollectionBtn,
+      #nextButton {
+        font-size: 3vw;
+      }
+
+      #enterWords {
+        font-size: 3vw;
+      }
     }
   </style>
 </head>
+
 <body>
   <div id="containerLine">
     <div class="init-container" id="initContainer">
@@ -217,7 +262,7 @@
       </div>
 
       <label class="area-label">Select coverage</label>
-      <div style = "margin-bottom: 5px;"class="checkbox-group">
+      <div style="margin-bottom: 5px;" class="checkbox-group">
         <label><input type="checkbox" name="coverage" value="all"> All</label>
         <label><input type="checkbox" name="coverage" value="learned" checked> Learned words</label>
         <label><input type="checkbox" name="coverage" value="focus" checked> Focused words</label>
@@ -227,7 +272,7 @@
       <button class="ui button" id="testCollectionBtn">Test Collection</button>
     </div>
   </div>
-  
+
   <div class="ui segment" id="wrongCountDiv"></div>
   <div class="quiz-container" id="quizContainer">
     <p id="quizQuestion"></p>
@@ -239,4 +284,5 @@
   <button class="ui button" id="nextButton">Next</button>
   <script src="test2.js"></script>
 </body>
+
 </html>

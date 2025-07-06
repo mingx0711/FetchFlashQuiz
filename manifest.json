@@ -3,8 +3,10 @@
   "name": "FLIZ - vocab on newtab, vocabulary tool",
   "version": "1.9.6.1",
   "description": "Looks up words for various languages, Display vocabs & quiz vocabs in new tab ",
-  "permissions": ["storage","*://*.wiktionary.org/*"],
-  
+  "permissions": [
+    "storage",
+    "*://*.wiktionary.org/*"
+  ],
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {

@@ -1,4 +1,5 @@
-import { GenderType, LanguageGenderMap } from '../constants.js';
+import { hasGender, hasPronounciation, LanguageGenderMap } from '../utils.js';
+import * as utils from '../utils.js';
 let currentVocabIndex = null;
 let vocabList = [];
 let currentQuizWord = null;
@@ -128,12 +129,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 }
 );
-function hasGender(wordObj) {
-  return !!(wordObj.gender && wordObj.gender !== undefined && wordObj.gender !== null && wordObj.gender !== "")
-}
-function hasPronounciation(wordObj) {
-  return !!(wordObj.pronounciation && wordObj.pronounciation !== "undefined" && wordObj.pronounciation !== "");
-}
 let currentFocus;
 function displayTests(bookSelected) {
   chrome.storage.local.get('vocabList', function (data) {
@@ -822,24 +817,20 @@ function quizStyle7() {
   document.getElementById('nextAfterIncorrectButton').style.display = 'none';
 }
 function quizStyle8() {
-  const correctVocab = learningQueue[currentStep].word;
-
+  if (currentVocabIndex === null || currentVocabIndex >= filteredVocabList.length - 1) {
+    currentVocabIndex = 0;
+  } else {
+    currentVocabIndex = Math.floor(Math.random() * filteredVocabList.length);
+    //console.log(filteredVocabList[currentVocabIndex]);
+  }
+  console.log(filteredVocabList[currentVocabIndex])
+  const correctVocab = filteredVocabList[currentVocabIndex];
   currentQuizWord = correctVocab.word;
   quizType = 'Listening';
   // Add to the .quiz-container
   document.getElementById('speakQuiz').style.display = 'inline-block'
   document.getElementById('speakQuiz').addEventListener('click', async function () {
-    speechSynthesis.cancel();
-    const currentWord = correctVocab.word;
-    var language = correctVocab.language || correctVocab.book
-    language = convertToAbbr(language)
-    const currentLang = getSpeechLang(language);
-    const utterance = new SpeechSynthesisUtterance(currentWord);
-    utterance.lang = currentLang;
-    const voices = await loadVoices();
-    const voice = voices.find(v => v.lang === currentLang);
-    if (voice) utterance.voice = voice;
-    speechSynthesis.speak(utterance);
+    utils.speakWord(correctVocab.language, currentQuizWord)
   });
   const options = [correctVocab.definition];
   for (let i = 0; i < 3; i++) {

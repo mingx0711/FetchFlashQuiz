@@ -1,3 +1,5 @@
+import { hasGender, hasPronounciation, LanguageGenderMap } from '../utils.js';
+
 let currentVocabIndex = null;
 let vocabList = [];
 let currentQuizWord = null;
@@ -11,6 +13,7 @@ let wordToTest = "";
 let recordHistory = [];
 let correctCount = 0;
 let totalCountYet = 0;
+let totalNoCount = 0;
 let currentTest;
 let totalVocabList = []
 let wrongVocabs = [];
@@ -147,12 +150,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 }
 );
-function hasGender(wordObj) {
-  return !!(wordObj.gender && wordObj.gender !== undefined && wordObj.gender !== null && wordObj.gender !== "")
-}
-function hasPronounciation(wordObj) {
-  return !!(wordObj.pronounciation && wordObj.pronounciation !== "undefined" && wordObj.pronounciation !== "");
-}
 let currentFocus;
 function getLeastLearnedAmount(arr) {
   shuffleArray(arr);
@@ -728,11 +725,6 @@ function getRandomKeys(obj, count) {
     selectedKeys.push(randomKey);
   }
   return selectedKeys;
-}
-function getRandomSubfield(obj) {
-  let keys = Object.keys(obj);
-  let randomKey = keys[Math.floor(Math.random() * keys.length)];
-  return randomKey;
 }
 function getRandomElement(arr) {
   return arr[Math.floor(Math.random() * arr.length)];

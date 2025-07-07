@@ -1376,8 +1376,6 @@ function snoozeCurrentVocab() {
   });
 }
 function showQuiz() {
-  quizStyle4();
-  return;
   const quizStyle = Math.floor(Math.random() * 11);
   // //console.log.log(quizStyle);
   switch (quizStyle) {
@@ -1642,7 +1640,7 @@ function quizStyle6() {
   let questionText = ""
   let options = []
   // //console.log.log(correctVocab.word)
-  if ((getRandomNumber(1, 9)) >= 8) {
+  if ((getRandomNumber(1, 9)) >= 9) {
     if (conjugations.group && conjugations.group != "") {
 
       questionText = "what is the group of " + correctVocab.word
@@ -1661,7 +1659,7 @@ function quizStyle6() {
       }
       for (let i = 0; i < 3; i++) {
         // //console.log.log(options)
-        const index = getRandomNumber(1, wrongAnswers.length)
+        const index = getRandomNumber(0, wrongAnswers.length - 1)
         if (!options.includes(wrongAnswers[index])) {
           options.push(wrongAnswers[index]);
         } else {

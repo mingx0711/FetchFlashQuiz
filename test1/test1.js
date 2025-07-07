@@ -12,9 +12,11 @@ let currentQuizNo = 0;
 let wordToTest = "";
 let recordHistory = [];
 let correctCount = 0;
+let correctConj;
 let totalCountYet = 0;
 let currentTest;
 let wrongVocabs = [];
+let conjToTest;
 let correctVocab;
 let quizChartInstance = null; // Add this at the top of your file (or outside the function)
 document.addEventListener('DOMContentLoaded', function () {
@@ -270,7 +272,7 @@ function showNextItem() {
     const focusQuizMap = {
       gender: [quizStyle5],
       pronunciation: [quizStyle4],
-      inflection: [quizStyle7],
+      inflection: [quizStyle6, quizStyle7],
       definition: [quizStyle1, quizStyle2, quizStyle3, quizStyle8]
     };
     const allQuizStyles = [quizStyle1, quizStyle2, quizStyle3, quizStyle4, quizStyle5, quizStyle6, quizStyle7, quizStyle8];
@@ -625,8 +627,8 @@ function quizStyle6() {
   let questionText = ""
   let options = []
   //console.log(correctVocab.word)
-  if ((getRandomNumber(1, 9)) >= 9) {
-    if (conjugations.group && conjugations.group != "") {
+  if ((getRandomNumber(1, 9)) >= 1) {
+    if (conjugations.group && conjugations.group != "" && conjugations.group != undefined) {
       currentTest = { quizStyle: "Ask for word group", vocab: correctVocab.word, book: correctVocab.book };
       questionText = "what is the group of " + correctVocab.word
       correctAnswer = conjugations.group;
@@ -636,15 +638,10 @@ function quizStyle6() {
       if (Array.isArray(correctAnswer)) {
         correctAnswer = correctAnswer[0]
       }
-      let wrongAnswers = []
-      if (conjugations.pos == "verb") {
-        wrongAnswers = ["first conjugation", "second conjugation", "third conjugation", "fourth conjugation", "irregular", "first&second conjugation"]
-      } else {
-        wrongAnswers = ["first declension", "second declension", "third declension", "fourth declension", "fifth declension", "irregular"]
-      }
+      let wrongAnswers = ["first", "second ", "third", "fourth", "irregular", "first&second"]
       for (let i = 0; i < 3; i++) {
         //console.log(options)
-        const index = getRandomNumber(1, wrongAnswers.length)
+        const index = getRandomNumber(0, wrongAnswers.length - 1)
         if (!options.includes(wrongAnswers[index])) {
           options.push(wrongAnswers[index]);
         } else {

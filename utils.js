@@ -78,12 +78,14 @@ export function ClearPageForQuizContainer() {
   document.getElementById('trueFalseContainer').style.display = 'none';
   document.getElementById('matchContainer').style.display = 'none';
   document.getElementById('incorrectMessage').style.display = 'none';
+  document.getElementById('speakQuiz').style.display = "none"
 }
 
 export function ClearPageForTFContainer() {
   document.getElementById('trueFalseContainer').style.display = 'none';
   document.getElementById('matchContainer').style.display = 'none';
   document.getElementById('incorrectMessage').style.display = 'none';
+  document.getElementById('speakQuiz').style.display = "none"
 }
 
 export function getEligibleVocabs(vocabList, func = () => false, needSeen = true) {
@@ -279,6 +281,8 @@ export function getNRandomElements(arr, n) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-
   return shuffled.slice(0, n);
+}
+export function allEligible(arr, func) {
+
 }

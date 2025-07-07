@@ -1492,6 +1492,8 @@ function quizStyle4() {
 }
 function quizStyle5() {
   document.getElementById('trueFalseContainer').style.display = 'none';
+  document.getElementById('speakQuiz').style.display = "none"
+
   // //console.log.log("5, ask for gender")
   const eligibleVocab = vocabList.filter(entry => entry.seen > 3 && hasGender(entry));
   const quizIndex = Math.floor(Math.random() * eligibleVocab.length);
@@ -1620,6 +1622,7 @@ function findSubfieldsForWord(word, conjugations) {
 function quizStyle6() {
   //given word, find inflecti
   document.getElementById('trueFalseContainer').style.display = 'none';
+  document.getElementById('speakQuiz').style.display = "none"
 
   const eligibleVocab = vocabList.filter(entry => entry.conjugations && entry.conjugations.type != "");
   if (eligibleVocab.length < 1) {
@@ -1756,6 +1759,8 @@ function quizStyle6() {
   document.getElementById('nextAfterIncorrectButton').style.display = 'none';
 }
 function quizStyle7() {
+  document.getElementById('speakQuiz').style.display = "none"
+
   //given inflection, find word
   // //console.log.log("type 7, given inflection, find word")
   document.getElementById('trueFalseContainer').style.display = 'none';
@@ -1810,7 +1815,7 @@ function quizStyle7() {
     }
   }
   correctConj = correctAnswer;
-  shuffleArray(options);
+  utils.shuffleArray(options);
 
   questionText = `What type conjugation doe  the word "${wordToTest}" belong to?`
 

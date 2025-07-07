@@ -1772,16 +1772,20 @@ function quizStyle7() {
   }
   const correctVocab = eligibleVocab[currentVocabIndex];
   const conjugations = correctVocab.conjugations;
+
   conjToTest = []
+
   let correctAnswer;
   let questionText = ""
   let options = []
+
   wordToTest = getRandomWordFromConjugations(conjugations)
   const subFields = findSubfieldsForWord(wordToTest, conjugations)
   conjToTest = Object.values(subFields);
   // //console.log.log(conjToTest)
   correctAnswer = conjToTest.toString();
   correctAnswer = makeStringReadable(correctAnswer);
+
   let wrongAnswers = [];
   while (wrongAnswers.length < 3) {
     const wrongWord = getRandomWordFromConjugations(conjugations);

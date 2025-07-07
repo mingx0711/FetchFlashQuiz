@@ -198,11 +198,10 @@ function displayTests(bookSelected) {
           if (selectedFilters.includes("focus")) {
             match = match || item.focus === true;
           }
-
           return match;
         });
       }
-
+      filteredVocabList = utils.getNRandomElements(filteredVocabList, 20)
       document.getElementById('wrongCountDiv').style.display = '';
       document.getElementById('testCollectionBtn').style.display = 'none';
       document.getElementById('snoozeButton').style.display = '';
@@ -627,7 +626,7 @@ function quizStyle6() {
   let questionText = ""
   let options = []
   //console.log(correctVocab.word)
-  if ((getRandomNumber(1, 9)) >= 1) {
+  if ((getRandomNumber(1, 9)) >= 9) {
     if (conjugations.group && conjugations.group != "" && conjugations.group != undefined) {
       currentTest = { quizStyle: "Ask for word group", vocab: correctVocab.word, book: correctVocab.book };
       questionText = "what is the group of " + correctVocab.word

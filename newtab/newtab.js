@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function () {
   async function fetchInfoFromWik(vocab) {
     //console.log.log(vocabList.length)
     var language = vocab.language ? vocab.language : vocab.book
-    language = convertToAbbr(language)
+    language = utils.convertToAbbr(language)
     var word = vocab.word.replace(/\(.*?\)/g, "").replace(/\/.*/g, "").replace(/[!?]/g, "").trim();
     if (!needDiatricts.includes(language)) {
       word = removeDiacritics(word)
@@ -1620,6 +1620,7 @@ function findSubfieldsForWord(word, conjugations) {
 }
 
 function quizStyle6() {
+
   //given word, find inflecti
   document.getElementById('trueFalseContainer').style.display = 'none';
   document.getElementById('speakQuiz').style.display = "none"
@@ -1847,14 +1848,7 @@ function quizStyle8() {
   const correctVocab = utils.getTestWord(eligibleVocab);
   currentQuizWord = correctVocab.word;
   quizType = 'Listening';
-  // Add to the .quiz-container
-  document.getElementById('speakQuiz').style.display = 'inline-flex'
-  document.getElementById('speakQuiz').addEventListener('click', async function () {
-    utils.speakWord(correctVocab.language, correctVocab.word)
-  });
-  const options = utils.generateDefOptions(correctVocab, eligibleVocab)
-  utils.shuffleArray(options);
-  utils.prepareQuiz(options, correctVocab)
+  utils.setUp8Quiz(correctVocab, eligibleVocab);
 }
 function checkAnswer(button) {
   document.getElementById('speakQuiz').style.display = "none"

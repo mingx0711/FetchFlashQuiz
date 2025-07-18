@@ -226,12 +226,12 @@ function displayTests(bookSelected) {
 function populateBookSelector() {
   chrome.storage.local.get({ bookList: [] }, (result) => {
     const bookList = result.bookList || "Default";
+    document.getElementById('bookSelector').innerHTML = ""
     chrome.storage.local.get('lastBook', function (data) {
-      const lastBook = data.lastBook || "Default";
+      const lastBook = data.lastBook;
       //console.log(lastBook)
-      if (lastBook) {
-        document.getElementById('bookSelector').innerHTML = ""
-        if (lastBook != "" || lastBook === "addNew") {
+      if (lastBook && lastBook != null) {
+        if (lastBook != "" || lastBook === "addNew" || lastBook === "Default") {
           let optionNewSelected = document.createElement('option');
           optionNewSelected.textContent = lastBook;
           optionNewSelected.value = lastBook;
@@ -239,19 +239,19 @@ function populateBookSelector() {
 
           document.getElementById('bookSelector').add(optionNewSelected)
         }
-        // Clear existing options except for the default option
-        // Add books as options
-        bookList.forEach(book => {
-          let option = document.createElement('option');
-          if (book === data.lastBook) {
-          } else {
-            option.textContent = book;
-            option.value = book;
-
-            document.getElementById('bookSelector').add(option);
-          }
-        });
       }
+      // Clear existing options except for the default option
+      // Add books as options
+      bookList.forEach(book => {
+        let option = document.createElement('option');
+        if (book === data.lastBook) {
+        } else {
+          option.textContent = book;
+          option.value = book;
+
+          document.getElementById('bookSelector').add(option);
+        }
+      });
     });
 
   });
@@ -289,6 +289,9 @@ function showNextItem() {
 }
 
 function quizStyle1() {
+  console.log("quizStyle1")
+
+  utils.ClearPageForQuizContainer()
   // Quiz Style 1: Ask for the definition of a word
   if (currentVocabIndex === null || currentVocabIndex >= filteredVocabList.length - 1) {
     currentVocabIndex = 0;
@@ -332,6 +335,9 @@ function quizStyle1() {
   document.getElementById('nextAfterIncorrectButton').style.display = 'none';
 }
 function quizStyle2() {
+  utils.ClearPageForQuizContainer()
+  console.log("quizStyle2")
+
   // Quiz Style 2: Ask for the word given a definition
   if (currentVocabIndex === null || currentVocabIndex >= filteredVocabList.length - 1) {
     currentVocabIndex = 0;
@@ -377,6 +383,9 @@ function quizStyle2() {
 }
 
 function quizStyle3() {
+  console.log("quizStyle3")
+  utils.ClearPageForTFContainer()
+
   // Quiz Style 3: True or False
   if (currentVocabIndex === null || currentVocabIndex >= filteredVocabList.length - 1) {
     currentVocabIndex = 0;
@@ -416,6 +425,9 @@ function quizStyle3() {
   document.getElementById('nextAfterIncorrectButton').style.display = 'none';
 }
 function quizStyle4() {
+  utils.ClearPageForQuizContainer()
+  console.log("quizStyle4")
+
   quizType = "pronunciation"
 
   const eligibleVocab = filteredVocabList.filter(entry => entry.pronounciation && entry.pronounciation != "");
@@ -472,6 +484,9 @@ function quizStyle4() {
 
 }
 function quizStyle5() {
+  utils.ClearPageForTFContainer()
+  console.log("quizStyle5")
+
   quizType = "gender"
   //console.log("5, ask for gender")
   const eligibleVocab = filteredVocabList.filter(entry => entry.gender && entry.gender != "" && entry.gender != "undefined");
@@ -607,6 +622,8 @@ function findSubfieldsForWord(word, conjugations) {
 }
 
 function quizStyle6() {
+  utils.ClearPageForQuizContainer()
+
   const eligibleVocab = filteredVocabList.filter(entry => entry.conjugations && entry.conjugations.type != "");
   if (eligibleVocab.length < 1) {
     return quizStyle3();
@@ -742,6 +759,8 @@ function quizStyle6() {
   document.getElementById('nextAfterIncorrectButton').style.display = 'none';
 }
 function quizStyle7() {
+  utils.ClearPageForQuizContainer()
+
   wordToTest = ""
   const eligibleVocab = filteredVocabList.filter(entry => entry.conjugations && entry.conjugations.type != "");
   if (eligibleVocab.length < 1) {

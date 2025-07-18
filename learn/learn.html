@@ -215,6 +215,39 @@
       justify-content: center;
     }
 
+    .progress-container {
+      width: 40vw;
+      max-width: 60vw;
+      min-height: 2vw;
+      background-color: #f3f3f3;
+      border-radius: 2px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin: 20px auto;
+      height: 25px;
+      display: none;
+      position: relative;
+    }
+
+    .progress-bar {
+      height: 2vw;
+      min-height: 3vw;
+      width: 70%;
+      /* You can change this dynamically */
+      background: linear-gradient(to right, #f5d0bd, #ffaba7);
+      transition: width 0.3s ease-in-out;
+    }
+
+    .progress-label {
+      position: absolute;
+      width: 40vw;
+      text-align: center;
+      top: 0;
+      line-height: 25px;
+      font-weight: bold;
+      color: #333;
+    }
+
     #quizChart1,
     #trendChart {
       max-width: 500px;
@@ -246,6 +279,10 @@
     display: block;
     font-size: 1vwpx;
     "></select>
+      <div class="progress-container">
+        <div class="progress-bar"></div>
+        <div class="progress-label">70%</div>
+      </div>
       <label for="vocabCount" style="font-size:1.1vw; margin-bottom:8px; display:block;">
         Select the number of vocabs you want to learn this time:
       </label>

@@ -956,11 +956,11 @@ function populateBookSelector() {
 
           document.getElementById('bookSelector').add(optionNewSelected)
         }
-        console.log(lastBook)
         // Clear existing options except for the default option
         // Add books as options
         bookList.forEach(book => {
           let option = document.createElement('option');
+          console.log(book + "   " + lastBook)
           if (book === data.lastBook) {
           } else {
             option.textContent = book;

@@ -76,14 +76,12 @@ export function generateWordOptions(correctVocab, filteredVocabList) {
 }
 export function ClearPageForQuizContainer() {
   document.getElementById('trueFalseContainer').style.display = 'none';
-  document.getElementById('matchContainer').style.display = 'none';
   document.getElementById('incorrectMessage').style.display = 'none';
   document.getElementById('speakQuiz').style.display = "none"
 }
 
 export function ClearPageForTFContainer() {
   document.getElementById('trueFalseContainer').style.display = 'none';
-  document.getElementById('matchContainer').style.display = 'none';
   document.getElementById('incorrectMessage').style.display = 'none';
   document.getElementById('speakQuiz').style.display = "none"
 }
@@ -117,7 +115,7 @@ export function setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition
 export function setupWordQuiz(correctVocab, eligibleVocab) {
   const options = generateWordOptions(correctVocab, eligibleVocab);
   shuffleArray(options);
-  prepareWordQuizQuestions(correctVocab);
+  prepare8QuizQuestions(correctVocab);
   prepareQuiz(options);
 }
 
@@ -155,6 +153,17 @@ export function generatePronounciationOptions(correctVocab, eligibleOptions) {
   return options;
 
 }
+export function setUp8Quiz(correctVocab, eligibleVocab) {
+  // Add to the .quiz-container
+  document.getElementById('speakQuiz').style.display = 'inline-flex'
+  document.getElementById('speakQuiz').addEventListener('click', async function () {
+    speakWord(correctVocab.language, correctVocab.word)
+  });
+  const options = generateDefOptions(correctVocab, eligibleVocab)
+  shuffleArray(options);
+  prepare8QuizQuestions(correctVocab)
+  prepareQuiz(options, correctVocab)
+}
 export function preparePronounciationQuizQuestions(correctVocab) {
   document.getElementById('quizQuestion').textContent = `What is the pronounciation of "${correctVocab.word}"?`;
   document.getElementById('quizContainer').dataset.correctAnswer = correctVocab.pronounciation;
@@ -166,6 +175,11 @@ export function prepareWordQuizQuestions(correctVocab) {
 }
 export function prepareDefQuizQuestions(correctVocab) {
   document.getElementById('quizQuestion').textContent = `What is the definition of "${correctVocab.word}" ? `;
+  document.getElementById('quizContainer').dataset.correctAnswer = correctVocab.definition;
+  document.getElementById('quizContainer').dataset.correctWord = correctVocab.word;
+}
+export function prepare8QuizQuestions(correctVocab) {
+  document.getElementById('quizQuestion').textContent = `What is the definition of this word ? `;
   document.getElementById('quizContainer').dataset.correctAnswer = correctVocab.definition;
   document.getElementById('quizContainer').dataset.correctWord = correctVocab.word;
 }

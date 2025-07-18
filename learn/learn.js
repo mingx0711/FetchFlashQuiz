@@ -2,6 +2,7 @@ import { hasGender, hasPronounciation } from '../utils.js';
 import * as utils from '../utils.js';
 let currentVocabIndex = null;
 let vocabList = [];
+let firstbook = "";
 let currentQuizWord = null;
 let currentQuizDefinition = null;
 let quizType = null;
@@ -15,6 +16,8 @@ let correctCount = 0;
 let totalCountYet = 0;
 let totalNoCount = 0;
 let currentTest;
+let conjToTest;
+let correctConj;
 let totalVocabList = []
 let wrongVocabs = [];
 let learningQueue = [];
@@ -93,12 +96,52 @@ document.getElementById('vocabCount').addEventListener('input', function () {
   if (this.value < 4) this.value = 4;
 });
 let learnCount = 0;
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   document.getElementById('vocabFlashcard').style.display = 'none';
   document.getElementById('quizContainer').style.display = 'none';
   document.getElementById('trueFalseContainer').style.display = 'none';
   document.getElementById('nextButton').style.display = 'none';
-  populateBookSelector();
+  await populateBookSelector();
+  const selector = document.getElementById("bookSelector");
+  const container = document.querySelector(".progress-container");
+  const bar = document.querySelector(".progress-bar");
+  const label = document.querySelector(".progress-label");
+  function updateProgress() {
+    const book = selector.value || selector
+    if (book) {
+      chrome.storage.local.get('vocabList', function (data) {
+        if (data.vocabList) {
+          let vocabList = data.vocabList;
+          let filteredVocabList = vocabList.filter(vocab => vocab.book === selector.value);
+          const minTime = Math.min(...filteredVocabList.map(item => item.learnedTime ?? 0));
+
+          let learnedCount = filteredVocabList.filter(vocab => vocab.learnedTime > minTime).length;
+          const percentage = learnedCount / filteredVocabList.length * 100;
+          const count = learnedCount + " / " + filteredVocabList.length;
+          bar.style.width = percentage + "%";
+          label.textContent = count + " ";
+          for (let i = 0; i < minTime; i++) {
+            label.textContent += '⭐';
+          }
+        }
+      });
+      container.style.display = "block";
+
+    } else {
+      container.style.display = "none";
+    }
+  }
+
+  selector.addEventListener("change", updateProgress);
+  chrome.storage.local.get('vocabList', function (data) {
+    if (data.vocabList) {
+      vocabList = data.vocabList;
+
+    }
+  });
+
+  updateProgress()
+
   document.getElementById('start').addEventListener('click', () => {
     learnCount = Math.max(document.getElementById('vocabCount').value, 4);
     const selectedCollection = document.getElementById('bookSelector').value;
@@ -248,7 +291,7 @@ async function generateLearningQueue(bookSelected) {
         learningQueue.push({ type: 'quiz4', word: wordObj });
       }
     });
-    //console.log(learningQueue)
+    console.log(learningQueue)
     currentStep = 0;
     showNextLearningStep();
   });
@@ -380,7 +423,9 @@ function queueQuizzesForWord(wordObj) {
 }
 function quizStyle8() {
   const correctVocab = learningQueue[currentStep].word;
-
+  if (correctVocab.language === "la") {
+    return quizStyle6();
+  }
   currentQuizWord = correctVocab.word;
   quizType = 'Listening';
   // Add to the .quiz-container
@@ -428,12 +473,14 @@ function quizStyle8() {
   document.getElementById('correctDefinition').style.display = 'none';
   document.getElementById('nextAfterIncorrectButton').style.display = 'none';
 }
-function populateBookSelector() {
-  chrome.storage.local.get({ bookList: [] }, (result) => {
-    const bookList = result.bookList || "Default";
+async function populateBookSelector() {
+  var first = true;
+  await chrome.storage.local.get({ bookList: [] }, (result) => {
+    const bookList = result.bookList ? result.bookList : "Default";
     // Clear existing options except for the default option
     // Add books as options
     bookList.forEach(book => {
+      if (first) { firstbook = book; first = false; }
       let option = document.createElement('option');
 
       option.textContent = book;
@@ -441,7 +488,7 @@ function populateBookSelector() {
 
       document.getElementById('bookSelector').add(option);
     });
-
+    return firstbook;
   });
 }
 

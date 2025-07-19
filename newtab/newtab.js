@@ -1495,10 +1495,10 @@ function quizStyle5() {
   document.getElementById('speakQuiz').style.display = "none"
 
   // //console.log.log("5, ask for gender")
-  const eligibleVocab = vocabList.filter(entry => entry.seen > 3 && hasGender(entry));
+  const eligibleVocab = vocabList.filter(entry => entry.seen > 3 && utils.hasGender(entry));
   const quizIndex = Math.floor(Math.random() * eligibleVocab.length);
   const correctVocab = eligibleVocab[quizIndex];
-  const eligibleOptions = LanguageGenderMap[correctVocab.language] || [];
+  const eligibleOptions = utils.LanguageGenderMap[correctVocab.language] || [];
   const numberOfDifferentTypes = new Set(eligibleOptions.map(item => item.pronounciation)).size;
   if (eligibleVocab.length < 1 || numberOfDifferentTypes < 2) {
     showNextVocab();
@@ -1734,7 +1734,7 @@ function quizStyle6() {
       }
     }
     correctConj = correctAnswer;
-    shuffleArray(options);
+    utils.shuffleArray(options);
     let names = conjToTest.toString();
     names = makeStringReadable(names)
     questionText = `What is one ${names} form of the word "${correctVocab.word}"?`

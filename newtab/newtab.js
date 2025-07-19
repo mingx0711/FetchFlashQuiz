@@ -1840,6 +1840,7 @@ function quizStyle7() {
   document.getElementById('nextAfterIncorrectButton').style.display = 'none';
 }
 function quizStyle8() {
+  document.getElementById('speakQuiz').style.display = ""
   const eligibleVocab = utils.getEligibleVocabs(vocabList);
   if (eligibleVocab.length < 1) {
     showNextVocab();

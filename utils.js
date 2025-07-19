@@ -156,7 +156,6 @@ export function generatePronounciationOptions(correctVocab, eligibleOptions) {
 export function setUp8Quiz(correctVocab, eligibleVocab) {
   // Add to the .quiz-container
   document.getElementById('speakQuiz').style.display = ""
-
   document.getElementById('speakQuiz').style.display = 'inline-flex'
   document.getElementById('speakQuiz').addEventListener('click', async function () {
     speakWord(correctVocab.language, correctVocab.word)

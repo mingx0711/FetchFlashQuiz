@@ -1432,6 +1432,7 @@ function updateQuizResults(result, word) {
   }
 }
 function quizStyle1() {
+  console.log("quizStyle1 called");
   utils.ClearPageForQuizContainer();
   const eligibleVocab = utils.getEligibleVocabs(vocabList);
   const correctVocab = utils.getTestWord(eligibleVocab);
@@ -1499,7 +1500,7 @@ function quizStyle5() {
   const quizIndex = Math.floor(Math.random() * eligibleVocab.length);
   const correctVocab = eligibleVocab[quizIndex];
   const eligibleOptions = utils.LanguageGenderMap[correctVocab.language] || [];
-  const numberOfDifferentTypes = new Set(eligibleOptions.map(item => item.pronounciation)).size;
+  const numberOfDifferentTypes = eligibleOptions.size;
   if (eligibleVocab.length < 1 || numberOfDifferentTypes < 2) {
     showNextVocab();
     return;
@@ -1840,7 +1841,9 @@ function quizStyle7() {
   document.getElementById('nextAfterIncorrectButton').style.display = 'none';
 }
 function quizStyle8() {
-  document.getElementById('speakQuiz').style.display = ""
+  console.log("quiz style 8, listening quiz")
+  utils.ClearPageForQuizContainer();
+  document.getElementById('speakQuiz').style.display = "block"
   const eligibleVocab = utils.getEligibleVocabs(vocabList);
   if (eligibleVocab.length < 1) {
     showNextVocab();

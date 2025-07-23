@@ -75,12 +75,14 @@ export function generateWordOptions(correctVocab, filteredVocabList) {
   return options;
 }
 export function ClearPageForQuizContainer() {
+  document.getElementById('autoplayButton').style.display = '';
   document.getElementById('trueFalseContainer').style.display = 'none';
   document.getElementById('incorrectMessage').style.display = 'none';
   document.getElementById('speakQuiz').style.display = "none"
 }
 
 export function ClearPageForTFContainer() {
+  document.getElementById('autoplayButton').style.display = '';
   document.getElementById('trueFalseContainer').style.display = 'none';
   document.getElementById('incorrectMessage').style.display = 'none';
   document.getElementById('speakQuiz').style.display = "none"
@@ -115,7 +117,7 @@ export function setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition
 export function setupWordQuiz(correctVocab, eligibleVocab) {
   const options = generateWordOptions(correctVocab, eligibleVocab);
   shuffleArray(options);
-  prepare8QuizQuestions(correctVocab);
+  prepareWordQuizQuestions(correctVocab);
   prepareQuiz(options);
 }
 
@@ -156,7 +158,6 @@ export function generatePronounciationOptions(correctVocab, eligibleOptions) {
 export function setUp8Quiz(correctVocab, eligibleVocab) {
   // Add to the .quiz-container
   document.getElementById('speakQuiz').style.display = ""
-  document.getElementById('speakQuiz').style.display = 'inline-flex'
   document.getElementById('speakQuiz').addEventListener('click', async function () {
     speakWord(correctVocab.language, correctVocab.word)
   });

@@ -219,7 +219,6 @@ async function generateLearningQueue(bookSelected) {
       totalVocabList = filteredVocabList;
       filteredVocabList = getLeastLearnedAmount(filteredVocabList);
       //console.log(filteredVocabList)
-      document.getElementById('containerLine').style.display = 'none';
       document.getElementById('start').style.display = 'none';
       document.getElementById('nextButton').style.display = '';
       document.getElementById('stepCounter').style.display = '';

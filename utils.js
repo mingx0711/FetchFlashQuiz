@@ -75,14 +75,20 @@ export function generateWordOptions(correctVocab, filteredVocabList) {
   return options;
 }
 export function ClearPageForQuizContainer() {
-  document.getElementById('autoplayButton').style.display = '';
+  const autoplayButton = document.getElementById('autoplayButton');
+  if (autoplayButton) {
+    autoplayButton.style.display = 'none';
+  }
   document.getElementById('trueFalseContainer').style.display = 'none';
   document.getElementById('incorrectMessage').style.display = 'none';
   document.getElementById('speakQuiz').style.display = "none"
 }
 
 export function ClearPageForTFContainer() {
-  document.getElementById('autoplayButton').style.display = '';
+  const autoplayButton = document.getElementById('autoplayButton');
+  if (autoplayButton) {
+    autoplayButton.style.display = 'none';
+  }
   document.getElementById('trueFalseContainer').style.display = 'none';
   document.getElementById('incorrectMessage').style.display = 'none';
   document.getElementById('speakQuiz').style.display = "none"

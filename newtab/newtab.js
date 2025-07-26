@@ -1181,6 +1181,7 @@ function showNextVocab(collection = currentCollectionSelection) {
   document.getElementById('matchContainer').style.display = 'none';
   document.getElementById('incorrectMessage').style.display = 'none';
   document.getElementById('snoozeButton').style.display = '';
+  document.getElementById('autoplayButton').style.display = '';
   document.getElementById('nextAfterIncorrectButton').style.display = 'none';
   document.getElementById('nextButton').style.display = '';
   correctDefinition.style.display = 'None';

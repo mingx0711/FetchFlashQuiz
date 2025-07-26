@@ -25,6 +25,58 @@ export const LanguageGenderMap = {
   "es": [GenderType.MASCULINE, GenderType.FEMININE], // Spanish
   "pt": [GenderType.MASCULINE, GenderType.FEMININE], // Portuguese
 };
+export const LANGUAGES = Object.freeze({
+  GERMAN: "de",
+  LATIN: "la",
+  FRENCH: "fr",
+  ITALIAN: "it",
+  SPANISH: "es",
+  ENGLISH: "en",
+  PORTUGUESE: "pt",
+  RUSSIAN: "ru",
+  CHINESE: "zh",
+  JAPANESE: "ja",
+  KOREAN: "ko",
+  ARABIC: "ar",
+  DUTCH: "nl",
+  SWEDISH: "sv",
+  NORWEGIAN: "no",
+  DANISH: "da",
+  FINNISH: "fi",
+  POLISH: "pl",
+  TURKISH: "tr",
+  GREEK: "el",
+  HEBREW: "he",
+  HINDI: "hi",
+  BENGALI: "bn",
+  VIETNAMESE: "vi",
+  INDONESIAN: "id",
+  MALAY: "ms",
+  THAI: "th",
+  ROMANIAN: "ro",
+  CZECH: "cs",
+  HUNGARIAN: "hu",
+  SLOVAK: "sk",
+  BULGARIAN: "bg",
+  UKRAINIAN: "uk",
+  PERSIAN: "fa",
+  SWAHILI: "sw"
+});
+
+const dontRemoveDiacritics = [LANGUAGES.GERMAN];
+
+export function processWordByLanguage(language, word) {
+  if (dontRemoveDiacritics.includes(language)) {
+    return word;
+  } else {
+    return removeDiacritics(word);
+  }
+}
+
+// Existing function
+function removeDiacritics(str) {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
 
 export function hasGender(wordObj) {
   return !!(wordObj.gender && wordObj.gender !== undefined && wordObj.gender !== null && wordObj.gender !== "")

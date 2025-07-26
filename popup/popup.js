@@ -1,7 +1,7 @@
 let vocab = {}
 let def;
-import { GenderType } from '../utils.js';
-
+import { GenderType, LANGUAGES } from '../utils.js';
+import * as utils from '../utils.js';
 chrome.runtime.onInstalled.addListener(function () {
   chrome.tabs.create({ url: "https://mingx0711.github.io/" });
 });
@@ -438,7 +438,7 @@ async function getLatinAttributes(doc, word) {
           let noramlizedWord = word.normalize('NFD');
           let noDiacritics = noramlizedWord.replace(/[\u0300-\u036f]/g, "");
           let finalStr = noDiacritics.replace(/-/g, "");
-          let finallinkText = removeDiacritics(linkText)
+          let finallinkText = utils.processWordByLanguage(LANGUAGES.LATIN, linkText)
           if (finalStr.trim() != finallinkText.trim()) {
             var url = usingLocal ? `http://localhost:3000/fetch/${linkText}` : `https://en.wiktionary.org/wiki/${finallinkText}`
             await fetch(url)
@@ -519,7 +519,7 @@ async function getLinkedAttributes(doc, word, lang) {
       let noDiacritics = noramlizedWord.replace(/[\u0300-\u036f]/g, "");
       let finalStr = noDiacritics.replace(/-/g, "");
       let baseDoc;
-      let finallinkText = removeDiacritics(linkText)
+      let finallinkText = utils.processWordByLanguage(lang, linkText)
       console.log(finallinkText)
       if (finalStr.trim() != linkText.trim()) {
         var url = usingLocal ? `http://localhost:3000/fetch/${linkText}` : `https://en.wiktionary.org/wiki/${finallinkText}`
@@ -558,7 +558,6 @@ async function getLinkedAttributes(doc, word, lang) {
   }
 }
 async function getEasyAttributes(doc, word, lang) {
-  console.log(word)
   let mention = getLanguageCharSetMapping(lang)
   document.getElementById('vocabInfo').innerHTML = ''
   document.getElementById('vocabInfo').style.display = ""
@@ -689,8 +688,6 @@ async function getEasyAttributes(doc, word, lang) {
     if (pronounciationText != null) {
       document.getElementById('vocabInfo').innerHTML += ("<br>pronounciation:" + pronounciationText)
     }
-    console.log(autoGender)
-    console.log(GenderType.FEMININE)
 
     document.getElementById('vocabInfo').innerHTML += autoGender ? ("gender:" + autoGender) : ""
     document.getElementById('vocabInfo').innerHTML += "<br>" + etym

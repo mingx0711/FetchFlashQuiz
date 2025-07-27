@@ -412,7 +412,12 @@ async function getLatinAttributes(doc, word) {
       vocabInfo.innerHTML += ' word: <span style="font-weight: bold;">' + vocab.word + '</span>'
       vocabInfo.innerHTML += '<br> \n definition: <span style="font-weight: bold;">' + vocab.definition + '</span>'
       if (autoGender) {
-        vocabInfo.innerHTML += "<br> \n gender: " + autoGender
+        let genderColor = "";
+
+        if (autoGender === GenderType.FEMININE) genderColor = "#BD4028";
+        else if (autoGender === GenderType.MASCULINE) genderColor = "#629FD1";
+        else if (autoGender === GenderType.NEUTER) genderColor = "#5E965A";
+        vocabInfo.innerHTML += `<br> \n gender: <span style="color:${genderColor};font-weight:bold;">${autoGender}</span>`
       }
       vocabInfo.innerHTML += "<br>\n group: " + vocab.conjugations.group
       vocabInfo.innerHTML += "<br> \n collection: " + vocab.book
@@ -688,8 +693,13 @@ async function getEasyAttributes(doc, word, lang) {
     if (pronounciationText != null) {
       document.getElementById('vocabInfo').innerHTML += ("<br>pronounciation:" + pronounciationText)
     }
-
-    document.getElementById('vocabInfo').innerHTML += autoGender ? ("gender:" + autoGender) : ""
+    if (autoGender) {
+      let genderColor = "";
+      if (autoGender === GenderType.FEMININE) genderColor = "#BD4028";
+      else if (autoGender === GenderType.MASCULINE) genderColor = "#629FD1";
+      else if (autoGender === GenderType.NEUTER) genderColor = "#5E965A";
+      vocabInfo.innerHTML += `<br> \n gender: <span style="color:${genderColor};font-weight:bold;">${autoGender}</span>`
+    }
     document.getElementById('vocabInfo').innerHTML += "<br>" + etym
     vocab = { word, definition, snoozed: false, book, language: lang, pronounciation: pronounciationText, gender: autoGender ? autoGender : gender, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'], etym: hasEytm ? etym : "" }
     console.log(vocab)

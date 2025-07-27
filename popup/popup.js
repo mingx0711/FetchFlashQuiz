@@ -950,18 +950,13 @@ function getGermanAttributes(doc, word) {
 function populateBookSelector() {
   chrome.storage.local.get({ bookList: [] }, (result) => {
     const bookList = result.bookList || ["Default"];
+    console.log(bookList)
     chrome.storage.local.get('lastBook', function (data) {
-      const lastBook = data.lastBook ? data.lastBook : (result.bookList ? result.bookList[0] : "Default");
-      //console.log(data.lastBook)
+      const lastBook = data.lastBook ? data.lastBook : (bookList ? bookList[0] : "Default");
+      console.log(lastBook)
       if (lastBook) {
         document.getElementById('bookSelector').innerHTML = ""
         if (lastBook != "" || lastBook === "addNew") {
-          var optionNewSelected = document.createElement('option');
-          optionNewSelected.textContent = lastBook;
-          optionNewSelected.value = lastBook;
-          optionNewSelected.selected = true;
-
-          document.getElementById('bookSelector').add(optionNewSelected)
         }
         // Clear existing options except for the default option
         // Add books as options
@@ -969,6 +964,13 @@ function populateBookSelector() {
           let option = document.createElement('option');
           console.log(book + "   " + lastBook)
           if (book === data.lastBook) {
+
+            var optionNewSelected = document.createElement('option');
+            optionNewSelected.textContent = lastBook;
+            optionNewSelected.value = lastBook;
+            optionNewSelected.selected = true;
+
+            document.getElementById('bookSelector').add(optionNewSelected)
           } else {
             option.textContent = book;
             option.value = book;

@@ -412,6 +412,20 @@ document.addEventListener('DOMContentLoaded', function () {
     // Function to handle the display toggle
 
   });
+  // chrome.storage.local.get('autoBackup', function (data) {
+  //   const autoBackupBtn = document.getElementById('autoBackupBtn');
+  //   let isOn = data.autoBackup === true;
+  //   if (autoBackupBtn) {
+  //     autoBackupBtn.textContent = isOn ? "Autobackup is ON" : "Autobackup is OFF";
+  //     autoBackupBtn.addEventListener('click', function () {
+  //       isOn = !isOn;
+  //       chrome.storage.local.set({ autoBackup: isOn }, function () {
+  //         autoBackupBtn.textContent = isOn ? "Autobackup is ON" : "Autobackup is OFF";
+  //       });
+  //     });
+  //   }
+  // });
+
   // const importVocabButton = document.getElementById('importVocabButton');
   const popup = document.getElementById('popup');
   const popupOverlay = document.getElementById('popup-overlay');

@@ -232,27 +232,46 @@ async function generateLearningQueue(bookSelected) {
         document.getElementById('nextButton').style.display = 'none';
         return;
       }
+      const wordAppearances = {};
+
+      filteredVocabList.forEach(wordObj => {
+        const word = wordObj.word;
+        wordAppearances[word] = 0;
+      });
+
+      // Helper to add to queue only if under max
+      function addToQueue(type, wordObj) {
+        const word = wordObj.word;
+        const maxAppearances = 6; // set your max here
+        if (wordAppearances[word] < maxAppearances) {
+          learningQueue.push({ type, word: wordObj });
+          wordAppearances[word]++;
+        }
+      }
+
       filteredVocabList.forEach(wordObj => {
         // 1. Flashcard
-        learningQueue.push({ type: 'flashcard', word: wordObj });
-        learnedWords.push(wordObj)
+        addToQueue('flashcard', wordObj);
+        learnedWords.push(wordObj);
+
         // 2. True/False quiz (quizStyle3), with wrong definition from totalVocabList
 
         // 3. Randomly quizStyle1 or quizStyle2
         const quizType = Math.random() < 0.5 ? 'quiz1' : 'quiz2';
-        learningQueue.push({ type: quizType, word: wordObj });
-        //console.log(learnedWords)
-        const randomQuizWord = (learnedWords.length > 1) ? utils.getNRandomElements(learnedWords, 1)[0] : wordObj
+        addToQueue(quizType, wordObj);
+
+        const randomQuizWord = (learnedWords.length > 1) ? utils.getNRandomElements(learnedWords, 1)[0] : wordObj;
+
         if (hasGender(randomQuizWord)) {
-          learningQueue.push({ type: 'quiz5', word: randomQuizWord });
+          addToQueue('quiz5', randomQuizWord);
         }
         if (hasPronounciation(randomQuizWord)) {
-          learningQueue.push({ type: 'quiz4', word: randomQuizWord });
+          addToQueue('quiz4', randomQuizWord);
         }
         if (Math.random() < 0.5) {
-          learningQueue.push({ type: 'quiz8', word: randomQuizWord });
+          addToQueue('quiz8', randomQuizWord);
         } else {
-          learningQueue.push({ type: 'quiz3', word: randomQuizWord });
+          addToQueue('quiz3', randomQuizWord);
         }
       });
     }

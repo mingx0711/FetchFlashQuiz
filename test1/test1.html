@@ -61,10 +61,6 @@
       display: inline-block;
     }
 
-    #nextButton {
-      margin-top: 10px;
-    }
-
     .quiz-container,
     .true-false-container {
       display: none;
@@ -281,7 +277,7 @@
   <p class="ui message" id="incorrectMessage" style=" text-align: center;">Incorrect! The correct definition is:</p>
   <div id="correctDefinition" class="ui flashcard"
     style="background-color:#ebebe9;height:200px; font-size: 2vw ;margin: auto ;"></div>
-  <button class="ui button" id="nextButton">Next</button>
+  <div id="nextButton" style="display: none;"></div>
   <button class="ui button" id="nextAfterIncorrectButton"
     style="position: relative ; left:50% ; margin-top: 50px">Next</button>
   <div class="container" style="top: 2%;margin: auto ; display: none;" id="showTestResult">

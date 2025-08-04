@@ -1,3 +1,4 @@
+import * as utils from '../utils.js';
 let currentVocabIndex = null;
 let vocabList = [];
 let currentQuizWord = null;
@@ -107,7 +108,7 @@ function displayTests(bookSelected) {
           alert("Not enough eligible entries to make the test.");
           return;
         }
-        totalNoCount = filteredVocabList.length;
+        var totalNoCount = filteredVocabList.length;
         document.getElementById('wrongCountDiv').textContent = `"${currentQuizNo}" / ${totalNoCount}"`;
         //document.getElementById('end').style.display = '';
         if (filteredVocabList.length === 0 || filteredVocabList.length < wordAmount) {
@@ -154,7 +155,7 @@ function populateBookSelector() {
       if (lastBook) {
         document.getElementById('bookSelector').innerHTML = ""
         if (lastBook != "" || lastBook === "addNew") {
-          optionNewSelected = document.createElement('option');
+          var optionNewSelected = document.createElement('option');
           optionNewSelected.textContent = lastBook;
           optionNewSelected.value = lastBook;
           optionNewSelected.selected = true;
@@ -189,6 +190,55 @@ function showNextItem() {
 const quizContainer = document.getElementById('quizContainer');
 const revealedWords = document.getElementById('revealedWords');
 const enterWords = document.getElementById('enterWords');
+function normalizeWordList(str) {
+  return str
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accents
+    .replace(/[^\w]/g, " ") // replace non-word characters with space
+    .split(/\s+/)           // split on spaces
+    .filter(Boolean);       // remove empty strings
+}
+
+function highlightWords(originalStr, inputStr) {
+  const originalWords = normalizeWordList(originalStr);
+  const inputWords = normalizeWordList(inputStr);
+
+  const resultWords = [];
+
+  const maxLen = Math.max(originalWords.length, inputWords.length);
+  const isPartialMatch = (inputWord, targetWord) =>
+    targetWord.startsWith(inputWord);
+
+  for (let i = 0; i < maxLen; i++) {
+    const oWord = originalWords[i] || "";
+    const iWord = inputWords[i] || "";
+    if (oWord.startsWith(iWord)) {
+      highlighted = `<span style="color:orange">${iWord}</span>` +
+        `<span style="color:gray">${oWord.slice(iWord.length)}</span>`;
+    }
+
+    const maxCharLen = Math.max(oWord.length, iWord.length);
+    let highlighted = "";
+
+    for (let j = 0; j < maxCharLen; j++) {
+      const oChar = oWord[j];
+      const iChar = iWord[j];
+
+      if (iChar === undefined && oChar !== undefined) {
+        highlighted += `<span style="color:red">_</span>`;
+      } else if (iChar === oChar) {
+        highlighted += `<span style="color:green">${iChar}</span>`;
+      } else {
+        highlighted += `<span style="color:red">${iChar}</span>`;
+      }
+    }
+
+    resultWords.push(highlighted);
+  }
+
+  return resultWords.join(" | ");
+}
+
 function listeningTest() {
   revealedWords.style.display = 'none';
   quizContainer.style.display = 'block';
@@ -199,16 +249,7 @@ function listeningTest() {
   let defString = quizWords.map(item => item.definition).join("&#11045;	");
   let wordStringToDisplay = quizWords.map(item => item.word).join("&#11045;	");
   document.getElementById('speak').addEventListener('click', async function () {
-    speechSynthesis.cancel();
-    var language = quizWords[0].language;
-    const currentLang = getSpeechLang(language);
-    const utterance = new SpeechSynthesisUtterance(wordString);
-    utterance.lang = currentLang;
-    const voices = await loadVoices();
-    const voice = voices.find(v => v.lang === currentLang);
-    if (voice) utterance.voice = voice;
-    utterance.rate = playbackSpeed;
-    speechSynthesis.speak(utterance);
+    utils.speakWord(filteredVocabList[0].language, wordString);
   });
 
   revealedWords.innerHTML = wordStringToDisplay + '<div class = "ui divider"></div>' + defString;

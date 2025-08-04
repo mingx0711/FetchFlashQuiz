@@ -141,6 +141,28 @@ export function findSubfieldsForWord(word, conjugations) {
 
   return combinedSubfields;
 }
+export function showNextAndAutoplay() {
+
+  document.getElementById('nextButton').style.display = '';
+  document.getElementById('autoplayButton').style.display = '';
+}
+export function expandWord(input) {
+  return input
+    .split(',')
+    .map(part => {
+      const trimmed = part.trim();
+      const match = trimmed.match(/^(.*)\(([^)]+)\)$/);
+      if (match) {
+        const base = match[1];
+        const inside = match[2];
+        return `${base}, ${base}${inside}`;
+      }
+      return trimmed;
+    })
+    .join(', ');
+}
+
+
 export function prepareOptionsForQuiz6(correctVocab) {
   const conjugations = correctVocab.conjugations;
   let conjToTest = [];
@@ -640,6 +662,7 @@ export async function speakWord(lang, word) {
   var language = lang
   language = convertToAbbr(language)
   const currentLang = getSpeechLang(language);
+  word = expandWord(word);
   const utterance = new SpeechSynthesisUtterance(word);
   utterance.lang = currentLang;
   const voices = await loadVoices();

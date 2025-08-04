@@ -985,7 +985,7 @@ function showNextItem(checkBooks = ["all"]) {
     //const shouldShowQuiz = true
     const shouldShowQuiz = (Math.random() < Math.min(probs, 0.3)) && eligibleForQuiz;
 
-    if (true) {
+    if (shouldShowQuiz) {
       isQuiz = true;
       showQuiz();
     } else {
@@ -1442,11 +1442,14 @@ function quizStyle1() {
   const eligibleVocab = utils.getEligibleVocabs(vocabList);
   const correctVocab = utils.getTestWord(eligibleVocab);
   currentQuizWord = correctVocab.word;
+  utils.showNextAndAutoplay()
   utils.setupDefQuiz(correctVocab, eligibleVocab)
 }
 
 function quizStyle2() {
   utils.ClearPageForQuizContainer();
+  utils.showNextAndAutoplay()
+
   const eligibleVocab = utils.getEligibleVocabs(vocabList);
   const correctVocab = utils.getTestWord(eligibleVocab);
   currentQuizWord = correctVocab.word;
@@ -1460,6 +1463,8 @@ function quizStyle3() {
   // Quiz Style 3: True or False
   const eligibleVocab = utils.getEligibleVocabs(vocabList);
   const correctVocab = utils.getTestWord(eligibleVocab);
+  utils.showNextAndAutoplay()
+
   currentQuizWord = correctVocab.word;
   currentQuizDefinition = correctVocab.definition;
   quizType = 'truefalse';
@@ -1479,6 +1484,8 @@ function quizStyle3() {
 function quizStyle4() {
   utils.ClearPageForQuizContainer();
   // //console.log.log("4, ask for pronounciation")
+  utils.showNextAndAutoplay()
+
   const eligibleVocab = vocabList.filter(entry => utils.hasPronounciation(entry));
   const eligibleOptions = vocabList.filter(entry => utils.hasPronounciation(entry));
   const numberOfDifferentTypes = new Set(eligibleOptions.map(item => item.pronounciation)).size;
@@ -1501,6 +1508,8 @@ function quizStyle5() {
   const eligibleVocab = vocabList.filter(entry => entry.seen > 3 && utils.hasGender(entry));
   const quizIndex = Math.floor(Math.random() * eligibleVocab.length);
   const correctVocab = eligibleVocab[quizIndex];
+  utils.showNextAndAutoplay()
+
   const eligibleOptions = utils.LanguageGenderMap[correctVocab.language] || [];
   const numberOfDifferentTypes = eligibleOptions.size;
   if (eligibleVocab.length < 1 || numberOfDifferentTypes < 2) {
@@ -1533,6 +1542,8 @@ function quizStyle6() {
   if (eligibleVocab.length < 1) {
     return quizStyle3();
   }
+  utils.showNextAndAutoplay()
+
   currentVocabIndex = utils.checkVocabIndex(currentVocabIndex, vocabList, eligibleVocab);
   const correctVocab = eligibleVocab[currentVocabIndex];
   let result = utils.prepareOptionsForQuiz6(correctVocab);
@@ -1545,6 +1556,8 @@ function quizStyle6() {
   utils.prepareQuiz6(result[0], result[1], result[5]);
 }
 function quizStyle7() {
+  utils.showNextAndAutoplay()
+
   utils.ClearPageForQuizContainer();
   const eligibleVocab = vocabList.filter(entry => utils.hasConjugations(entry));
   if (eligibleVocab.length < 1) {
@@ -1566,6 +1579,8 @@ function quizStyle7() {
 function quizStyle8() {
   console.log("quiz style 8, listening quiz")
   utils.ClearPageForQuizContainer();
+  utils.showNextAndAutoplay()
+
   document.getElementById('speakQuiz').style.display = "block"
   const eligibleVocab = utils.getEligibleVocabs(vocabList);
   if (eligibleVocab.length < 1) {

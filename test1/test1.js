@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('vocabFlashcard').style.display = 'none';
   document.getElementById('quizContainer').style.display = 'none';
   document.getElementById('trueFalseContainer').style.display = 'none';
-  document.getElementById('nextButton').style.display = 'none';
   populateBookSelector();
   const allCheckbox = document.querySelector('input[name="coverage"][value="all"]');
   const otherCheckboxes = Array.from(document.querySelectorAll('input[name="coverage"]:not([value="all"])'));
@@ -56,10 +55,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Call the function to display vocab
     displayTests(selectedCollection);
 
-  });
-
-  document.getElementById('nextButton').addEventListener('click', function () {
-    showNextItem();
   });
 
   document.getElementById('end').addEventListener('click', function () {
@@ -182,17 +177,14 @@ function displayTests(bookSelected) {
 
       document.getElementById('wrongCountDiv').style.display = '';
       document.getElementById('testCollectionBtn').style.display = 'none';
-      document.getElementById('nextButton').style.display = '';
       document.getElementById('initContainer').style.display = 'none';
       document.getElementById('bookSelector').style.display = 'none';
       document.getElementById('quizContainer').style.display = '';
-      document.getElementById('nextButton').style.display = 'none';
       totalNoCount = filteredVocabList.length;
       document.getElementById('wrongCountDiv').textContent = `"${currentQuizNo}" / ${totalNoCount}"`;
       document.getElementById('end').style.display = '';
       if (filteredVocabList.length < 4) {
         document.getElementById('vocabFlashcard').textContent = "No vocabulary to test.";
-        document.getElementById('nextButton').style.display = 'none';
         return;
       }
       showNextItem();
@@ -241,7 +233,6 @@ function showNextItem() {
     document.getElementById("quizContainer").style.display = 'none';
     document.getElementById('trueFalseContainer').style.display = 'none';
   } else {
-    document.getElementById('nextButton').style.display = 'none';
     document.getElementById('quizContainer').style.display = 'none';
     document.getElementById('trueFalseContainer').style.display = 'none';
     const focusQuizMap = {
@@ -267,7 +258,7 @@ function showNextItem() {
 function quizStyle1() {
   utils.ClearPageForQuizContainer();
   utils.removeSnooze();
-  const eligibleVocab = utils.getEligibleVocabs(filteredVocabList);
+  const eligibleVocab = utils.getEligibleVocabs(filteredVocabList, () => false, false);
   const correctVocab = utils.getTestWord(eligibleVocab);
   currentQuizWord = correctVocab.word;
   utils.setupDefQuiz(correctVocab, eligibleVocab)
@@ -280,7 +271,7 @@ function quizStyle2() {
   utils.ClearPageForQuizContainer();
   utils.removeSnooze();
 
-  const eligibleVocab = utils.getEligibleVocabs(filteredVocabList);
+  const eligibleVocab = utils.getEligibleVocabs(filteredVocabList, () => false, false);
   const correctVocab = utils.getTestWord(eligibleVocab);
   currentQuizWord = correctVocab.word;
   currentQuizDefinition = correctVocab.definition;
@@ -294,7 +285,7 @@ function quizStyle2() {
 
 function quizStyle3() {
   // Quiz Style 3: True or False
-  const eligibleVocab = utils.getEligibleVocabs(filteredVocabList);
+  const eligibleVocab = utils.getEligibleVocabs(filteredVocabList, () => false, false);
   const correctVocab = utils.getTestWord(eligibleVocab);
   currentQuizWord = correctVocab.word;
   currentQuizDefinition = correctVocab.definition;
@@ -345,7 +336,7 @@ function quizStyle5() {
 
   utils.ClearPageForQuizContainer();
   utils.removeSnooze();
-  const eligibleVocab = filteredVocabList.filter(entry => entry.seen > 3 && utils.hasGender(entry));
+  const eligibleVocab = filteredVocabList.filter(entry => utils.hasGender(entry));
   const quizIndex = Math.floor(Math.random() * eligibleVocab.length);
   const correctVocab = eligibleVocab[quizIndex];
   const eligibleOptions = utils.LanguageGenderMap[correctVocab.language] || [];

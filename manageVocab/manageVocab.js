@@ -1,5 +1,7 @@
 // document.getElementById('addVocabForm').addEventListener('submit', function(e) {
 //   e.preventDefault();
+import * as utils from '../utils.js';
+
 chrome.storage.sync.getBytesInUse(null, function (bytesInUse) {
   console.log('Sync storage used: ' + bytesInUse + ' bytes');
 });
@@ -606,21 +608,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   document.getElementById('exportToJson').addEventListener('click', function () {
-    chrome.storage.local.get('vocabList', function (data) {
-      console.log("a")
-      const jsonString = JSON.stringify(data, null, 2);
-      const blob = new Blob([jsonString], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      var date = new Date();
-      const filename = date.toJSON().slice(0, 10) + ".json";
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    });
+    utils.exportToJson();
   });
   document.getElementById('importFromJson').addEventListener('click', function () {
     const fileInput = document.getElementById('fileInput');

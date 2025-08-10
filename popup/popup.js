@@ -81,16 +81,6 @@ document.getElementById('addVocabForm').addEventListener('submit', function (e) 
 
 
 });
-function getLanguageCharSetMapping(lang) {
-  switch (lang) {
-    case "ja":
-      return "Jpan"
-    case "zh":
-      return "Hani"
-    default:
-      return "Latn"
-  }
-}
 function updateLanguageList(lang) {
   chrome.storage.local.get({ languageList: {} }, (data) => {
 
@@ -120,709 +110,100 @@ function initializeConjugations(conjugations) {
 
 }
 async function getLatinAttributes(doc, word) {
-  document.getElementById("vocabInfoInfInfs").style.display = 'block'
   const book = document.getElementById('bookSelector').value;
-  const pronounciation = document.getElementById('pronounciation').value;
-  const gender = document.getElementById('gender').value;
-  let conjugations = {};
-  document.getElementById('vocabInfo').innerHTML = ""
-  vocab = {}
-  let verbInflectionTable;
-  let verbInflectionTableNew;
-  let isVerb = false;
-  const spanElement = doc.querySelector('span.Latn.form-of.lang-la[lang="la"]');
-  //console.log(word);
-  if (spanElement) {
-    // Get its parent element
-    const parentElement = spanElement.parentElement.parentElement.parentElement.parentElement;
+  // Call the shared utils function
+  vocab = await utils.getLatinAttributes(doc, word, book);
+  console.log(vocab)
 
-    if (parentElement) {
-      //console.log(parentElement)
-      verbInflectionTableNew = parentElement
-      if (verbInflectionTableNew.classList.contains("roa-inflection-table")) {
-        isVerb = true
-      }
-    }
-
-  }
-
-  let iTableLocator = doc.querySelector('.inflection-table.vsSwitcher tbody tr th i[lang="la"]');
-  if (iTableLocator) {
-    let th = iTableLocator.parentElement;
-    let tr = th.parentElement;
-    let tbody = tr.parentElement;
-    verbInflectionTable = tbody.parentElement;
-  }
-
-  if (verbInflectionTable || isVerb) {
-    let anchorElement = verbInflectionTableNew.querySelector('a');
-    if (anchorElement) { conjugations.group = anchorElement.textContent };
-    let definition = ""
-    let lastOl = null;
-    const parentParagraph = verbInflectionTableNew.parentElement.parentElement;
-    let currentElement = parentParagraph;
-
-    while (currentElement) {
-      currentElement = currentElement.previousElementSibling;
-      if (currentElement && currentElement.tagName === "OL") {
-        lastOl = currentElement;
-        break;
-      }
-    }
-    if (lastOl) {
-      const ListItems = lastOl.querySelectorAll('ol > li');
-      let firstListItem;
-      for (let i = 0; i < ListItems.length; i++) {
-        if (ListItems[i].textContent.trim() !== "") {
-          firstListItem = ListItems[i]
-          break;
-        }
-      }
-      firstListItem.querySelectorAll('span, dl,ul').forEach(el => el.remove());
-      var rawDef = firstListItem.textContent.trim();
-      if (rawDef.includes('.mw')) {
-        definition = rawDef.slice(0, definition.indexOf('.mw')).trim();
-      } else {
-        definition = rawDef.trim();
-      }
-    }
-
-    let conjugationText = conjugations.group;
-    // Select the <span> element
-    let spanElements = doc.querySelectorAll('span.Latn.form-of.lang-la');
-    conjugations.pos = 'verb'
-    conjugations.number = { singular: [], plural: [] }
-    conjugations.person = { first: [], second: [], third: [] }
-    conjugations.tense = { present: [], imperfect: [], perfect: [], future: [], pluperfect: [], futurePerfect: [], sigmaticFuture: [], aorist: [] }
-    conjugations.voice = { active: [], passive: [] }
-    conjugations.mood = { indicative: [], subjunctive: [], imperative: [] }
-    conjugations.form = { infinitive: [], participle: [] }
-    conjugations.noun = { gerundive: [], supine: [] }
-    conjugations.case = { genitive: [], ablative: [], accusative: [], dative: [] }
-    spanElements.forEach((spanElement) => {
-      let childText = spanElement.firstElementChild.textContent;
-      if (spanElement.className.includes('1')) { conjugations.person.first.push(childText); }
-      if (spanElement.className.includes('2')) { conjugations.person.second.push(childText); }
-      if (spanElement.className.includes('3')) { conjugations.person.third.push(childText); }
-      if (spanElement.className.includes('|s|')) {
-        conjugations.number.singular.push(childText);
-      } if (spanElement.className.includes('|p|')) {
-        conjugations.number.plural.push(childText);
-      } if (spanElement.className.includes('pres')) {
-        conjugations.tense.present.push(childText);
-      } if (spanElement.className.includes('impf')) {
-        conjugations.tense.imperfect.push(childText);
-      } if (spanElement.className.includes('fut|')) {
-        conjugations.tense.future.push(childText);
-      } if (spanElement.className.includes('perf')) {
-        conjugations.tense.perfect.push(childText);
-      } if (spanElement.className.includes('plup')) {
-        conjugations.tense.pluperfect.push(childText);
-      } if (spanElement.className.includes('futp')) {
-        conjugations.tense.futurePerfect.push(childText);
-      } if (spanElement.className.includes('sigm')) {
-        conjugations.tense.sigmaticFuture.push(childText);
-      } if (spanElement.className.includes('aor')) {
-        conjugations.tense.aorist.push(childText);
-      } if (spanElement.className.includes('act')) {
-        conjugations.voice.active.push(childText);
-      } if (spanElement.className.includes('pass')) {
-        conjugations.voice.passive.push(childText);
-      } if (spanElement.className.includes('ind')) {
-        conjugations.mood.indicative.push(childText);
-      } if (spanElement.className.includes('sub')) {
-        conjugations.mood.subjunctive.push(childText);
-      } if (spanElement.className.includes('imp-form-of')) {
-        conjugations.mood.imperative.push(childText);
-      } if (spanElement.className.includes('inf')) {
-        conjugations.form.infinitive.push(childText);
-      } if (spanElement.className.includes('part')) {
-        conjugations.form.participle.push(childText);
-      } if (spanElement.className.includes('gen')) {
-        conjugations.case.genitive.push(childText);
-      } if (spanElement.className.includes('ger')) {
-        conjugations.noun.gerundive.push(childText);
-      } if (spanElement.className.includes('dat')) {
-        conjugations.case.dative.push(childText);
-      } if (spanElement.className.includes('acc')) {
-        conjugations.case.accusative.push(childText);
-      } if (spanElement.className.includes('sup')) {
-        conjugations.noun.supine.push(childText);
-      } if (spanElement.className.includes('abl')) {
-        conjugations.case.ablative.push(childText);
-      }
-    });
-    const vocabInfo = document.getElementById('vocabInfo');
-    var h2 = doc.getElementById('Latin');
-    var h2Parent = h2.parentElement;
-    var hasEytm = true;
-    while (true) {
-      if (h2Parent && h2Parent.firstChild && h2Parent.firstChild.id && h2Parent.firstChild.id.includes('Etymology')) {
-        break;
-      } else {
-        if (h2Parent.nextElementSibling) {
-          h2Parent = h2Parent.nextElementSibling;
-        } else {
-          hasEytm = false;
-          break;
-        }
-      }
-    }
-    var etym;
-    if (!hasEytm) { etym = "" } else {
-      const nextElem = h2Parent.nextElementSibling;
-      etym = nextElem.innerText;
-      etym = etym.replace(/\.mw[\s\S]*\}/, '');
-    }
-    //console.log(etym);
-    vocab = { word, definition, snoozed: false, book, pronounciation, language: "la", gender, conjugations, seen: 0, type: "verb", quizResults: ['n', 'n', 'n', 'n'], hasChecked: true, etym: hasEytm ? etym : "" }
-    vocabInfo.innerHTML = ""
-    vocabInfo.innerHTML += ' word: <span style="font-weight: bold;">' + vocab.word + '</span>'
-    vocabInfo.innerHTML += '<br>\n definition: <span style="font-weight: bold;">' + vocab.definition + '</span>'
-    vocabInfo.innerHTML += "<br>\n group: " + vocab.conjugations.group
-    vocabInfo.innerHTML += "<br>\n collection: " + vocab.book
-    vocabInfo.innerHTML += "<br>\n eytmology: " + vocab.etym
+  if (typeof vocab === 'string') {
     document.getElementById("vocabInfoInfInfs").style.display = 'block'
-    conjugations.type = 'latin';
-    console.log(vocab)
-
-    document.getElementById("addAuto").style.display = 'block'
+    document.getElementById('addAuto').style.display = 'none'
+    document.getElementById('vocabInfo').style.display = 'block'
+    document.getElementById('vocabInfo').innerHTML = utils.invalidWord;
+    return;
   }
-  else {
-    const nounInflectionTable = doc.querySelector('table.inflection-table-la');
-    if (nounInflectionTable) {
-      const conjugations = {}
-      let declension = ""
-      const declensionElements = doc.querySelectorAll('a[href^="/wiki/Appendix:Latin_"][href*="declension"]');
-
-      if (declensionElements) {
-        const declensionElementsLength = declensionElements.length / 2
-        for (let i = 0; i < declensionElementsLength; i++) {
-          declension += declensionElements[i].textContent
-        }
-        declension = declension.replaceAll("firstsecond", "first&second").replaceAll("-", " ")
-        declension = declension.slice(0, declension.indexOf(' ')).trim();
-        conjugations.group = declension
-      }
-      const queryWord = 'strong.Latn.headword[lang="la"]'
-      const isWord = doc.querySelector(queryWord);
-      let autoGender = ''
-      if (isWord) {
-        const grannyElement = isWord.parentElement.parentElement;
-        const genderSpan = grannyElement.querySelector("span.gender");
-        if (genderSpan) {
-          const genderDef = genderSpan.firstChild.textContent;
-          switch (genderDef) {
-            case 'f':
-              autoGender = GenderType.FEMININE
-              break;
-            case 'm':
-              autoGender = GenderType.MASCULINE
-              break;
-            case 'n':
-              autoGender = GenderType.NEUTER
-              break;
-            default:
-              break;
-          }
-        }
-      }
-      let closestOl = null;
-      const latinHeading = doc.querySelector('h2#Latin');
-      const closestDiv = latinHeading.closest('div');
-      let sibling = closestDiv.nextElementSibling;
-      while (sibling) {
-        // If an <ol> is found, assign it to closestOl and break out of the loop
-        if (sibling.tagName.toLowerCase() === 'ol') {
-          closestOl = sibling;
-          break;
-        }
-        sibling = sibling.nextElementSibling; // Move to the next sibling
-      }
-
-      const ListItems = sibling.querySelectorAll('li');
-      for (let i = 0; i < ListItems.length; i++) {
-        if (ListItems[i].textContent.trim() !== "") {
-          var firstListItem = ListItems[i]
-          break;
-        }
-      }
-      firstListItem.querySelectorAll('dl,ul').forEach(el => el.remove());
-      var definition = firstListItem.textContent.trim();
-      conjugations.inflections = {
-        singular_nominative: [],
-        plural_nominative: [], singular_genitive: [],
-        plural_genitive: [], singular_dative: [],
-        plural_dative: [], singular_accusative: [],
-        plural_accusative: [], singular_ablative: [],
-        plural_ablative: [], singular_vocative: [],
-        plural_vocative: [],
-
-      }
-      let spanElements = doc.querySelectorAll('span.Latn.form-of.lang-la');
-      spanElements.forEach((spanElement) => {
-        let childText = spanElement.firstElementChild.textContent;
-        if (spanElement.className.includes('s-') && spanElement.className.includes('nom')) { conjugations.inflections.singular_nominative.push(childText); }
-        if (spanElement.className.includes('p-') && spanElement.className.includes('nom')) { conjugations.inflections.plural_nominative.push(childText); }
-        if (spanElement.className.includes('s-') && spanElement.className.includes('acc')) { conjugations.inflections.singular_accusative.push(childText); }
-        if (spanElement.className.includes('p-') && spanElement.className.includes('acc')) { conjugations.inflections.plural_accusative.push(childText); }
-        if (spanElement.className.includes('s-') && spanElement.className.includes('dat')) { conjugations.inflections.singular_dative.push(childText); }
-        if (spanElement.className.includes('p-') && spanElement.className.includes('dat')) { conjugations.inflections.plural_dative.push(childText); }
-        if (spanElement.className.includes('s-') && spanElement.className.includes('gen')) { conjugations.inflections.singular_genitive.push(childText); }
-        if (spanElement.className.includes('p-') && spanElement.className.includes('gen')) { conjugations.inflections.plural_genitive.push(childText); }
-        if (spanElement.className.includes('s-') && spanElement.className.includes('voc')) { conjugations.inflections.singular_vocative.push(childText); }
-        if (spanElement.className.includes('p-') && spanElement.className.includes('voc')) { conjugations.inflections.plural_vocative.push(childText); }
-        if (spanElement.className.includes('s-') && spanElement.className.includes('abl')) { conjugations.inflections.singular_ablative.push(childText); }
-        if (spanElement.className.includes('p-') && spanElement.className.includes('abl')) { conjugations.inflections.plural_ablative.push(childText); }
-
-      });
-      let hasEytm = true;
-      conjugations.type = 'latin';
-      const vocabInfo = document.getElementById('vocabInfo');
-      var h2 = doc.getElementById('Latin');
-      var h2Parent = h2.parentElement;
-      while (true) {
-        if (h2Parent && h2Parent.firstChild && h2Parent.firstChild.id && h2Parent.firstChild.id.includes('Etymology')) {
-          break;
-        } else {
-          if (h2Parent.nextElementSibling) {
-            h2Parent = h2Parent.nextElementSibling;
-          } else {
-            hasEytm = false;
-            break;
-          }
-        }
-      }
-
-      var etym;
-      if (!hasEytm) { etym = "" } else {
-        while (h2Parent.nextElementSibling) {
-          if (h2Parent.nextElementSibling.tagName === 'P') {
-            break;
-          }
-          h2Parent = h2Parent.nextElementSibling
-        }
-        const nextElem = h2Parent.nextElementSibling;
-        etym = nextElem.innerText;
-        etym = etym.replace(/\.mw[\s\S]*\}/, '');
-      }
-      //console.log(etym);
-      vocab = { word, definition, snoozed: false, book, pronounciation, language: "la", gender: autoGender ? autoGender : gender, conjugations, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'], etym: hasEytm ? etym : "" }
-      vocabInfo.innerHTML = ""
-      vocabInfo.innerHTML += ' word: <span style="font-weight: bold;">' + vocab.word + '</span>'
-      vocabInfo.innerHTML += '<br> \n definition: <span style="font-weight: bold;">' + vocab.definition + '</span>'
-      if (autoGender) {
-        let genderColor = "";
-
-        if (autoGender === GenderType.FEMININE) genderColor = "#BD4028";
-        else if (autoGender === GenderType.MASCULINE) genderColor = "#629FD1";
-        else if (autoGender === GenderType.NEUTER) genderColor = "#5E965A";
-        vocabInfo.innerHTML += `<br> \n gender: <span style="color:${genderColor};font-weight:bold;">${autoGender}</span>`
-      }
-      vocabInfo.innerHTML += "<br>\n group: " + vocab.conjugations.group
-      vocabInfo.innerHTML += "<br> \n collection: " + vocab.book
-      vocabInfo.innerHTML += "<br> \n eytmology: " + vocab.etym
-      conjugations.type = 'latin';
-      document.getElementById("vocabInfoInfInfs").style.display = 'block'
-      document.getElementById("addAuto").style.display = 'block'
-      console.log(vocab)
-    } else {
-      const latinElement = doc.querySelector('span.form-of-definition-link i.Latn.mention[lang="la"]');
-      if (latinElement) {
-        const anchorTag = latinElement.querySelector('a');
-        if (anchorTag) {
-          const linkText = anchorTag.textContent; // Get the text content of the <a>
-          const spanElement = latinElement.parentElement;
-          const spanElement1 = spanElement.parentElement;
-          const liElement = spanElement1.parentElement;
-          let definition = ""
-          if (liElement) {
-            definition = liElement.textContent.trim()
-          }
-          definition += ","
-          let noramlizedWord = word.normalize('NFD');
-          let noDiacritics = noramlizedWord.replace(/[\u0300-\u036f]/g, "");
-          let finalStr = noDiacritics.replace(/-/g, "");
-          let finallinkText = utils.processWordByLanguage(LANGUAGES.LATIN, linkText)
-          if (finalStr.trim() != finallinkText.trim()) {
-            var url = usingLocal ? `http://localhost:3000/fetch/${linkText}` : `https://en.wiktionary.org/wiki/${finallinkText}`
-            await fetch(url)
-              .then(response => response.text())
-              .then(html => {
-                // Parse the returned HTML and extract the inflection table
-                const parser = new DOMParser();
-                const baseDoc = parser.parseFromString(html, 'text/html');
-                getLatinAttributes(baseDoc, linkText);
-              })
-          } else {
-            document.getElementById("vocabInfoInfInfs").style.display = 'block'
-            document.getElementById('vocabInfo').style.display = 'block'
-            document.getElementById('addAuto').style.display = 'none'
-            document.getElementById('vocabInfo').innerHTML = 'invalid word(either is one of the special words, does not exist in latin or does not have a normal conjugation table or is not in base form.)'
-          }
-        }
-      } else {
-        const isLatinWord = doc.querySelector('strong.Latn.headword[lang="la"]');
-        if (isLatinWord) {
-          getEasyAttributes(doc, word, "la")
-        } else {
-          document.getElementById("vocabInfoInfInfs").style.display = 'block'
-          document.getElementById('addAuto').style.display = 'none'
-
-          document.getElementById('vocabInfo').style.display = 'block'
-          document.getElementById('vocabInfo').innerHTML = 'invalid word(either does not exist in latin or does not have a normal conjugation table or is not in base form.)'
-        }
-
-      }
-    }
+  const vocabInfo = document.getElementById('vocabInfo');
+  vocabInfo.innerHTML = '';
+  vocabInfo.innerHTML += `word: <span style="font-weight: bold;">${vocab.word}</span>`;
+  vocabInfo.innerHTML += `<br>\n definition: <span style="font-weight: bold;">${vocab.definition}</span>`;
+  if (vocab.gender) {
+    let genderColor = "";
+    if (vocab.gender === utils.GenderType.FEMININE) genderColor = "#BD4028";
+    else if (vocab.gender === utils.GenderType.MASCULINE) genderColor = "#629FD1";
+    else if (vocab.gender === utils.GenderType.NEUTER) genderColor = "#5E965A";
+    else if (vocab.gender === utils.GenderType.COMMON) genderColor = "#8A6D3B";
+    vocabInfo.innerHTML += `<br>\n gender: <span style="color:${genderColor};font-weight:bold;">${vocab.gender}</span>`;
   }
+  vocabInfo.innerHTML += `<br>\n group: ${vocab.conjugations.group || ""}`;
+  vocabInfo.innerHTML += `<br>\n collection: ${vocab.book}`;
+  vocabInfo.innerHTML += `<br>\n eytmology: ${vocab.etym || ""}`;
+
+  document.getElementById("vocabInfoInfInfs").style.display = 'block';
+  document.getElementById("addAuto").style.display = 'block';
+  return vocab;
 }
 async function getLinkedAttributes(doc, word, lang) {
-  var mention = getLanguageCharSetMapping(lang)
-  console.log(mention)
-  document.getElementById('vocabInfo').innerHTML = ""
-  document.getElementById('vocabInfoInfs').innerHTML = ""
   const book = document.getElementById('bookSelector').value;
-  const pronounciation = document.getElementById('pronounciation').value;
-  const gender = document.getElementById('gender').value;
-  const baseFormQuery = 'span.form-of-definition-link i[class="' + mention + ' mention"][lang="' + lang + '"]'
-  const hasBaseForm = doc.querySelector(baseFormQuery);
-  const queryWord = 'strong.' + mention + '.headword[lang="' + lang + '"]'
-  let isWord = doc.querySelector(queryWord);
-  let title = null;
-  console.log(mention)
-  console.log(lang)
-  if (word.length === 1) {
-    return getEasyAttributes(doc, word, lang)
-  }
-  if (mention === 'Jpan') {
-    title = getJapaneseBaseText(doc);
-  } else if (lang === 'zh') {
-    title = getChineseBaseText(doc);
-  }
-  if (hasBaseForm) {
-    const anchorTag = hasBaseForm.querySelector('a');
-    if (anchorTag) {
-      const linkText = anchorTag.textContent; // Get the text content of the <a>
-      document.getElementById('vocabInfoInfs').style.display = 'block'
-      const spanElement = hasBaseForm.parentElement;
-      const spanElement1 = spanElement.parentElement;
-      const liElement = spanElement1.parentElement;
-      let definition = ""
-      if (liElement) {
-        const firstInflection = liElement.querySelector('ol')
-        if (firstInflection) {
-          const inflectionDescription = firstInflection.querySelector('li')
-          definition += inflectionDescription.textContent.trim()
-        } else {
-          definition = liElement.textContent.trim()
-        }
-      }
-      document.getElementById('vocabInfoInfs').innerHTML += definition
-      document.getElementById('vocabInfoInfs').innerHTML += String.fromCodePoint(0x1F4A0);
-      let noramlizedWord = word.normalize('NFD');
-      let noDiacritics = noramlizedWord.replace(/[\u0300-\u036f]/g, "");
-      let finalStr = noDiacritics.replace(/-/g, "");
-      let baseDoc;
-      let finallinkText = utils.processWordByLanguage(lang, linkText)
-      console.log(finallinkText)
-      if (finalStr.trim() != linkText.trim()) {
-        var url = usingLocal ? `http://localhost:3000/fetch/${linkText}` : `https://en.wiktionary.org/wiki/${finallinkText}`
-        await fetch(url)
-          .then(response => response.text())
-          .then(html => {
-            // Parse the returned HTML and extract the inflection table
-            const parser = new DOMParser();
-            baseDoc = parser.parseFromString(html, 'text/html');
-            getEasyAttributes(baseDoc, linkText, lang, "Latn");
-          })
-        document.getElementById("vocabInfoInfInfs").style.display = 'block'
-        document.getElementById("vocabInfo").textContent + "," + definition
-      }
-
-    }
-  } else if (title) {
-    console.log(title, word)
-    var url = usingLocal ? `http://localhost:3000/fetch/${title}` : `https://en.wiktionary.org/wiki/${title}`
-    await fetch(url)
-      .then(response => response.text())
-      .then(html => {
-        // Parse the returned HTML and extract the inflection table
-        const parser = new DOMParser();
-        let baseDoc;
-        baseDoc = parser.parseFromString(html, 'text/html');
-        getEasyAttributes(baseDoc, title, lang, mention);
-      })
-    document.getElementById("vocabInfo").textContent + "," + definition
+  // Call the shared utils function
+  vocab = await utils.getLinkedAttributes(doc, word, lang, book)
+  console.log(vocab)
+  if (typeof vocab === 'string') {
     document.getElementById("vocabInfoInfInfs").style.display = 'block'
-
-    //definition = document.getElementById("vocabInfo").textContent+","+definition
-    //vocab = {word,definition,snoozed: false,book,pronounciation,gender,hasChecked:true,seen:0,quizResults: ['n','n','n','n']}
-  } else {
-    getEasyAttributes(doc, word, lang)
+    document.getElementById('addAuto').style.display = 'none'
+    document.getElementById('vocabInfo').style.display = 'block'
+    document.getElementById('vocabInfo').innerHTML = utils.invalidWord;
+    return;
   }
+  console.log(vocab)
+  vocabInfo.innerHTML = '';
+  vocabInfo.innerHTML += `word: <span style="font-weight: bold;">${vocab.word}</span>`;
+  vocabInfo.innerHTML += `<br>\n definition: <span style="font-weight: bold;">${vocab.definition}</span>`;
+  if (vocab.gender) {
+    let genderColor = "";
+    if (vocab.gender === GenderType.FEMININE) genderColor = "#BD4028";
+    else if (vocab.gender === GenderType.MASCULINE) genderColor = "#629FD1";
+    else if (vocab.gender === GenderType.NEUTER) genderColor = "#5E965A";
+    else if (vocab.gender === GenderType.COMMON) genderColor = "#8A6D3B";
+    vocabInfo.innerHTML += `<br>\n gender: <span style="color:${genderColor};font-weight:bold;">${vocab.gender}</span>`;
+  }
+  vocabInfo.innerHTML += `<br>\n collection: ${vocab.book}`;
+  if (vocab.pronounciation) {
+    vocabInfo.innerHTML += `<br>\n pronounciation: ${vocab.pronounciation}`;
+  }
+  vocabInfo.innerHTML += `<br>\n eytmology: ${vocab.etym || ""}`;
+
+  document.getElementById("vocabInfoInfInfs").style.display = 'block';
+  document.getElementById("addAuto").style.display = 'block';
 }
 async function getEasyAttributes(doc, word, lang) {
-  let mention = getLanguageCharSetMapping(lang)
-  document.getElementById('vocabInfo').innerHTML = ''
-  document.getElementById('vocabInfo').style.display = ""
-  let book = document.getElementById('bookSelector').value;
-  const pronounciation = document.getElementById('pronounciation').value;
-  const gender = document.getElementById('gender').value;
-  const queryWord = 'strong.' + mention + '.headword[lang="' + lang + '"]'
-  let isWord = doc.querySelector(queryWord);
-  if (lang === "zh" && !isWord) {
-    isWord = doc.querySelector('strong.Hant.headword[lang="zh"]')
-    if (!isWord) {
-      isWord = doc.querySelector('strong.Hans.headword[lang="zh"]');
-      mention = "Hans"
-    } else {
-      mention = "Hant"
-    }
-  }
-  console.log(isWord)
-  console.log(queryWord)
-  if (isWord) {
-    const grannyElement = isWord.parentElement.parentElement;
-    const closestOl = grannyElement.nextElementSibling;
-    const liElement = closestOl.querySelector("li"); // Get the text content of the <a>
-    document.getElementById('vocabInfo').style.display = 'block'
-    let definition = ""
-    if (liElement) {
-      liElement.querySelectorAll('dl,u,span,ul').forEach(el => el.remove());
-      definition = liElement.textContent.trim()
-      definition = definition.replace(/ *\([^)]*\) */g, "");
-    }
-    const spanElement = doc.querySelector('span.' + mention + '.form-of.lang-' + lang + '[lang="' + lang + '"]');
-    let isVerb = false;
-    let verbInflectionTableNew;
-    if (spanElement) {
-      // Get its parent element
-      const parentElement = spanElement.parentElement.parentElement.parentElement.parentElement;
+  // Get book, pronounciation, gender from the form
+  const book = document.getElementById('bookSelector').value;
+  // Call the shared utils function
+  vocab = await utils.getEasyAttributes(doc, word, lang, book);
 
-      if (parentElement) {
-        verbInflectionTableNew = parentElement
-        if (verbInflectionTableNew.classList.contains("roa-inflection-table")) {
-          isVerb = true
-        }
-      }
+  // Display vocab info in popup
+  const vocabInfo = document.getElementById('vocabInfo');
+  vocabInfo.innerHTML = '';
+  vocabInfo.innerHTML += `word: <span style="font-weight: bold;">${vocab.word}</span>`;
+  vocabInfo.innerHTML += `<br>\n definition: <span style="font-weight: bold;">${vocab.definition}</span>`;
+  if (vocab.gender) {
+    let genderColor = "";
+    if (vocab.gender === GenderType.FEMININE) genderColor = "#BD4028";
+    else if (vocab.gender === GenderType.MASCULINE) genderColor = "#629FD1";
+    else if (vocab.gender === GenderType.NEUTER) genderColor = "#5E965A";
+    else if (vocab.gender === GenderType.COMMON) genderColor = "#8A6D3B";
+    vocabInfo.innerHTML += `<br>\n gender: <span style="color:${genderColor};font-weight:bold;">${vocab.gender}</span>`;
+  }
+  vocabInfo.innerHTML += `<br>\n collection: ${vocab.book}`;
+  if (vocab.pronounciation) {
+    vocabInfo.innerHTML += `<br>\n pronounciation: ${vocab.pronounciation}`;
+  }
+  vocabInfo.innerHTML += `<br>\n eytmology: ${vocab.etym || ""}`;
 
-    }
-    let autoGender = ''
-    const genderSpan = grannyElement.querySelector("span.gender");
-    if (genderSpan) {
-      const genderDef = genderSpan.firstChild.textContent;
-      console.log(genderDef)
-      switch (genderDef) {
-        case 'f':
-          autoGender = GenderType.FEMININE
-          break;
-        case 'm':
-          autoGender = GenderType.MASCULINE
-          break;
-        case 'n':
-          autoGender = GenderType.NEUTER
-          break;
-        case 'c':
-          autoGender = GenderType.COMMON;
-          break;
-        default:
-          break;
-      }
-    }
-    var hasEytm = true;
-    var baseDef = definition
-    definition = definition.split(".mw")[0]
-    definition = definition.split(";")[0];
-    const language = convertFromAbbr(lang);
-    var h2 = doc.getElementById(language);
-    var h2Parent = h2.parentElement;
-    while (true) {
-      if (h2Parent && h2Parent.firstChild && h2Parent.firstChild.id && h2Parent.firstChild.id.includes('Etymology')) {
-        break;
-      } else {
-        if (h2Parent.nextElementSibling) {
-          h2Parent = h2Parent.nextElementSibling;
-        } else {
-          hasEytm = false;
-          break;
-        }
-      }
-    }
-    var etym;
-    if (!hasEytm) { etym = "" } else {
-      while (h2Parent.nextElementSibling) {
-        if (h2Parent.nextElementSibling.tagName === 'P') {
-          break;
-        }
-        h2Parent = h2Parent.nextElementSibling
-      }
-      let nextElem = h2Parent.nextElementSibling;
-      if (lang === 'ja' || lang === 'zh') {
-        while (nextElem.tagName === 'P') {
-          if (nextElem.innerText !== undefined && nextElem.innerText !== "") {
-            etym += nextElem.innerText;
-          }
-          nextElem = nextElem.nextElementSibling;
-        }
-      } else {
-        etym = nextElem.innerText;
-      }
-      if (etym.includes("This etymology is missing or incomplete")) {
-        etym = ""
-      } else {
-        etym = etym.replace(/\.mw[\s\S]*\}/, '');
-        etym = etym.replace('undefined', '');
-      }
-    }
-    let pronounciationText = null;
-    if (lang === 'ja') {
-      let jpPronounciation = doc.querySelector('[title="w:Tokyo dialect"]');
-      if (jpPronounciation) {
-        let jpPronounciationParent = jpPronounciation.parentElement.parentElement
-        pronounciationText = jpPronounciationParent.nextElementSibling.innerText;
-      }
-    } else if (lang === 'zh') {
-      let zhPronounciation = doc.querySelector('[title="w:Pinyin"]');
-      if (zhPronounciation) {
-        let zhPronounciationParent = zhPronounciation.parentElement.parentElement
-        pronounciationText = zhPronounciationParent.nextElementSibling.innerText;
-      }
-    }
-    document.getElementById('vocabInfo').innerHTML += '<span style="font-weight: bold;">' + definition + '</span><br>'
-    if (pronounciationText != null) {
-      document.getElementById('vocabInfo').innerHTML += ("<br>pronounciation:" + pronounciationText)
-    }
-    if (autoGender) {
-      let genderColor = "";
-      if (autoGender === GenderType.FEMININE) genderColor = "#BD4028";
-      else if (autoGender === GenderType.MASCULINE) genderColor = "#629FD1";
-      else if (autoGender === GenderType.NEUTER) genderColor = "#5E965A";
-      vocabInfo.innerHTML += `<br> \n gender: <span style="color:${genderColor};font-weight:bold;">${autoGender}</span>`
-    }
-    document.getElementById('vocabInfo').innerHTML += "<br>" + etym
-    vocab = { word, definition, snoozed: false, book, language: lang, pronounciation: pronounciationText, gender: autoGender ? autoGender : gender, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'], etym: hasEytm ? etym : "" }
-    console.log(vocab)
-    if (isVerb) {
-      switch (lang) {
-        case 'fr':
-          vocab.conjugations = getFrenchVerbInflections(verbInflectionTableNew)
-          break;
-        // case 'es':
-        //   vocab.conjugations = getSpanishVerbInflections(verbInflectionTableNew)
-      }
-    }
-    document.getElementById("vocabInfoInfInfs").style.display = 'block'
-    document.getElementById("addAuto").style.display = 'block'
-  } else {
-    document.getElementById("vocabInfoInfInfs").style.display = 'block'
-    document.getElementById("addAuto").style.display = 'none'
-    document.getElementById('vocabInfo').style.display = 'block'
-    document.getElementById('vocabInfo').innerHTML = "word could need correct capitalizations, be a special word, or doesnot exist in the language"
-  }
-}
-function getChineseBaseText(doc) {
-  const bolds = doc.querySelectorAll('b');
-  for (const b of bolds) {
-    if (b.textContent.includes('see')) {
-      const span = b.querySelector('span[class*="Han"]');
-      if (span) {
-        const link = span.querySelector('a');
-        if (link) {
-          return link.getAttribute('title')
-        } else {
-        }
-      } else {
-      }
-    }
-  }
-}
-function getJapaneseBaseText(doc) {
-  const table = doc.querySelectorAll('span[class*="Jpan"]');
-  for (const t of table) {
-    let a = t.querySelector('a[title][href]');
-    if (a) {
-      return a.getAttribute('title');
-    }
-  }
-}
-function convertFromAbbr(lang) {
-  switch (lang) {
-    case 'de':
-      return 'German';
-    case 'es':
-      return 'Spanish';
-    case 'fr':
-      return 'French';
-    case 'it':
-      return 'Italian';
-    case 'en':
-      return 'English';
-    case 'pt':
-      return 'Portuguese';
-    case 'ru':
-      return 'Russian';
-    case 'zh':
-      return 'Chinese';
-    case 'ja':
-      return 'Japanese';
-    case 'ko':
-      return 'Korean';
-    case 'ar':
-      return 'Arabic';
-    case 'nl':
-      return 'Dutch';
-    case 'sv':
-      return 'Swedish';
-    case 'no':
-      return 'Norwegian';
-    case 'da':
-      return 'Danish';
-    case 'fi':
-      return 'Finnish';
-    case 'pl':
-      return 'Polish';
-    case 'tr':
-      return 'Turkish';
-    case 'el':
-      return 'Greek';
-    case 'he':
-      return 'Hebrew';
-    case 'hi':
-      return 'Hindi';
-    case 'bn':
-      return 'Bengali';
-    case 'la':
-      return 'Latin';
-    case 'vi':
-      return 'Vietnamese';
-    case 'id':
-      return 'Indonesian';
-    case 'ms':
-      return 'Malay';
-    case 'th':
-      return 'Thai';
-    case 'ro':
-      return 'Romanian';
-    case 'cs':
-      return 'Czech';
-    case 'hu':
-      return 'Hungarian';
-    case 'sk':
-      return 'Slovak';
-    case 'bg':
-      return 'Bulgarian';
-    case 'uk':
-      return 'Ukrainian';
-    case 'fa':
-      return 'Persian';
-    case 'sw':
-      return 'Swahili';
-
-    default:
-      return 'Unknown';
-  }
-
+  document.getElementById("vocabInfoInfInfs").style.display = 'block';
+  document.getElementById("addAuto").style.display = 'block';
+  // Optionally, update the global vocab variable
+  window.vocab = vocab;
 }
 function getFrenchVerbInflections(doc) {
   let conjugations = {}

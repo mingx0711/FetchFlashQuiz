@@ -9,6 +9,7 @@ let needDiatricts = ["de", "fr"]
 let correctConj;
 
 document.addEventListener('DOMContentLoaded', function () {
+
   chrome.storage.local.get('currentCollectionSelection', function (data) {
     currentCollectionSelection = data.currentCollectionSelection || []
   });
@@ -292,10 +293,18 @@ document.addEventListener('DOMContentLoaded', function () {
         // Parse the returned HTML and extract the inflection table
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
+        var newVocab;
         if (language == "la") {
-          vocab = await utils.getLatinAttributes(doc, vocab.word, vocab.book);
+          var newVocab = await utils.getLatinAttributes(doc, vocab.word, vocab.book);
         } else {
-          vocab = await utils.getEasyAttributes(doc, vocab.word, language, vocab.book);
+          var newVocab = await utils.getEasyAttributes(doc, vocab.word, language, vocab.book);
+        }
+        if (typeof newVocab === 'string') {
+
+        } else {
+          let def = vocab.definition;
+          vocab = newVocab;
+          vocab.definition = def;
         }
         vocab.hasChecked = true;
         vocabList = vocabList.map(item =>
@@ -670,7 +679,7 @@ function showNextVocab(collection = currentCollectionSelection) {
           currentVocabIndex = Math.floor(Math.random() * vocabList.length);
         }
       }
-      if (currentCollection[currentVocabIndex].seen >= 50) {
+      if (currentCollection[currentVocabIndex] && currentCollection[currentVocabIndex].seen >= 50) {
         if (Math.random() < 0.5) {
           // //console.log.log(currentCollection[currentVocabIndex].word + "has been seen too many times therefore skipped")
           currentVocabIndex = Math.floor(Math.random() * vocabList.length);
@@ -693,7 +702,7 @@ function showNextVocab(collection = currentCollectionSelection) {
           definition = wordObject.definition + String.fromCodePoint(0x1F4A0) + "| \n" + makeStringReadable(Object.values(utils.findSubfieldsForWord(word, wordObject.conjugations)).toString()) + " for " + wordObject.word;
         } else {
           word = wordObject.word
-          definition = currentCollection[currentVocabIndex].definition;
+          definition = wordObject.definition;
         }
       } else {
         word = currentCollection[currentVocabIndex].word;
@@ -741,9 +750,12 @@ function showNextVocab(collection = currentCollectionSelection) {
       chrome.storage.local.get('vocabList', function (data) {
         vocabList = data.vocabList;
         const match = vocabList.find(item => item.word === currentCollection[currentVocabIndex].word);
-        match.seen += 1;
-        chrome.storage.local.set({ vocabList: vocabList }, function () {
-        });
+        if (match.seen <= 5) {
+          match.seen += 1;
+          chrome.storage.local.set({ vocabList: vocabList }, function () {
+          });
+
+        }
         // //console.log.log(`Incremented seen count for "${word}".`);
       });
 

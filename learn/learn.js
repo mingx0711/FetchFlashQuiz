@@ -16,6 +16,7 @@ let correctCount = 0;
 let totalCountYet = 0;
 let totalNoCount = 0;
 let currentTest;
+let focusOption;
 let conjToTest;
 let correctConj;
 let totalVocabList = []
@@ -144,6 +145,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   document.getElementById('start').addEventListener('click', () => {
     learnCount = Math.max(document.getElementById('vocabCount').value, 4);
+    focusOption = document.querySelector('input[name="focusOption"]:checked').value;
     const selectedCollection = document.getElementById('bookSelector').value;
     // Call the function to display vocab
     generateLearningQueue(selectedCollection);
@@ -196,15 +198,19 @@ document.addEventListener('DOMContentLoaded', async function () {
 );
 let currentFocus;
 function getLeastLearnedAmount(arr) {
-  shuffleArray(arr);
-  return arr
-    .slice() // make a copy
-    .sort((a, b) => {
-      const aTime = a.learnedTime ?? -Infinity;
-      const bTime = b.learnedTime ?? -Infinity;
-      return aTime - bTime;
-    })
-    .slice(0, learnCount);
+  if (focusOption === "random") {
+    shuffleArray(arr);
+    return arr
+      .slice() // make a copy
+      .sort((a, b) => {
+        const aTime = a.learnedTime ?? -Infinity;
+        const bTime = b.learnedTime ?? -Infinity;
+        return aTime - bTime;
+      })
+      .slice(0, learnCount);
+  } else {
+    return (arr.slice().reverse().slice(0, learnCount));
+  }
 }
 async function generateLearningQueue(bookSelected) {
   await chrome.storage.local.get('vocabList', function (data) {

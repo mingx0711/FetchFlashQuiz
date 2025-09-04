@@ -134,9 +134,9 @@ async function getLatinAttributes(doc, word) {
     else if (vocab.gender === utils.GenderType.COMMON) genderColor = "#8A6D3B";
     vocabInfo.innerHTML += `<br>\n gender: <span style="color:${genderColor};font-weight:bold;">${vocab.gender}</span>`;
   }
-  vocabInfo.innerHTML += `<br>\n group: ${vocab.conjugations.group || ""}`;
+  vocabInfo.innerHTML += `<br>\n group: ${vocab.conjugations ? vocab.conjugations.group : ""}`;
   vocabInfo.innerHTML += `<br>\n collection: ${vocab.book}`;
-  vocabInfo.innerHTML += `<br>\n eytmology: ${vocab.etym || ""}`;
+  vocabInfo.innerHTML += `<br>\n eytmology: ${vocab.etym ? vocab.etym : ""}`;
 
   document.getElementById("vocabInfoInfInfs").style.display = 'block';
   document.getElementById("addAuto").style.display = 'block';

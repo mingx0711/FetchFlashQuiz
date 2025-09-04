@@ -9,7 +9,7 @@
       border: 3px dashed #b8a9a7;
       border-radius: 12px;
       background: #fffdfa;
-      height: 60vh;
+      height: 80vh;
       width: 50vw;
       max-width: 90vw;
       position: relative;
@@ -217,6 +217,13 @@
       position: relative;
     }
 
+    .ui.large.buttons .ui.button.active {
+      background: #d4f8e8 !important;
+      color: #218838 !important;
+      border-color: #218838 !important;
+      box-shadow: 0 2px 8px rgba(33, 136, 56, 0.10);
+    }
+
     .progress-bar {
       height: 2vw;
       min-height: 3vw;
@@ -273,7 +280,12 @@
     </label>
     <input type="number" id="vocabCount" min="4" step="1" value="5"
       style="font-size:1vw; width:80px; margin-bottom:18px;" />
+    <label><input type="radio" style="font-size: 1vw;display: inline-flex;" name="focusOption" value="newest" checked>
+      newest vocabs</label>
+    <label><input type="radio" style="font-size: 1vw;display: inline-flex;" name="focusOption" value="random"> random
+      vocabs</label>
     <button style="font-size: 1vw;display: inline-flex;" class="ui button" id="start">Go!</button>
+
   </div>
   <div style="display: none; font-size: 2.5vw;" id="donzo" class="ui message">
     Congrats, you have gone through all your vocabs this run

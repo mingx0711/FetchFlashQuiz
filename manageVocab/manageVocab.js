@@ -163,7 +163,7 @@ function updateVocabList(vocabList, collection = ["all"]) {
   } else {
     selectedVocab = vocabList
   }
-
+  var count = 1;
   console.log(selectedVocab);
   selectedVocab.forEach((entry, index) => {
     if (entry.word && entry.definition) {
@@ -175,7 +175,12 @@ function updateVocabList(vocabList, collection = ["all"]) {
       wordDiv.style.width = '20vw';
       wordDiv.style.fontSize = '3vh';
       wordDiv.style.marginRight = '10px';
-
+      const countDiv = document.createElement('div');
+      countDiv.textContent = `${count++}.`;
+      countDiv.style.width = '2vw';
+      countDiv.style.fontSize = '2vh';
+      countDiv.style.marginRight = '10px';
+      vocabDiv.appendChild(countDiv);
       if (entry.pronounciation != "" && entry.pronounciation != undefined) {
         const pronounciationDiv = document.createElement('div');
         pronounciationDiv.textContent = `${entry.pronounciation}`;
@@ -233,6 +238,7 @@ function updateVocabList(vocabList, collection = ["all"]) {
       snoozeButton.addEventListener('click', function () {
         const match = vocabList.find(item => item.word === vocabList[index].word)
         match.snoozed = !match.snoozed;
+
         chrome.storage.local.set({ vocabList: vocabList }, function () {
           updateVocabList(vocabList);  // Update the displayed list
         });

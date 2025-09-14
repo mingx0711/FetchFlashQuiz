@@ -31,7 +31,7 @@ document.getElementById('addVocabForm').addEventListener('submit', function (e) 
     chrome.storage.local.get('vocabList', function (data) {
       let vocabList = data.vocabList || [];
       // Append the new word, definition, and snoozed field
-      vocabList.push({ word, definition, snoozed: false, book, gender, pronounciation, seen: 0, quizResults: ['n', 'n', 'n', 'n'] });
+      vocabList.push({ word, definition, snoozed: false, book, gender, pronounciation, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'] });
       chrome.storage.local.set({ lastBook: book }, function () { });
       // Save updated vocab list to Chrome storage
       chrome.storage.local.set({ vocabList: vocabList }, function () {
@@ -546,7 +546,12 @@ document.getElementById('addAuto').addEventListener('click', function (e) {
     let vocabList = data.vocabList || [];
     const index = vocabList.findIndex(item => item.word === currentVocab.word && item.book === currentVocab.book);
     if (index !== -1) {
-      vocabList[index] = currentVocab; // Update the existing entry
+      vocabList.splice(index, 1);
+      currentVocab.quizResults.unshift('f');
+      if (currentVocab.quizResults.length > 4) {
+        currentVocab.quizResults.pop(); // Remove the oldest result to keep only the last 4
+      }
+      vocabList.push(currentVocab);
     } else {
       vocabList.push(currentVocab);
     }

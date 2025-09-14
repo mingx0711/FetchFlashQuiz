@@ -499,6 +499,7 @@ export async function getLinkedAttributes(doc, word, lang, book) {
     const anchorTag = hasBaseForm.querySelector('a');
     if (anchorTag) {
       const linkText = anchorTag.textContent; // Get the text content of the <a>
+      console.log(linkText, word);
       const spanElement = hasBaseForm.parentElement;
       const spanElement1 = spanElement.parentElement;
       const liElement = spanElement1.parentElement;
@@ -512,6 +513,7 @@ export async function getLinkedAttributes(doc, word, lang, book) {
           definition = liElement.textContent.trim()
         }
       }
+      console.log(linkText, definition);
       let noramlizedWord = word.normalize('NFD');
       let noDiacritics = noramlizedWord.replace(/[\u0300-\u036f]/g, "");
       let finalStr = noDiacritics.replace(/-/g, "");
@@ -547,6 +549,13 @@ export async function getLinkedAttributes(doc, word, lang, book) {
         const baseDoc = parser.parseFromString(html, 'text/html');
         return await getEasyAttributes(baseDoc, linkText, lang, book);
       } catch (error) {
+        if (lang === 'de' && word.length > 0) {
+          const firstChar = word.charAt(0);
+          if (firstChar === firstChar.toLowerCase()) {
+            word = firstChar.toUpperCase() + word.slice(1);
+            return await getLinkedAttributes(baseDoc, word, lang, book);
+          }
+        }
         return "invalid";
       }
     }
@@ -1172,6 +1181,7 @@ export function prepareOptionsForQuizStyle7(correctVocab) {
   shuffleArray(options)
   return [options, correctAnswer, questionText, conjToTest, wordToTest];
 }
+
 export function setupQuiz7(options, correctAnswer, questionText) {
   ClearPageForQuizContainer();
   document.getElementById('quizQuestion').textContent = questionText;
@@ -1188,15 +1198,20 @@ export function setupQuiz7(options, correctAnswer, questionText) {
   document.getElementById('correctDefinition').style.display = 'none';
   document.getElementById('nextAfterIncorrectButton').style.display = 'none';
 }
-
+export function checkEligible(word, func = () => false, needSeen = true, desirableLength = 0) {
+  return (!(needSeen && word.seen <= 3) && func(word) && word.word.length > 0 && word.definition.length > 0);
+}
 export function getEligibleVocabs(vocabList, func = () => false, needSeen = true) {
   const eligibleVocab = vocabList.filter(entry => {
     const seenCondition = needSeen ? entry.seen > 3 : true;
-    return seenCondition || func(entry);
+    return (seenCondition || func(entry)) && entry.word.length > 0 && entry.definition.length > 0;
   });
   if (eligibleVocab.length < 1) {
     showNextVocab();
     return;
+  }
+  if (desirableLength > 0) {
+    const filterByLength = eligibleVocab.filter(entry => entry.word.length === desirableLength);
   }
   return eligibleVocab;
 }

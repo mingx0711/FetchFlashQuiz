@@ -198,6 +198,9 @@ document.addEventListener('DOMContentLoaded', async function () {
 );
 let currentFocus;
 function getLeastLearnedAmount(arr) {
+  const maxEntry = arr.reduce((max, entry) =>
+    (entry.learnedTime > (max?.learnedTime ?? -Infinity)) ? entry : max
+    , null);
   if (focusOption === "random") {
     shuffleArray(arr);
     return arr
@@ -209,7 +212,17 @@ function getLeastLearnedAmount(arr) {
       })
       .slice(0, learnCount);
   } else {
-    return (arr.slice().reverse().slice(0, learnCount));
+    var rev = (arr.slice().reverse());
+    const sorted = rev
+      .map((item, idx) => ({ ...item, _idx: idx }))
+      .sort((a, b) => (a.learnedTime ?? 0) - (b.learnedTime ?? 0) || a._idx - b._idx)
+      .slice(0, learnCount);
+    // Get the original indices of the selected items
+    const selectedIndices = new Set(sorted.map(item => item._idx));
+
+    // Return items in original order
+    var res = rev.filter((item, idx) => selectedIndices.has(idx));
+    return res;
   }
 }
 async function generateLearningQueue(bookSelected) {
@@ -414,6 +427,10 @@ function showNextVocab() {
   if (wordObj.gender) {
     const gender = wordObj.gender;
     genderDiv.textContent = gender
+    if (gender == utils.GenderType.masculine) { genderDiv.style.color = 'blue'; }
+    if (gender == utils.GenderType.FEMININE) { genderDiv.style.color = "#BD4028"; }
+    if (gender == utils.GenderType.neuter) { genderDiv.style.color = 'green'; }
+
   } else {
     genderDiv.textContent = ""
   }

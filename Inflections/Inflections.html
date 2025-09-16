@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Add vocab inflections</title>
+  <style>
+    #floatingWindow {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 20px;
+      background-color: #f44336;
+      /* Red color for error */
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      display: none;
+      /* Hidden by default */
+    }
+  </style>
+  <link rel="stylesheet" href="../libs/semantic.css">
+
+</head>
+
+<body>
+  <h2>Import vocabs and its conjugations</h2>
+  <div>
+    <div class="ui input" style="margin: auto;display: flex;margin-top:15%;justify-content: center;">
+      <input type="text" style="font-size: 20px;" id="wikiEntry" value="Wurst"
+        placeholder="Enter a word by its original form">
+    </div>
+    <div id="languageSelection" style="margin: auto;display: inline-block;justify-content: center;"></div>
+    <h3> Select the language you want to query then enter the word</h3>
+    <h3> If a word has multiple parts of speech the data collection MIGHT be wrong</h3>
+    <h3> In this case click definition is wrong, enter new definition then click add to database</h3>
+
+    <select class="ui search dropdown" type="text"
+      style="margin: auto;display: inline-block;justify-content: center;margin-left: 5%;" class="ui dropdown"
+      id="selectLanguage">
+      <option value="latin">Latin</option>
+      <option value="german">German</option>
+      <option value="it">Italian</option>
+      <option value="fr">French</option>
+      <option value="nl">Dutch</option>
+      <option value="es">Spanish</option>
+      <option value="pt">Portuguese</option>
+
+
+    </select>
+    <div style="margin: auto;display: inline-block;justify-content: center;" class="ui input">
+      <select class="ui search dropdown" type="text" id="gender">
+        <option value=""></option>
+        <option value="neuter">neuter</option>
+        <option value="common">common</option>
+        <option value="feminine">feminine</option>
+        <option value="masculine">masculine</option>
+      </select>
+    </div>
+    <div class="ui input" style="margin: auto;display: inline-block;justify-content: center;">
+      <input type="text" id="pronounciation" placeholder="pronounciation (optional)" />
+    </div>
+    <select class="ui search dropdown" id="bookSelector"
+      style="margin:auto; margin-top: 5px;margin-bottom: 5px;display: inline-block;">
+    </select>
+    <button class="ui button" id="lookupButton">Lookup</button>
+    <button class="ui button" id="submit" style="display:none;margin-left: 5%;">Add to database</button>
+    <button class="ui button" id="wrongDef" style="display:none;margin-left: 5%;">definition is wrong?</button>
+    <input type="text" class="ui input" id="newDef" style="display:none;margin-left: 5%;font-size: 15px;"
+      placeholder="Enter correct definition">
+
+  </div>
+  <div id="resultForInfs" style="margin: 5%;"></div>
+  <div id="result" style="margin: 5%;"></div>
+  </div>
+  <div id="floatingWindow">The vocabulary is not valid, please check your spelling.</div>
+  <script src="Inflections.js"></script>
+</body>

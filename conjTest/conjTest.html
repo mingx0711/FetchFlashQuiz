@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Test Flashcards</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f7fa;
+      margin: 0;
+      padding: 0 0 40px 0;
+      text-align: center;
+    }
+
+    .ui.segment#wrongCountDiv {
+      margin: 30px auto 10px auto;
+      max-width: 600px;
+      background: #fffdfa;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(90, 79, 77, 0.08), 0 1.5px 6px rgba(90, 79, 77, 0.10);
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #5a4f4d;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.5vw;
+      color: #5a4f4d;
+      margin-top: 24px;
+      margin-bottom: 18px;
+      font-weight: bold;
+    }
+
+    #donzo.ui.message {
+      display: none;
+      font-size: 1.5vw;
+      margin: 20px auto;
+      max-width: 600px;
+      background: #e6f7e6;
+      color: #2e7d32;
+      border-radius: 10px;
+      padding: 18px 24px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .flashcard {
+      background-color: #ebebe9;
+      margin: 24px auto 18px auto;
+      padding: 32px 24px;
+      border: 2px solid #b8a9a7;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 600px;
+      min-width: 220px;
+    }
+
+    #wordDiv {
+      font-size: 3vh;
+      color: #272623;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .ui.horizontal.divider {
+      width: 80%;
+      margin: 10px auto;
+      border-top: 2px solid #545150;
+      height: 0;
+    }
+
+    #defDiv {
+      font-size: 3vh;
+      color: #494845;
+      margin-top: 10px;
+    }
+
+    .quiz-container,
+    .true-false-container {
+      margin: 0 auto 18px auto;
+      max-width: 600px;
+      background: #fffdfa;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
+      padding: 24px 0 18px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .quiz-container p,
+    .true-false-container p {
+      font-size: 4vh;
+      margin-bottom: 18px;
+      color: #5a4f4d;
+      font-weight: bold;
+    }
+
+    .quiz-option,
+    .true-false-container .ui.button {
+      font-size: 4vh;
+      margin: 10px 12px 0 12px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: 2px solid #b8a9a7;
+      background: #fdf4e2;
+      color: #4b5437;
+      font-weight: bold;
+      transition: background 0.2s, box-shadow 0.2s;
+      min-width: 120px;
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
+      display: inline-block;
+    }
+
+    .quiz-option:hover,
+    .true-false-container .ui.button:hover {
+      background: #ffe9c7;
+      box-shadow: 0 4px 16px rgba(90, 79, 77, 0.10);
+    }
+
+    #counter {
+      font-size: 2vw;
+      color: #5a4f4d;
+      margin: 18px 0 10px 0;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    #correctMessage,
+    #incorrectMessage {
+      display: none;
+      font-weight: bold;
+      margin: 18px auto 0 auto;
+      width: 320px;
+      font-size: 2vw;
+      text-align: center;
+      border-radius: 8px;
+      padding: 10px 0;
+    }
+
+    #correctMessage {
+      color: #2e7d32;
+      background: #e6f7e6;
+    }
+
+    #incorrectMessage {
+      color: #c62828;
+      background: #ffeaea;
+    }
+
+    #correctDefinition {
+      background-color: #ebebe9;
+      height: 50vh;
+      font-size: 1.5vw;
+      margin: 18px auto 0 auto;
+      border-radius: 10px;
+      padding: 18px 0;
+      max-width: 80vw;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .bottom-buttons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 2vw;
+      margin: 30px auto 0 auto;
+      max-width: 600px;
+    }
+
+    .bottom-buttons .ui.button {
+      font-weight: bold;
+      font-size: 1.2vw;
+      border: 3px solid #b8a9a7;
+      border-radius: 8px;
+      background: #fdf4e2;
+      transition: background 0.2s, box-shadow 0.2s;
+      min-width: 120px;
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
+      margin: 0 10px;
+    }
+
+    .bottom-buttons .ui.button:hover {
+      background: #ffe9c7;
+      box-shadow: 0 4px 16px rgba(90, 79, 77, 0.10);
+    }
+
+    #nextAfterIncorrectButton {
+      display: none;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 700px) {
+
+      .ui.segment#wrongCountDiv,
+      .flashcard,
+      .quiz-container,
+      .true-false-container,
+      .bottom-buttons {
+        max-width: 98vw;
+        min-width: 0;
+      }
+
+      #wordDiv {
+        font-size: 5vw;
+      }
+
+      #defDiv {
+        font-size: 4vw;
+      }
+
+      .quiz-option,
+      .true-false-container .ui.button,
+      .bottom-buttons .ui.button {
+        font-size: 3vw;
+        min-width: 80px;
+      }
+
+      #correctMessage,
+      #incorrectMessage {
+        font-size: 3vw;
+        width: 90vw;
+      }
+
+      #correctDefinition {
+        font-size: 3vw;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="../libs/semantic.css">
+</head>
+
+<body>
+  <div id="containerLine" style="top: 50px;
+  margin: auto ;border: 5px double;border-color: #5a4f4d; border-radius: 3%;
+  height: 330px;width: 530px;position: relative;">
+    <div class="init-container" style="top: 10px;
+    margin: auto ;border: 10px dotted;
+    height: 300px;width: 500px;position: relative;
+    " id="initContainer">
+      <b style="font-size: 20px;">Select the collection that you want to test. You can close this tab anytime you want,
+        the result of a test will be updated in /manageVocabs</b>
+      <select class="ui search dropdown" id="bookSelector" style="margin:auto; 
+    margin-top: 50px;
+    margin-bottom: 50px;
+    display: block;
+    font-size: 16px;
+    ">
+      </select>
+      <button class="ui button" id="testCollectionBtn">Test Collection</button>
+    </div>
+  </div>
+
+  <div class="ui segment" style="display: none" id="wrongCountDiv"></div>
+  <div style="display: none; font-size: 260%;" id="donzo" class="ui message">
+    Congrats, you have gone through all your vocabs
+  </div>
+  <div id="vocabFlashcard" class="flashcard" style="background-color:#ebebe9;margin: auto ;">
+    <div style="font-size: 60px;color:#272623;" id="wordDiv"></div>
+    <div class="ui horizontal divider" style="color:#545150; height: 5px"></div>
+    <div style="font-size: 60px; color:#494845;" id="defDiv"></div>
+  </div>
+  <div class="quiz-container" style="top: 2%;margin: auto ;" id="quizContainer">
+    <p id="quizQuestion"></p>
+    <button style="margin: auto ;margin-top: 10px; border: 10px; border-color: #607059;" class="ui quiz-option"
+      id="option1"></button>
+    <button style="margin: auto ;margin-top: 10px;border: 10px; border-color: #607059;" class="ui quiz-option"
+      id="option2"></button>
+    <button style="margin: auto ;margin-top: 10px;border: 10px; border-color: #607059;" class="ui quiz-option"
+      id="option3"></button>
+    <button style="margin: auto ;margin-top: 10px;border: 10px; border-color: #607059;" class="ui quiz-option"
+      id="option4"></button>
+  </div>
+  <div class="true-false-container" style="top: 2%;margin: auto ;" id="trueFalseContainer">
+    <p id="trueFalseQuestion"></p>
+    <button style="margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;" class="ui button"
+      id="trueButton">True</button>
+    <button style="margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;" class="ui button"
+      id="falseButton">False</button>
+  </div>
+  <p class="ui message" id="correctMessage"
+    style="margin: auto ;width: 300px; margin-top: 10px ; font-size:50px; text-align: center;">Correct!</p>
+  <p class="ui message" id="incorrectMessage" style=" text-align: center;">Incorrect! The correct definition is:</p>
+  <div id="correctDefinition" class="ui flashcard"
+    style="background-color:#ebebe9;height:200px; font-size: 200% ;margin: auto ;"></div>
+  <button class="ui button" id="snoozeButton">Snooze</button>
+  <button class="ui button" id="nextButton">Next</button>
+  <button class="ui button" id="nextAfterIncorrectButton"
+    style="position: relative ; left:50% ; margin-top: 50px">Next</button>
+
+  <script src="conjTest.js"></script>
+</body>
+
+</html>

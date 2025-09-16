@@ -1,9 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Flashcard & Quiz for new tab Extension",
-  "version": "1.1.2.2",
-  "description": "Displays a flashcard with a random word-definition every time a new page is opened.",
-  "permissions": ["storage"],
+  "name": "FLIZ - vocab on newtab, vocabulary tool",
+  "version": "1.9.6.9",
+  "description": "Looks up words for various languages, Display vocabs & quiz vocabs in new tab ",
+  "permissions": [
+    "storage",
+    "*://*.wiktionary.org/*"
+  ],
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
@@ -16,5 +19,11 @@
   },
   "chrome_url_overrides": {
     "newtab": "newtab/newtab.html"
-  }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "https://en.wiktionary.org/*"
+  ]
 }

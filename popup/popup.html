@@ -2,39 +2,401 @@
 <html>
 <head>
   <title>Manage Flashcards</title>
-  <style>
-    body { font-family: Arial, sans-serif; }
-    .flashcard { margin: 10px 0; }
-    #message { margin-top: 10px; color: green; }
- 
-  </style>
   <link rel="stylesheet" href="../libs/semantic.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f7fa;
+      margin: 0;
+      padding: 0 0 40px 0;
+    }
+     body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f7fa;
+      margin: 0;
+      padding: 0 0 40px 0;
+    }
+    .ui.message {
+      background: #fffdfa;
+      border-radius: 12px;
+      margin: 30px auto 20px auto;
+      padding: 18px 32px;
+      box-shadow: 0 4px 24px rgba(33, 15, 12, 0.2), 0 1.5px 6px rgba(90,79,77,0.10);
+      max-width: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ui.header {
+      font-size: 2vh;
+      margin: 0;
+      font-weight: bold;
+      color: #5a4f4d;
+    }
+    form.ui.segment, .ui.center.aligned.basic.segment {
+      background: none;
+      box-shadow: none;
+      border: none;
+      padding: 0;
+      margin: 0 auto;
+      max-width: 600px;
+    }
+    #addVocabForm {
+      background: #fffdfa;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      padding: 24px 32px 18px 32px;
+      margin: 0 auto 18px auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .ui.input, .ui.field {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+    .ui.input input, .ui.input select, .ui.field input {
+      font-size: 1em;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #b8a9a7;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    select.ui.search.dropdown {
+      width: 100%;
+      min-width: 120px;
+      max-width: 320px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #b8a9a7;
+      font-size: 1em;
+      margin-top: 4px;
+    }
+    #addVocabForm button.ui.button, #addBookButton {
+      font-size: 1em;
+      font-weight: bold;
+      border-radius: 8px;
+      background: #fdf4e2;
+      border: 2px solid #b8a9a7;
+      color: #5a4f4d;
+      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      transition: background 0.2s, box-shadow 0.2s;
+      margin: 0 auto;
+      display: block;
+      min-width: 120px;
+      margin-top: 8px;
+    }
+    #addVocabForm button.ui.button:hover, #addBookButton:hover {
+      background: #ffe9c7;
+      box-shadow: 0 4px 16px rgba(90,79,77,0.10);
+    }
+    #newBookField {
+      display: none;
+      margin-top: 5px;
+      margin-bottom: 5px;
+      background-color: #c5d5c7;
+      border-radius: 8px;
+      padding: 8px;
+      width: 100%;
+    }
+    #newBookField input {
+      margin-bottom: 5px;
+    }
+    #message {
+      margin: 18px auto 0 auto;
+      color: #2e7d32;
+      font-weight: bold;
+      background: transparent;
+      border-radius: 8px;
+      padding: 8px 0;
+      max-width: 600px;
+      text-align: center;
+    }
+    #vocabInfoInfs, #vocabInfo {
+      margin-left: 0;
+      margin-bottom: 8px;
+      text-align: left;
+      font-size: 1em;
+      color: #4b5437;
+    }
+    #addAuto {
+      display: none;
+      margin: 10px auto 0 auto;
+      min-width: 120px;
+    }
+    .ui.container {
+      border: 1px double #5a4f4d;
+      border-radius: 12px;
+      background: #f9f7f6;
+      margin: 18px auto 0 auto;
+      padding: 12px 18px;
+      max-width: 600px;
+      text-align: left;
+    }
+    #tipsBox0, #tipsBox1 {
+      margin-top: 18px;
+      background: #fdf4e2;
+      color: #4b5437;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 1em;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #tipsBox0 button, #tipsBox1 button {
+      margin: 10px auto 0 auto;
+      display: block;
+      min-width: 120px;
+    }
+    a,#showIntro {
+      font-size: 1em;
+      color: #5a4f4d;
+      text-decoration: underline;
+      transition: color 0.2s;
+    }
+    a:hover {
+      color: #b8a9a7;
+    }
+    #showIntro:hover {
+      color: #b8a9a7;
+    }
+    #manageButton {
+      display: block;
+      margin: 10px auto 0 auto;
+      font-size: 1em;
+      font-weight: bold;
+      border-radius: 8px;
+      background: #fdf4e2;
+      border: 2px solid #b8a9a7;
+      color: #5a4f4d;
+      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      transition: background 0.2s, box-shadow 0.2s;
+      min-width: 180px;
+    }
+    #manageButton:hover {
+      background: #ffe9c7;
+      box-shadow: 0 4px 16px rgba(90,79,77,0.10);
+    }
+    .quickstart-container {
+      display: none;
+      text-align: center;
+      padding: 32px 12px;
+      background: #fffdfa;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(90,79,77,0.08), 0 1.5px 6px rgba(90,79,77,0.10);
+      max-width: 700px;
+      margin: 2px auto 24px auto;
+    }
+    .quickstart-title {
+      font-size: 2vw;
+      color: #5a4f4d;
+      margin-bottom: 8px;
+    }
+    .quickstart-desc {
+      margin-bottom: 10px;
+      color: #4b5437;
+      font-size: 1.1em;
+    }
+    .quickstart-decks {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      align-items: stretch;
+    }
+    .deck-group {
+      margin-bottom: 0;
+    }
+    .deck-label {
+      font-weight: bold;
+      color: #765b56;
+      font-size: 1.2em;
+      margin-bottom: 8px;
+    }
+    .deck-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 0;
+    }
+    .quickstart-message {
+      margin-top: 10px;
+      color: #2e7d32;
+      font-weight: bold;
+      min-height: 24px;
+    }
+    @media (max-width: 700px) {
+      .quickstart-container {
+        max-width: 98vw;
+        padding: 18px 2vw;
+      }
+      .quickstart-title { font-size: 5vw; }
+      .deck-label { font-size: 1.1em; }
+      .deck-buttons .ui.button { font-size: 3vw; min-width: 70px; }
+    }
+    @media (max-width: 700px) {
+      .ui.message, .ui.container, #addVocabForm { max-width: 98vw; }
+      .ui.header { font-size: 5vw; }
+      #addVocabForm { padding: 12px 6vw 12px 6vw; }
+    }
+  </style>
 </head>
 <body>
-  <div class = "ui center aligned basic segment">
+       <!-- Beautified Quickstart Section -->
+    <div id="quickstart" class="quickstart-container">
+      <button id = "closeQuickStart"style = "background-color: transparent;right: 5%;display:flex;border: transparent;"> &#10006; </button>
+      <h2 class="quickstart-title">Quick Import Vocab Decks</h2>
+      <p class="quickstart-desc">Click decks to add to your vocabulary list</p>
+            <div id="quickstartMessage" class="quickstart-message"></div>
+      <div class="quickstart-decks">
+        <div class="deck-group">
+          <div class="deck-label">-German-</div>
+          <div class="deck-buttons">
+            <button class="ui button" data-deck="German/A1">A1</button>
+            <button class="ui button" data-deck="German/A2">A2</button>
+            <button class="ui button" data-deck="German/A2_1">A2_1</button>
+            <button class="ui button" data-deck="German/B1">B1</button>
+            <button class="ui button" data-deck="German/B2">B2</button>
+          </div>
+        </div>
+        <div class="deck-group">
+          <div class="deck-label">-Japanese-</div>
+          <div class="deck-buttons">
+            <button class="ui button" data-deck="Japanese/N1">N1</button>
+            <button class="ui button" data-deck="Japanese/N2">N2</button>
+            <button class="ui button" data-deck="Japanese/N3">N3</button>
+            <button class="ui button" data-deck="Japanese/N4">N4</button>
+            <button class="ui button" data-deck="Japanese/N5">N5</button>
+          </div>
+        </div>
+        <div class="deck-group">
+          <div class="deck-label">-Chinese-</div>
+          <div class="deck-buttons">
+            <button class="ui button" data-deck="Chinese/hsk1">HSK1</button>
+            <button class="ui button" data-deck="Chinese/hsk2">HSK2</button>
+            <button class="ui button" data-deck="Chinese/hsk3">HSK3</button>
+            <button class="ui button" data-deck="Chinese/hsk4">HSK4</button>
+            <button class="ui button" data-deck="Chinese/hsk5">HSK5</button>
+            <button class="ui button" data-deck="Chinese/hsk6">HSK6</button>
+          </div>
+        </div>
+        <div class="deck-group">
+          <div class="deck-label">-English(in Chinese)-</div>
+          <div class="deck-buttons">
+            <button class="ui button" data-deck="English/kaoyan">kaoyan</button>
+            <button class="ui button" data-deck="English/CET4">CET4</button>
+            <button class="ui button" data-deck="English/CET6">CET6</button>
+            <button class="ui button" data-deck="English/SAT_CN">SAT</button>
+            <button class="ui button" data-deck="English/GRE_CN">GRE</button>
+            <button class="ui button" data-deck="English/GMAT_CN">GMAT</button>
+            <button class="ui button" data-deck="English/IELTS_CN">IELTS</button>
+            <button class="ui button" data-deck="English/TOEFL_CN">TOEFL</button>
+          </div>
+        </div>
+        <div class="deck-group">
+          <div class="deck-label">-English-</div>
+          <div class="deck-buttons">
+            <button class="ui button" data-deck="English/TOEFL_en">TOEFL</button>
+          </div>
+        </div>
+        <div class="deck-group">
+          <div class="deck-label">-French-</div>
+          <div class="deck-buttons">
+            <button class="ui button" data-deck="French/A1">AQA</button>
+          </div>
+        </div>
+        <div class="deck-group">
+          <div class="deck-label">-Latin-</div>
+          <div class="deck-buttons">
+            <button class="ui button" data-deck="Latin/Latin">Latin</button>
+          </div>
+        </div>
+        <div class="deck-group">
+          <div class="deck-label">-Italian-</div>
+          <div class="deck-buttons">
+            <button class="ui button" data-deck="Italian/A1">A1</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  <div class="ui center aligned basic segment" style = "margin-top: 2px;">
     <div class="ui message">
-      <h1 class = "ui header">Manage Flashcards</h1>
+      <h1 class="ui header">Quick lookup</h1>
     </div>
   </div>
-  <form class = "ui center aligned basic segment" id="addVocabForm">
-    <div class="ui input"> 
+
+  <form class="ui center aligned basic segment" id="addVocabForm">
+    <div class="ui input">
       <input type="text" id="word" placeholder="Word" required />
     </div>
-    <div class="ui input"> 
-      <input type="text" id="definition" placeholder="Definition" required />
+    <div class="ui input">
+      <input type="text" id="definition" placeholder="Definition"/>
     </div>
-    <select class = "ui search dropdown" id="bookSelector" style="margin:auto; margin-top: 5px;margin-bottom: 5px;display: block;">
-    </select>
-
-    <div class="ui field" id="newBookField" style="display:none;margin-top:5px; margin-bottom: 5px;background-color:#c5d5c7 ; border-radius: 8px;">
-      <input type="text" style = "margin-top:5px;margin-bottom: 5px ;"id="newBook" placeholder="Enter new collection name">
-      <button class="ui teal basic button"style = "margin-top:5px;margin-bottom: 5px ;" id="addBookButton">Add collection</button>
+    <div class="ui input">
+      <select class="ui search dropdown" id="gender">
+        <option value="">gender (optional)</option>
+        <option value="neuter">neuter</option>
+        <option value="common">common</option>
+        <option value="feminine">feminine</option>
+        <option value="masculine">masculine</option>
+      </select>
     </div>
-    <button style = "display: Block;margin-left: auto;margin-right: auto;" class = "ui button" type="submit">Add</button>
+    <div class="ui input">
+      <input type="text" id="pronounciation" placeholder="Pronounciation (optional)"/>
+    </div>
+    <div class="ui input">
+      <label style="display: block; margin-bottom: 4px;">Select collection</label>
+      <select class="ui search dropdown" id="bookSelector"></select>
+    </div>
+    <div class="ui field" id="newBookField">
+      <input type="text" id="newBook" placeholder="Enter new collection name">
+      <button class="ui teal basic button" id="addBookButton" type="button">Add collection</button>
+    </div>
+    <div class="ui input">
+      <label style="display: block; margin-bottom: 4px;">Select language to auto query</label>
+      <select class="ui search dropdown" id="selectLanguage">
+        <option value="latin">Latin</option>
+        <option value="de">German</option>
+        <option value="it">Italian</option>
+        <option value="fr">French</option>
+        <option value="nl">Dutch</option>
+        <option value="es">Spanish</option>
+        <option value="pt">Portuguese</option>
+        <option value="ja">Japanese (beta)</option>
+        <option value="zh">Chinese (beta)</option>
+      </select>
+    </div>
+    <button class="ui button primary" type="submit">Add</button>
+   <div id="vocabInfoInfInfs" class="ui container" style = "display: none;">
+      <div id="vocabInfoInfs"></div>
+      <div id="vocabInfo"></div>
+      <button class="ui button" id="addAuto" type="button">Add to database</button>
+    </div>
+    <button  style=" display:none" class="ui button" id="addAuto" type="button">Add to database</button>
   </form>
-  <div class = "ui container" id="message"></div>
-  <button style = "display: Block;margin-left: auto;margin-right: auto;"class="ui button" id="manageButton">Manage Vocabulary List</button>
+  <div id="message"></div>
+  <button class="ui button" id="manageButton">Manage Vocabulary List</button>
+  <div class="ui container" id="tipsBox0">
+    <p>Tips: You can export your vocabs as json and import them with inflections and your past quiz history. To add a collection, click 'manage vocabulary list' and click 'Manage collection'.</p>
+    <button class="ui button" id="hideTips0">Dismiss</button>
+  </div>
+  <div class="ui container" id="tipsBox1">
+    <p>Tips: Now supports auto import feature for French! Enter word only and press 'Add to database'. For Latin, it will now also randomly show inflection of an auto-added word that is linked to its base form. You can test your inflections in manage vocabulary too! Or see the entire inflection table when you are querying a word on "To auto add page". Or add a word and a definition with optional gender and pronounciation manually.</p>
+    <button class="ui button" id="hideTips1">Dismiss</button>
+  </div>
+  <div style="text-align: center; margin-top: 20px; display: grid;
+  grid-template-columns: auto auto;
+  gap: 20px;">
+    <button id = "showQuickStart" style = "background-color: transparent; text-decoration: underline;border: transparent;"> easy import decks</button>
+    <a href="https://mingx0711.github.io/" target="_blank">
+            about this project   
+    </a>
+  </div>
+  
   <script src="../libs/semantic.css"></script>
-  <script src="popup.js"></script>
+  <script type="module" src="popup.js"></script>
 </body>
 </html>

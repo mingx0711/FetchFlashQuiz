@@ -2,30 +2,72 @@
 <html>
 
 <head>
-  <meta charset="utf-8"> 
+  <meta charset="utf-8">
   <title>Manage Vocabulary List</title>
+  <link rel="stylesheet" href="../libs/semantic.css">
+  <script lang="javascript" src="../libs/sheetsJS.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    .flashcard { margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
-    .flashcard button { margin-left: 10px; }
-    #clearButton { margin-top: 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f8f9fa;
+    }
+
+    .ui.segment {
+      background: #fff;
+    }
+
+    .flashcard {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .flashcard button {
+      margin-left: 10px;
+    }
+
+    #clearButton {
+      margin-top: 20px;
+    }
+
     .floating-container {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            border: 2px solid black;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-        }
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      border: 2px solid black;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+    }
+
+    #floatingWindow {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 20px;
+      background-color: #f44336;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+
     .close-button {
-        float: right;
-        cursor: pointer;
-    }#popup-overlay {
-      display: none; /* Hidden by default */
+      float: right;
+      cursor: pointer;
+    }
+
+    #popup-overlay {
+      display: none;
       position: fixed;
       top: 0;
       left: 0;
@@ -34,8 +76,22 @@
       z-index: 999;
     }
 
-    #popup{
-      display: none; /* Hidden by default */
+    #fileInputContainer {
+      display: none;
+    }
+
+    #output {
+      display: none;
+      margin-top: 10px;
+      white-space: pre-wrap;
+      background-color: #f4f4f4;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    #popup {
+      display: none;
       position: fixed;
       top: 50%;
       left: 50%;
@@ -47,72 +103,189 @@
       z-index: 1000;
     }
 
+    .button {
+      font-size: 1vw;
+    }
+
     #popup button {
       margin-top: 10px;
       width: 100%;
     }
+
+    .ui.form .field {
+      margin-bottom: 1em;
+    }
+
+    .ui.segment.header-segment {
+      margin-bottom: 2em;
+    }
+
+    .ui.segment.table-segment {
+      margin-top: 2em;
+    }
+
+    .ui.table th,
+    .ui.table td {
+      font-size: 1.1em;
+    }
+
+    .ui.divider {
+      margin: 2em 0;
+    }
   </style>
-  <link rel="stylesheet" href="../libs/semantic.css">
-  <script lang="javascript" src="../libs/sheetsJS.js"></script>
 </head>
+
 <body>
-  <h1 class = "ui message" style = " font-size: 250%;">Manage Vocabulary List</h1>
-  <select class="ui search dropdown" style = "padding-left: 10px;" id="sortOptions">
-    <option value="">Sort by Default</option>
-    <option value="incorrect">Sort by Amount of recent incorrect answers</option>
-    <option value="seen">Sort by Least amount of time seen</option>
-    <option value="newest">Sort by Newest</option>
-  </select>
-  <button class="ui button basic" id="startTestButton"> Test your weak vocabs! </button>
-  <button class="ui button basic" id="importVocabButton"> Import vocabs </button>
-  <button class="ui button basic" id="exportToExcel"> Export vocabs to excel</button>
-  <button class="ui button basic" id="exportTotxt"> Export vocabs to text(formatted for bulk import)</button>
+  <div class="ui segment header-segment">
+    <div class="ui grid">
+      <div class="ten wide column">
+        <h1 class="ui header" style="font-size: 2.5vw; display: inline-flex;">Manage Vocabulary List</h1>
+      </div>
+      <div class="six wide column right aligned">
+        <button class="ui button" style="background-color:#ebdfe9" id="manageBookButton">Manage Collection</button>
+      </div>
+    </div>
+    <div class="ui form" style="margin-top: 1em;">
+      <div class="fields">
+        <div class="field">
+          <select class="ui search dropdown" id="sortOptions">
+            <option value="">Sort by Default</option>
+            <option value="incorrect">Sort by Amount of recent incorrect answers</option>
+            <option value="seen">Sort by Least amount of time seen</option>
+            <option value="newest">Sort by Newest</option>
+          </select>
+        </div>
+        <div class="field">
+          <button class="ui button" style="background-color:#d3d7bf" id="exportToJson">Export vocabs as Json</button>
+        </div>
+        <div class="field">
+          <button class="ui button" style="background-color:#b8758b" id="importFromJson">Import vocabs from Json
+            files</button>
+        </div>
+        <div class="field">
+          <button id="searchEditVocabBtn" class="ui button" style="background-color: #fdf4e2;">Search/Edit
+            Vocab</button>
+        </div>
+        <!-- <div class="field">
+          <button id="autoBackupBtn" class="ui button" style="background-color: #e2fdf4;">Autobackup is Off</button>
+        </div> -->
+      </div>
+    </div>
+    <div id="fileInputContainer" class="ui form" style="margin-top: 1em;">
+      <input type="file" id="fileInput" accept=".json" />
+    </div>
+  </div>
+
+  <div id="searchEditVocabContainer"
+    style="display:none; margin-top: 20px; margin-left: 3%; padding: 15px; background-color: #f9f9f9; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 10px;">
+    <div class="ui form">
+      <div class="fields">
+        <div class="field">
+          <input type="text" id="searchVocabInput" placeholder="Enter word to search" />
+        </div>
+        <div class="field">
+          <button id="doSearchVocabBtn" class="ui button">Search</button>
+        </div>
+      </div>
+      <select id="searchOptions" size="5" style="display:none;"></select>
+      <form id="editVocabForm" style="display:none; margin-top: 10px;">
+        <div class="ui message warning" style="margin-bottom: 1em;">
+          <p style="color: #fa578e;">It is recommended to edit vocabs when the app is not fetching words in the newtab
+          </p>
+        </div>
+        <div class="field">
+          <label id="editWord" style="font-size: 3vh; font-weight: bold;">Word: </label>
+        </div>
+        <div class="field">
+          <label>Definition:</label>
+          <textarea id="editDefinition" style="width: 100%; height: 6em;"></textarea>
+        </div>
+        <div class="field">
+          <label>Book:</label>
+          <select type="text" id="editCollection"></select>
+        </div>
+        <div class="field">
+          <label>Pronounciation:</label>
+          <input type="text" id="editPronounciation" />
+        </div>
+        <div class="field">
+          <label>Gender:</label>
+          <select type="text" id="editGender">
+            <option value="">no gender</option>
+            <option value="feminine">feminine</option>
+            <option value="masculine">masculine</option>
+            <option value="neuter">neuter</option>
+            <option value="common">common</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Etymology:</label>
+          <textarea id="editEtym" style="width: 100%; height: 4em;"></textarea>
+        </div>
+        <div class="inline fields">
+          <div class="field">
+            <label>Has Checked:</label>
+            <input type="checkbox" id="editHasChecked" />
+          </div>
+          <div class="field">
+            <label>Focus:</label>
+            <input type="checkbox" id="editFocus" />
+          </div>
+        </div>
+        <button type="submit" class="ui button primary">Save Changes</button>
+      </form>
+      <div id="searchEditVocabMsg" style="color: red; margin-top: 10px;"></div>
+    </div>
+  </div>
+  <pre id="output"></pre>
+
   <div id="popup-overlay"></div>
-  <div id="popup">
-    <textarea id="vocabInput" style="width: 350px;height: 300px;"placeholder="Enter your word and definition pair seperate word and definition with ':' and each pair with '|'. for example, kartoffel:potato | morgen:morning"></textarea>
-    <button id="submitVocabButton">Submit</button>
-    <select class = "ui search dropdown" id="bookSelector2" style="margin:auto; margin-top: 5px; width:100px ;margin-bottom: 5px;display: block;">
-    </select>
-  </div>
-  <button class="ui button basic" id="manageBookButton">Manage Collection </button>
-  <form  class = "ui center aligned basic segment" style = "flex-wrap: wrap;" id="addVocabForm">
-    <div class="ui input"> 
-      <input type="text" id="word" placeholder="Word" required />
+  <div id="popup" class="ui modal">
+    <div class="header">Bulk Import Vocabulary</div>
+    <div class="content">
+      <textarea id="vocabInput" style="width: 100%; height: 200px;"
+        placeholder="Enter your word and definition pair..."></textarea>
+      <select class="ui search dropdown" id="bookSelector2" style="margin-top: 1em; width: 100%;"></select>
     </div>
-    <div class="ui input">
-      <input class="ui input" type="text" id="definition" placeholder="Definition" required />
+    <div class="actions">
+      <button id="submitVocabButton" class="ui button primary">Submit</button>
     </div>
-    <select class = "ui search dropdown" id="bookSelector" style="margin:auto; margin-top: 5px;margin-bottom: 5px;display: block;">
-      <option value="addNew" >Add new Vocab Collection</option>
-    </select>
-    <div class="ui field" id="newBookField" style="display:none;margin-top:5px; margin-bottom: 5px;background-color:#c5d5c7 ; border-radius: 8px;">
-      <input type="text" style = "margin-top:5px;margin-bottom: 5px ;"id="newBook" placeholder="Enter new collection name">
-      <button class="ui teal basic button"style = "margin-top:5px;margin-bottom: 5px ;" id="addBookButton">Add collection</button>
+  </div>
+  <div id="floatingWindow">The vocabulary is not valid, please check your spelling.</div>
+
+  <div class="ui segment" style="margin-top: 2em;">
+    <div class="ui form" style="display: flex; flex-wrap: wrap; padding-left:10px; padding-bottom: 10px;"
+      id="displayBooksContainer">
+      <div style="display: flex; flex-wrap: wrap; margin-right: 10px;">Show collections:</div>
+      <div style="display: flex; flex-wrap: wrap;" id="displayBookList"></div>
     </div>
-    <button class="ui button" type="submit">Add</button>
-  </form>
-  <div class="ui form" style = "display: flex;flex-wrap: wrap;padding-left:10px; padding-bottom: 10px;"id="displayBooksContainer"> 
-    <div style = "display: flex;flex-wrap: wrap; margin-right: 10px;"> Show collections:     </div>
-    <div style = "display: flex;flex-wrap: wrap;"id="displayBookList"></div>
+    <div class="ui divider"></div>
+    <div class="ui grid container">
+      <div class="row">
+        <div class="three wide column"><b>Word</b></div>
+        <div class="three wide column"><b>Definition</b></div>
+        <div class="two wide column"><b>Collection</b></div>
+        <div class="four wide column"><b>Last 4 quiz results</b></div>
+        <div class="four wide column" style="font-size: 1em;">Focused words will show up 10x as frequently; Snoozed
+          words will not show in flashcards.</div>
+      </div>
+    </div>
+    <div id="vocabList"></div>
+    <button class="ui button negative" id="clearButton">Clear Data</button>
   </div>
-  <div class="container" style =" display: flex;">
-    <div  class="ui box" style = "margin-left:10px; width: 20vw; font-size: 150%;" text-align = "left" > <b>Word</b> </div>
-    <div  class="ui box" style = "width: 20vw; font-size: 150%;"  text-align = "left"> <b>Definition</b> </div>
-    <div  class="ui box" style = "width: 10vw; font-size: 150%;"  text-align = "left"> <b>Collection</b> </div>
-    <div  class="ui box"  style = "width: 25vw; font-size: 150%;" text-align = "left"><b>Last 4 quiz results</b></div>
-  </div>
-  <div id="vocabList"></div>
-  <button class="ui button" id="clearButton">Clear Data</button>
+
   <div class="floating-container" id="floatingContainer">
     <span class="close-button" id="closeButton">X</span>
-    <h3>Manage Collections</h3>
+    <h3 class="ui header">Manage Collections</h3>
     <div id="bookListContainer"></div>
-    <div class="field">
-        <label for="newBookInContainer">New Book</label>
-        <input type="text" id="newBookInContainer" placeholder="Enter new book">
-        <button class="ui button" id="addBookInContainerButton">Add Book</button>
+    <div class="field" style="margin-top: 1em;">
+      <label for="newBookInContainer">New Collection</label>
+      <input type="text" id="newBookInContainer" placeholder="Enter new collection">
+      <button class="ui button primary" id="addBookInContainerButton">Add Book</button>
     </div>
+  </div>
   <script src="../libs/papaparse.js"></script>
-  <script src="manageVocab.js"></script>
+  <script type="module" src="manageVocab.js"></script>
 </body>
+
 </html>

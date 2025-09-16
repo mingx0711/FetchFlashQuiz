@@ -485,6 +485,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
               if (!vocabList.some(v => v.word === newVocab.word && v.book === newVocab.book)) {
                 vocabList.push(newVocab);
               }
+              vocabList = vocabList.filter(item => item.word && item.word.trim() !== "" && item.definition && item.definition.trim() !== "");
             });
 
             chrome.storage.local.set({ vocabList: vocabList }, function () {

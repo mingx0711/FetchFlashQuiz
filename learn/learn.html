@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>Test Flashcards</title>
+  <title>Learn new vocabs</title>
   <style>
     .init-container {
       margin: 24px auto;
@@ -275,15 +275,25 @@
       <div class="progress-bar"></div>
       <div class="progress-label">70%</div>
     </div>
-    <label for="vocabCount" style="font-size:1.1vw; margin-bottom:8px; display:block;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <input type="radio" style="font-size: 1vw;" id="newLastOption" name="focusOption" value="newLast" checked>
+      <label id="newLastLabel" for="newLastOption">
+        You have added 10 new vocabs since you last learned, learn them
+      </label>
+    </div>
+
+    <p id="or"> --- or --- </p>
+    <label for="vocabCount" style="font-size:1.1vw; display:block;">
       Select the number of vocabs you want to learn this time:
     </label>
-    <input type="number" id="vocabCount" min="4" step="1" value="25"
+    <input type="number" id="vocabCount" min="4" step="1" value="15"
       style="font-size:1vw; width:80px; margin-bottom:18px;" />
-    <label><input type="radio" style="font-size: 1vw;display: inline-flex;" name="focusOption" value="newest" checked>
+    <label><input type="radio" style="font-size: 1vw;display: inline-flex;" name="focusOption" value="newest"
+        id="newFirstOption">
       newest vocabs</label>
     <label><input type="radio" style="font-size: 1vw;display: inline-flex;" name="focusOption" value="random"> random
       vocabs</label>
+
     <button style="font-size: 1vw;display: inline-flex;" class="ui button" id="start">Go!</button>
 
   </div>
@@ -300,6 +310,8 @@
       <button class="ui button" id="speak"
         style="background-color: transparent;display: inline-flex;border: none; outline: none;font-size: 3vh;">&#128266;</button>
       <div style="font-size: 2vw;color:#272623;" id="genderDiv"></div>
+      <div style="font-size: 1.5vw;color:#272623;" id="groupDiv"></div>
+
       <div class="ui horizontal divider" id="divider" style="color:#545150; height: 5px"></div>
       <div style="font-size: 3vw; color:#4b5437;" id="defDiv"></div>
       <div style="font-size: 2vw; color:#737373; margin-bottom: 20%;" id="etymDiv"></div>

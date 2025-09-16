@@ -20,10 +20,16 @@ document.addEventListener('DOMContentLoaded', function () {
       changeColor('Basic'); // Default to palette1 if no previous selection
     }
   });
+  chrome.storage.local.get(['selectedBG'], function (result) {
+    if (result.selectedBG) {
+      changeBG(result.selectedBG);
+    }
+  });
   const toggleBtn = document.getElementById('toggleThemeOptions');
   const themeOptions = document.getElementById('themeOptions');
+  const bgOptions = document.getElementById('bgOptions');
   let themeOpen = false;
-
+  let bgOpen = false
   toggleBtn.addEventListener('click', function () {
     themeOpen = !themeOpen;
     if (themeOpen) {
@@ -32,6 +38,14 @@ document.addEventListener('DOMContentLoaded', function () {
     } else {
       themeOptions.style.maxHeight = '0';
       themeOptions.style.opacity = '0';
+    }
+    bgOpen = !bgOpen;
+    if (bgOpen) {
+      bgOptions.style.maxHeight = '120px';
+      bgOptions.style.opacity = '1';
+    } else {
+      bgOptions.style.maxHeight = '0';
+      bgOptions.style.opacity = '0';
     }
   });
   const reminderDiv = document.getElementById('backupReminder');
@@ -170,6 +184,12 @@ document.addEventListener('DOMContentLoaded', function () {
     button.addEventListener('click', function () {
       const palette = this.getAttribute('data-palette');
       changeColor(palette);
+    });
+  });
+  document.querySelectorAll('.ui.bg-option.button').forEach(button => {
+    button.addEventListener('click', function () {
+      const palette = this.getAttribute('data-palette');
+      changeBG(palette);
     });
   });
   document.querySelectorAll('.quiz-option').forEach(button => {
@@ -612,6 +632,21 @@ function changeColor(palette) {
     // //console.log.log('Palette saved:', palette);
   });
 
+}
+function changeBG(palette) {
+  const BG = {
+    cat: "url(/bg/bg2.png) center/cover no-repeat fixed",
+    bear: "url(/bg/bg3.png) center/cover no-repeat fixed",
+    cow: "url(/bg/bg4.png) center/cover no-repeat fixed",
+    sky: "url(/bg/bg6.png) center/cover no-repeat fixed",
+
+    default: "00% 0% / cover no-repeat fixed",
+  };
+  console.log(BG[palette]);
+  document.body.style.background = BG[palette] || BG['default'];
+  chrome.storage.local.set({ selectedBG: palette }, function () {
+    // //console.log.log('Palette saved:', palette);
+  });
 }
 function showNextVocab(collection = currentCollectionSelection) {
   let currentCollection = [];

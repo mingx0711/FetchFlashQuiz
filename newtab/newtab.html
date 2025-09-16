@@ -6,7 +6,6 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #94a675;
     }
 
     .flashcard {
@@ -252,8 +251,8 @@
   <link rel="stylesheet" href="../libs/semantic.css">
 </head>
 
-<body>
-  <button class="ui button" id="autoplayButton"
+<body style="background: url('/bg/bg2.png') no-repeat center center fixed; background-size: cover;"> <button
+    class="ui button" id="autoplayButton"
     style="position: fixed;bottom:78%;right:84.5%;font-weight: bold;font-size: 2.3vw;z-index: 99;">&#9654;</button>
 
   <div id="vocabFlashcard" class="flashcard" style="background-color:#ffffff;margin: auto ;">
@@ -442,6 +441,36 @@
       data-palette="lemon" title="Lemon">&#x1F34B;</button>
     <button class="ui circular color-option button" style="background-color:#fbe1ff;font-size: 2vh;" data-palette="cake"
       title="Cake">&#x1F370;</button>
+  </div>
+  <div id="bgOptions" style="
+  overflow: hidden;
+  max-height: 0;
+  font-size: 2vh;
+  opacity: 0;
+  transition: transform 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
+  position: fixed;
+  bottom: 15%;
+  right: 2%;
+  display: flex;
+  flex-direction: column;
+  font-size: 1vh;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  z-index: 1000;
+  gap: 10px;
+">
+    <button class="ui circular bg-option button" style="background-color:#f4d6b4;
+  font-size: 2vh;" data-palette="cat" title="cat"> &#x1F431;</button>
+    <button class="ui circular bg-option button" style="background-color:#b7a483;font-size: 2vh;" data-palette="bear"
+      title="bear"> &#x1F43B; </button>
+    <button class="ui circular bg-option button" style="background-color:#fafafa;font-size: 2vh;" data-palette="cow"
+      title="cow">&#x1F404; </button>
+    <button class="ui circular bg-option button" style="background-color:#fafafa;font-size: 2vh;" data-palette="sky"
+      title="sky">&#x1F3D4;&#xFE0F; </button>
+    <button class="ui circular bg-option button" style="background-color:#fafafa;font-size: 2vh;" data-palette="default"
+      title="default">&#x2B1C; </button>
+
   </div>
   <script src="../libs/semantic.css"></script>
   <script type="module" src="newtab.js"></script>

@@ -149,6 +149,15 @@ document.addEventListener('DOMContentLoaded', function () {
       themeOptions.style.opacity = '0';
       themeOpen = false;
     }
+    if (
+      bgOpen &&
+      !bgOptions.contains(e.target) &&
+      e.target !== toggleBtn
+    ) {
+      bgOptions.style.maxHeight = '0';
+      bgOptions.style.opacity = '0';
+      bgOpen = false;
+    }
   });
   chrome.storage.local.get('vocabList', function (data) {
     if (data.vocabList) {
@@ -639,6 +648,7 @@ function changeBG(palette) {
     bear: "url(/bg/bg3.png) center/cover no-repeat fixed",
     cow: "url(/bg/bg4.png) center/cover no-repeat fixed",
     sky: "url(/bg/bg6.png) center/cover no-repeat fixed",
+    sushi: "url(/bg/bg5.png) center/cover no-repeat fixed",
 
     default: "00% 0% / cover no-repeat fixed",
   };

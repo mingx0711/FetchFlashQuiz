@@ -30,6 +30,12 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('quizContainer').style.display = 'none';
   document.getElementById('trueFalseContainer').style.display = 'none';
   populateBookSelector();
+
+  chrome.storage.local.get(['selectedBG'], function (result) {
+    if (result.selectedBG) {
+      utils.changeBG(result.selectedBG);
+    }
+  });
   const allCheckbox = document.querySelector('input[name="coverage"][value="all"]');
   const otherCheckboxes = Array.from(document.querySelectorAll('input[name="coverage"]:not([value="all"])'));
 

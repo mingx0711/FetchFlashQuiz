@@ -105,6 +105,12 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.getElementById('nextButton').style.display = 'none';
   const newLastOption = document.getElementById('newLastOption');
   const newLastOptionLabel = document.getElementById('newLastLabel');
+
+  chrome.storage.local.get(['selectedBG'], function (result) {
+    if (result.selectedBG) {
+      utils.changeBG(result.selectedBG);
+    }
+  });
   chrome.storage.local.get('vocabList', function (data) {
     if (data.vocabList) {
       let vocabList = data.vocabList;

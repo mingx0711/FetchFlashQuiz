@@ -1323,6 +1323,30 @@ export function shuffleArray(array) {
     [array[i], array[j]] = [array[j], array[i]];
   }
 }
+
+export function changeBG(palette) {
+  const BG = {
+    cat: "url(/bg/bg2.png) center/cover no-repeat fixed",
+    bear: "url(/bg/bg3.png) center/cover no-repeat fixed",
+    cow: "url(/bg/bg4.png) center/cover no-repeat fixed",
+    sky: "url(/bg/bg6.png) center/cover no-repeat fixed",
+    sushi: "url(/bg/bg5.png) center/cover no-repeat fixed",
+    shore: "url(/bg/bg9.png) center/cover no-repeat fixed",
+    pasta: "url(/bg/bg7.png) center/cover no-repeat fixed",
+    chinese: "url(/bg/bg8.png) center/cover no-repeat fixed",
+    seal: "url(/bg/bg10.png) center/cover no-repeat fixed",
+    wave: "url(/bg/bg11.png) center/cover no-repeat fixed",
+    night: "url(/bg/bg12.png) center/cover no-repeat fixed",
+    sweet: "url(/bg/bg14.png) center/cover no-repeat fixed",
+    snack: "url(/bg/bg13.png) center/cover no-repeat fixed",
+    fruity: "url(/bg/bg17.png) center/cover no-repeat fixed",
+    default: "00% 0% / cover no-repeat fixed",
+  };
+  document.body.style.background = BG[palette] || BG['default'];
+  chrome.storage.local.set({ selectedBG: palette }, function () {
+    // //console.log.log('Palette saved:', palette);
+  });
+}
 export const langMap = {
   de: 'German',
   es: 'Spanish',

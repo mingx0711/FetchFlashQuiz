@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   chrome.storage.local.get(['selectedBG'], function (result) {
     if (result.selectedBG) {
-      changeBG(result.selectedBG);
+      utils.changeBG(result.selectedBG);
     }
   });
   const toggleBtn = document.getElementById('toggleThemeOptions');
@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.ui.bg-option.button').forEach(button => {
     button.addEventListener('click', function () {
       const palette = this.getAttribute('data-palette');
-      changeBG(palette);
+      utils.changeBG(palette);
     });
   });
   document.querySelectorAll('.quiz-option').forEach(button => {
@@ -641,22 +641,6 @@ function changeColor(palette) {
     // //console.log.log('Palette saved:', palette);
   });
 
-}
-function changeBG(palette) {
-  const BG = {
-    cat: "url(/bg/bg2.png) center/cover no-repeat fixed",
-    bear: "url(/bg/bg3.png) center/cover no-repeat fixed",
-    cow: "url(/bg/bg4.png) center/cover no-repeat fixed",
-    sky: "url(/bg/bg6.png) center/cover no-repeat fixed",
-    sushi: "url(/bg/bg5.png) center/cover no-repeat fixed",
-
-    default: "00% 0% / cover no-repeat fixed",
-  };
-  console.log(BG[palette]);
-  document.body.style.background = BG[palette] || BG['default'];
-  chrome.storage.local.set({ selectedBG: palette }, function () {
-    // //console.log.log('Palette saved:', palette);
-  });
 }
 function showNextVocab(collection = currentCollectionSelection) {
   let currentCollection = [];

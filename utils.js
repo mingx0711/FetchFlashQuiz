@@ -1209,9 +1209,6 @@ export function getEligibleVocabs(vocabList, func = () => false, needSeen = true
     showNextVocab();
     return;
   }
-  if (desirableLength > 0) {
-    const filterByLength = eligibleVocab.filter(entry => entry.word.length === desirableLength);
-  }
   return eligibleVocab;
 }
 export function setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition) {

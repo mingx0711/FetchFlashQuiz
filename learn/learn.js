@@ -4,6 +4,8 @@ let currentVocabIndex = null;
 let vocabList = [];
 let firstbook = "";
 let currentQuizWord = null;
+let sortedNewWordsByLang = {};
+
 let currentQuizDefinition = null;
 let quizType = null;
 let isPairCorrect = null;
@@ -94,6 +96,47 @@ function getSpeechLang(code) {
   };
   return langMap[code.toLowerCase()] || "en-US"; // Default fallback
 }
+function getNewWordsData() {
+  let newLastOptionLabel = document.getElementById('newLastLabel');
+  let sortedNewWordsByLang = {};
+  return new Promise(resolve => {
+    chrome.storage.local.get('vocabList', function (data) {
+      if (data.vocabList) {
+        let vocabList = data.vocabList;
+        // Group vocab by language
+        const grouped = {};
+        vocabList.forEach(vocab => {
+          const lang = vocab.language || utils.nameToAbbr[vocab.book] || 'unknown';
+          if (!grouped[lang]) grouped[lang] = [];
+          grouped[lang].push(vocab);
+        });
+
+        // For each language, find first learned index and count new words
+        Object.entries(grouped).forEach(([lang, words]) => {
+          const reversed = words.slice().reverse();
+          const firstLearnedIdx = reversed.findIndex(vocab => vocab.hasOwnProperty('learnedTime'));
+          if (firstLearnedIdx === -1 || firstLearnedIdx === 0) {
+            sortedNewWordsByLang[lang] = 0;
+          } else {
+            sortedNewWordsByLang[lang] = firstLearnedIdx;
+          }
+        });
+
+        // Sort by language name (alphabetically)
+        const sortedLangs = Object.keys(sortedNewWordsByLang).sort();
+        const sortedResult = {};
+        sortedLangs.forEach(lang => {
+          sortedResult[lang] = sortedNewWordsByLang[lang];
+        });
+
+        //console.log(sortedResult);
+        resolve(sortedResult);
+      } else {
+        resolve({});
+      }
+    });
+  });
+}
 document.getElementById('vocabCount').addEventListener('input', function () {
   if (this.value < 4) this.value = 4;
 });
@@ -111,32 +154,36 @@ document.addEventListener('DOMContentLoaded', async function () {
       utils.changeBG(result.selectedBG);
     }
   });
-  chrome.storage.local.get('vocabList', function (data) {
-    if (data.vocabList) {
-      let vocabList = data.vocabList;
-      const reversedList = vocabList.slice().reverse();
-      const firstLearnedIdx = reversedList.findIndex(vocab => vocab.hasOwnProperty('learnedTime'));
-      if (firstLearnedIdx === -1 || firstLearnedIdx === 0) {
-        newLastOptionLabel.style.display = 'none';
-        document.getElementById('newLastOption').style.display = 'none';
-        document.getElementById('or').style.display = 'none';
-
-        newLastOption.checked = false;
-
-        document.getElementById('newFirstOption').checked = true;
-      } else {
-        document.getElementById('newLastLabel').innerHTML = `You have added <strong>${firstLearnedIdx}</strong> new vocabs since you last learned, learn them`
-      }
-    }
-  });
 
   await populateBookSelector();
   const selector = document.getElementById("bookSelector");
   const container = document.querySelector(".progress-container");
   const bar = document.querySelector(".progress-bar");
   const label = document.querySelector(".progress-label");
-  function updateProgress() {
+  async function updateProgress() {
     const book = selector.value || selector
+    //console.log(book)
+
+    const newWordsData = await getNewWordsData();
+    const newWordsCount = newWordsData[utils.nameToAbbr[selector.value.toLowerCase()]] || 0;
+    //console.log(newWordsData)
+
+    if (newWordsCount > 4) {
+      newLastOptionLabel.style.display = '';
+      document.getElementById('newLastOption').style.display = '';
+      document.getElementById('or').style.display = '';
+      newLastOption.checked = true;
+      document.getElementById('newFirstOption').checked = false;
+      document.getElementById('newLastLabel').innerHTML = `You have added <strong>${newWordsCount}</strong> new vocabs to this deck since you last learned, learn them`
+    } else {
+      newLastOptionLabel.style.display = 'none';
+      document.getElementById('newLastOption').style.display = 'none';
+      document.getElementById('or').style.display = 'none';
+      newLastOption.checked = false;
+      document.getElementById('newFirstOption').checked = true;
+    }
+    //console.log(book)
+
     if (book) {
       chrome.storage.local.get('vocabList', function (data) {
         if (data.vocabList) {
@@ -155,13 +202,13 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
       });
       container.style.display = "block";
-
     } else {
       container.style.display = "none";
     }
   }
 
   selector.addEventListener("change", updateProgress);
+
   chrome.storage.local.get('vocabList', function (data) {
     if (data.vocabList) {
       vocabList = data.vocabList;
@@ -190,7 +237,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('showTestResult').style.display = "None"
 
     filteredVocabList = filteredVocabList.filter(item => wrongVocabs.includes(item.word));
-    //console.log(filteredVocabList)
+    ////console.log(filteredVocabList)
     currentQuizNo = 0;
     wordToTest = "";
     recordHistory = [];
@@ -269,7 +316,7 @@ async function generateLearningQueue(bookSelected) {
       filteredVocabList = vocabList.filter(vocab => vocab.book === bookSelected);
       totalVocabList = filteredVocabList;
       filteredVocabList = getLeastLearnedAmount(filteredVocabList);
-      console.log(filteredVocabList)
+      //console.log(filteredVocabList)
       document.getElementById('start').style.display = 'none';
       document.getElementById('nextButton').style.display = '';
       document.getElementById('stepCounter').style.display = '';
@@ -360,7 +407,7 @@ async function generateLearningQueue(bookSelected) {
         learningQueue.push({ type: 'quiz4', word: wordObj });
       }
     });
-    console.log(learningQueue)
+    //console.log(learningQueue)
     currentStep = 0;
     showNextLearningStep();
   });
@@ -370,7 +417,7 @@ function showNextLearningStep() {
   document.getElementById('nextButton').style.display = 'none';
   document.getElementById('speakQuiz').style.display = 'none'
   // If queue is empty, finish
-  //console.log("CurrentStep is" + currentStep)
+  ////console.log("CurrentStep is" + currentStep)
   if (currentStep >= learningQueue.length) {
     endTest();
     return;
@@ -412,7 +459,7 @@ function showNextLearningStep() {
 
     default:
       // handle unknown step type
-      //console.warn("Unknown step type:", step.type);
+      ////console.warn("Unknown step type:", step.type);
       break;
   }
 }
@@ -436,7 +483,7 @@ function showNextVocab() {
   let word;
   let definition;
   let wordObj = learningQueue[currentStep].word;
-  //console.log(wordObj)
+  ////console.log(wordObj)
   document.getElementById('speak').addEventListener('click', async function () {
     speechSynthesis.cancel();
     const currentWord = word.split('/')[0];;
@@ -550,21 +597,25 @@ function quizStyle8() {
   document.getElementById('nextAfterIncorrectButton').style.display = 'none';
 }
 async function populateBookSelector() {
-  var first = true;
-  await chrome.storage.local.get({ bookList: [] }, (result) => {
-    const bookList = result.bookList ? result.bookList : "Default";
-    // Clear existing options except for the default option
-    // Add books as options
-    bookList.forEach(book => {
-      if (first) { firstbook = book; first = false; }
-      let option = document.createElement('option');
+  return new Promise(resolve => {
 
-      option.textContent = book;
-      option.value = book;
+    var first = true;
+    chrome.storage.local.get({ bookList: [] }, (result) => {
+      const bookList = result.bookList ? result.bookList : "Default";
+      // Clear existing options except for the default option
+      // Add books as options
+      bookList.forEach(book => {
+        if (first) { firstbook = book; first = false; }
+        let option = document.createElement('option');
 
-      document.getElementById('bookSelector').add(option);
+        option.textContent = book;
+        option.value = book;
+
+        document.getElementById('bookSelector').add(option);
+      });
+      resolve(firstbook);
+      return firstbook;
     });
-    return firstbook;
   });
 }
 
@@ -636,7 +687,7 @@ function quizStyle3() {
   utils.setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition)
 }
 function quizStyle4() {
-  //console.log("4, ask for pronounciation")
+  ////console.log("4, ask for pronounciation")
   quizType = "pronounciation"
 
   const correctVocab = learningQueue[currentStep].word;
@@ -645,7 +696,7 @@ function quizStyle4() {
     currentVocabIndex--;
     return showNextItem();
   }
-  console.log("quizStyle4 called for " + correctVocab.word);
+  //console.log("quizStyle4 called for " + correctVocab.word);
 
 
   currentQuizWord = correctVocab.word;
@@ -672,7 +723,7 @@ function quizStyle4() {
 }
 function quizStyle5() {
   quizType = "gender"
-  //console.log("5, ask for gender")
+  ////console.log("5, ask for gender")
   const correctVocab = learningQueue[currentStep].word;
   shouldSpeak = false;
   if (!utils.checkEligible(correctVocab, utils.hasGender, false)) {
@@ -697,7 +748,7 @@ function quizStyle5() {
 
   if (!isPairCorrect) {
     var incorrectVocab = utils.LanguageGenderMap[correctVocab.language || correctVocab.book].filter(item => item !== currentQuizDefinition);
-    console.log(incorrectVocab)
+    //console.log(incorrectVocab)
     currentQuizDefinition = utils.getRandomElement(incorrectVocab);
   }
   utils.setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition)
@@ -745,13 +796,13 @@ function getRandomWordFromConjugations(conjugations, commonWordsList = []) {
   let randomSubfield = subfields[Math.floor(Math.random() * subfields.length)];
   const words = conjugations[randomField][randomSubfield];
   const randomWord = words[Math.floor(Math.random() * words.length)];
-  //console.log(randomField + ":" + randomSubfield + ":" + randomWord)
+  ////console.log(randomField + ":" + randomSubfield + ":" + randomWord)
   if (randomWord == undefined) {
     return getRandomWordFromConjugations(conjugations, commonWordsList);
   }
   const isInAllSubfields = commonWordsList.includes(randomWord)
   if (randomWord.length <= 1 || randomWord == null || isInAllSubfields) {
-    //console.log(randomWord + " is not not a wrong answer")
+    ////console.log(randomWord + " is not not a wrong answer")
     return getRandomWordFromConjugations(conjugations, commonWordsList);
   } else {
     return randomWord;
@@ -840,7 +891,7 @@ function checkAnswer(button) {
     setTimeout(() => {
       button.classList.remove('correct');
       correctMessage.style.display = 'none';
-      //console.log("correct")
+      ////console.log("correct")
       showNextLearningStep();
     }, 500);
   } else {
@@ -852,7 +903,7 @@ function checkAnswer(button) {
 }
 
 function showCorrectAnswer() {
-  //console.log(quizType)
+  ////console.log(quizType)
   const quizContainer = document.querySelector('.quiz-container');
   quizContainer.style.display = "none";
   const tfContainer = document.querySelector('.true-false-container');
@@ -949,7 +1000,7 @@ function endTest() {
       });
       // Save updated vocabList back to storage
       chrome.storage.local.set({ vocabList: data.vocabList }, function () {
-        //console.log("Updated vocabList saved to storage.");
+        ////console.log("Updated vocabList saved to storage.");
       });
     }
   });

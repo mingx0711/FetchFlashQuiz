@@ -454,7 +454,7 @@ function quizStyle5() {
   isPairCorrect = Math.random() < 0.5;
 
   if (!isPairCorrect) {
-    var incorrectVocab = filteredVocabList.filter(item => item !== currentQuizDefinition);
+    var incorrectVocab = utils.LanguageGenderMap[correctVocab.language || correctVocab.book].filter(item => item !== currentQuizDefinition);
     currentQuizDefinition = utils.getRandomElement(incorrectVocab);
   }
   utils.setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition)
@@ -714,7 +714,6 @@ function showCorrectAnswer() {
 function checkTrueFalse(isTrue) {
   const correctMessage = document.getElementById('correctMessage');
   const incorrectMessage = document.getElementById('incorrectMessage');
-
   if (isTrue === isPairCorrect) {
     updateQuizResults('t');
     correctMessage.style.display = 'block';

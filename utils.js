@@ -1404,6 +1404,7 @@ export function prepareQuiz(options) {
   document.getElementById('correctMessage').style.display = 'none';
   document.getElementById('incorrectMessage').style.display = 'none';
   document.getElementById('correctDefinition').style.display = 'none';
+
   document.getElementById('nextAfterIncorrectButton').style.display = 'none';
 }
 
@@ -1540,6 +1541,7 @@ function showCorrectAnswer(currentQuizWord) {
   quizContainer.style.display = "none";
   const tfContainer = document.querySelector('.true-false-container');
   tfContainer.style.display = "none";
+  document.getElementById('nextButton').style.display = 'none';
   const nextButton = document.getElementById('nextAfterIncorrectButton');
   nextButton.style.display = 'block';
 

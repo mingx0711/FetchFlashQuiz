@@ -699,22 +699,23 @@ function showNextVocab(collection = currentCollectionSelection) {
       if (currentCollection[currentVocabIndex].seen >= 200) {
         if (Math.random() < 0.9) {
           // //console.log.log(currentCollection[currentVocabIndex].word + "has been seen too many times therefore skipped")
-          currentVocabIndex = Math.floor(Math.random() * vocabList.length);
+          currentVocabIndex = Math.floor(Math.random() * currentCollection.length);
         }
       }
       if (currentCollection[currentVocabIndex].seen >= 100) {
         if (Math.random() < 0.75) {
           // //console.log.log(currentCollection[currentVocabIndex].word + "has been seen too many times therefore skipped")
-          currentVocabIndex = Math.floor(Math.random() * vocabList.length);
+          currentVocabIndex = Math.floor(Math.random() * currentCollection.length);
         }
       }
       if (currentCollection[currentVocabIndex] && currentCollection[currentVocabIndex].seen >= 50) {
         if (Math.random() < 0.5) {
           // //console.log.log(currentCollection[currentVocabIndex].word + "has been seen too many times therefore skipped")
-          currentVocabIndex = Math.floor(Math.random() * vocabList.length);
+          currentVocabIndex = Math.floor(Math.random() * currentCollection.length);
         }
       }
       // //console.log.log(currentCollection[currentVocabIndex]);
+      currentVocabIndex = Math.floor(Math.random() * currentCollection.length);
       const vocabFlashcard = document.getElementById('vocabFlashcard');
       let wordDiv = document.getElementById('wordDiv');
       let defDiv = document.getElementById('defDiv');
@@ -734,6 +735,7 @@ function showNextVocab(collection = currentCollectionSelection) {
           definition = wordObject.definition;
         }
       } else {
+
         word = currentCollection[currentVocabIndex].word;
         definition = currentCollection[currentVocabIndex].definition;
       }
@@ -766,14 +768,24 @@ function showNextVocab(collection = currentCollectionSelection) {
       defDiv.textContent = definition;
       bookDiv.textContent = book;
       if (currentCollection[currentVocabIndex].etym) {
-        const etymText = currentCollection[currentVocabIndex].etym;
+        const etymText = utils.chopEtym(currentCollection[currentVocabIndex].etym);
         const etymSize =
           maxSize - ((maxSize - minSize) * (Math.min(etymText.length, 300) / 300));
+
         etymDiv.textContent = etymText.replace(/\.mw[\s\S]*\}/, '');
         etymDiv.textContent = etymDiv.textContent.replace('undefined', '');
         etymDiv.style.fontSize = etymSize.toFixed(1) + 'vw';
+
       } else {
         etymDiv.textContent = ""
+      }
+      const tips = utils.getLanguageTips(currentCollection[currentVocabIndex]);
+      if (tips) {
+        tipsDiv.style.display = '';
+        tipsDiv.textContent = tips;
+      } else {
+        tipsDiv.textContent = "";
+
       }
       // Increment the seen count
       chrome.storage.local.get('vocabList', function (data) {

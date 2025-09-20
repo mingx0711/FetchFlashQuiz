@@ -226,6 +226,11 @@
       justify-content: center;
     }
 
+    #vocabFlashcard {
+      position: relative;
+      /* make children position relative to card */
+    }
+
     #changeInterval {
       background: none;
       border: none;
@@ -280,23 +285,26 @@
     <div style="font-size: 2vw;color:#272623;" id="genderDiv"></div>
     <div class="ui horizontal divider" id="divider" style="color:#545150; height: 5px"></div>
     <div style="font-size: 3vw; color:#4b5437;" id="defDiv"></div>
-    <div style="font-size: 2vw; color:#737373; margin-bottom: 20%;" id="etymDiv"></div>
-    <button class="ui button" id="fetchInfo"
-      style="position: fixed;top:-10%;background-color:transparent;right:0%;font-size: 0.9vw;text-align: right;">auto-complete
-      vocab in the background(?)</button>
-    <p class="ui" id="fetchTip"
-      style="position: fixed;top:0%;right:0%;border-width: 2px;font-size: 1vw;display: none;border: 2px solid #000000;background-color:whitesmoke;text-align: left;">
-      When you click this button, the extension will:
-      <br> - Scan your vocab list for entries missing etymology, gender, or inflection.
-      <br> - Fetch any missing data from Wiktionary in the background, pausing 60~300 seconds between each request to
-      avoid overloading the server.
-      <br> - Not all the vocabs in your vocab list has wiktionary entries, and some might not have gender or eytmology.
-      <br>For this feature to work, your collection has to be downloaded from this extensions or your collection name
-      must exactly match the language name with an initial capital letter (for example, 'German'), or the json file you
-      upload the vocabs with must have "language" field.
-      <br>Existing informations of the vocabs will not be overriden.
-    </p>
+    <div style="font-size: 1.8vw; color:#737373; " id="etymDiv"></div>
+    <div style="font-size: 1.5vw; color:#303030; position:absolute; bottom:2%; width: 100%; left:0" id="tipsDiv">
+    </div>
   </div>
+
+  <button class="ui button" id="fetchInfo"
+    style="position: fixed;top:-10%;background-color:transparent;right:0%;font-size: 0.9vw;text-align: right;">auto-complete
+    vocab in the background(?)</button>
+  <p class="ui" id="fetchTip"
+    style="position: fixed;top:0%;right:0%;border-width: 2px;font-size: 1vw;display: none;border: 2px solid #000000;background-color:whitesmoke;text-align: left;">
+    When you click this button, the extension will:
+    <br> - Scan your vocab list for entries missing etymology, gender, or inflection.
+    <br> - Fetch any missing data from Wiktionary in the background, pausing 60~300 seconds between each request to
+    avoid overloading the server.
+    <br> - Not all the vocabs in your vocab list has wiktionary entries, and some might not have gender or eytmology.
+    <br>For this feature to work, your collection has to be downloaded from this extensions or your collection name
+    must exactly match the language name with an initial capital letter (for example, 'German'), or the json file you
+    upload the vocabs with must have "language" field.
+    <br>Existing informations of the vocabs will not be overriden.
+  </p>
 
   </div>
   <div class="quiz-container" style="top: 2%;margin: auto ;border: 10px solid;" id="quizContainer">
@@ -359,7 +367,7 @@
       style="border: 3px solid;position: fixed;bottom:14%;transform: translateX(-50%);left: 70%;font-weight: bold;font-size:1vw;">Next</button>
     <button class="ui button" id="learnButton"
       style="border: 3px solid;position: fixed;bottom:14%;transform: translateX(-50%);left: 30%;font-weight: bold;font-size:1vw;">Learn
-      you vocabs</button>
+      your vocabs</button>
     <button class="ui button" id="testButton"
       style="border: 3px solid;position: fixed;bottom:14%;transform: translateX(-50%);left: 50%;font-weight: bold;font-size:1vw;">Test
       your vocabs</button>

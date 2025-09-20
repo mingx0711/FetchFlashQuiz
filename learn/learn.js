@@ -479,6 +479,7 @@ function showNextVocab() {
   let genderDiv = document.getElementById('genderDiv');
   let etymDiv = document.getElementById('etymDiv');
   let groupDiv = document.getElementById('groupDiv');
+  let tipsDiv = document.getElementById('tipsDiv');
 
   let word;
   let definition;
@@ -513,6 +514,7 @@ function showNextVocab() {
     if (gender == utils.GenderType.FEMININE) { genderDiv.style.color = "#BD4028"; }
     if (gender == utils.GenderType.neuter) { genderDiv.style.color = 'green'; }
 
+
   } else {
     genderDiv.textContent = ""
   }
@@ -537,6 +539,13 @@ function showNextVocab() {
     etymDiv.style.fontSize = etymSize.toFixed(1) + 'vw';
   } else {
     etymDiv.textContent = ""
+  }
+  if (utils.getLanguageTips(wordObj)) {
+    tipsDiv.style.display = '';
+    tipsDiv.textContent = utils.getLanguageTips(wordObj);
+  } else {
+    tipsDiv.textContent = "";
+
   }
   document.getElementById('quizContainer').style.display = 'none';
   vocabFlashcard.style.display = 'block';

@@ -25,6 +25,100 @@ export const LanguageGenderMap = {
   "es": [GenderType.MASCULINE, GenderType.FEMININE], // Spanish
   "pt": [GenderType.MASCULINE, GenderType.FEMININE], // Portuguese
 };
+export const germanNounRules = [
+  { ending: "ung", gender: GenderType.FEMININE },
+  { ending: "heit", gender: GenderType.FEMININE },
+  { ending: "keit", gender: GenderType.FEMININE },
+  { ending: "schaft", gender: GenderType.FEMININE },
+  { ending: "ion", gender: GenderType.FEMININE },
+  { ending: "tät", gender: GenderType.FEMININE },
+  { ending: "ik", gender: GenderType.FEMININE },
+  { ending: "ei", gender: GenderType.FEMININE },  // Bäckerei, Polizei
+  { ending: "ie", gender: GenderType.FEMININE },   // Philosophie, Melodie
+  { ending: "ur", gender: GenderType.FEMININE },   // Kultur, Natur
+  { ending: "ade", gender: GenderType.FEMININE },  // Marmelade, Fassade
+  { ending: "age", gender: GenderType.FEMININE },  // Garage, Etage
+  { ending: "anz", gender: GenderType.FEMININE },  // Distanz, Toleranz
+  { ending: "enz", gender: GenderType.FEMININE },
+  { ending: "e", gender: GenderType.FEMININE },
+
+  { ending: "chen", gender: GenderType.NEUTER },
+  { ending: "lein", gender: GenderType.NEUTER },
+  { ending: "ment", gender: GenderType.NEUTER },
+  { ending: "um", gender: GenderType.NEUTER },
+  { ending: "ma", gender: GenderType.NEUTER },
+  { ending: "o", gender: GenderType.NEUTER },      // Auto, Büro
+  { ending: "nis", gender: GenderType.NEUTER },    // Ergebnis, Zeugnis
+  { ending: "tum", gender: GenderType.NEUTER },
+  { ending: "tel", gender: GenderType.NEUTER },
+  { ending: "sal", gender: GenderType.NEUTER },
+
+  { starting: "Ge", gender: GenderType.NEUTER }, // Gebäude, Geschenk
+
+  { ending: "er", gender: GenderType.MASCULINE }, // often for people/professions, e.g. Arbeiter
+  { ending: "ling", gender: GenderType.MASCULINE },
+  { ending: "ismus", gender: GenderType.MASCULINE },
+  { ending: "ist", gender: GenderType.MASCULINE },
+  { ending: "or", gender: GenderType.MASCULINE },
+  { ending: "us", gender: GenderType.MASCULINE },  // Rhythmus, Zirkus
+  { ending: "ant", gender: GenderType.MASCULINE }, // Diamant, Demonstrant
+  { ending: "ent", gender: GenderType.MASCULINE }, // Student, Präsident
+  { ending: "ich", gender: GenderType.MASCULINE }, // Teppich
+  { ending: "ig", gender: GenderType.MASCULINE },  // Käfig, König
+  { ending: "ismus", gender: GenderType.MASCULINE }
+];
+
+export function getLanguageTips(word) {
+  if (word.language === "de" && hasGender(word) && word.word !== "") {
+    return getGermanLanguageTips(word);
+  }
+}
+export function getGermanLanguageTips(word) {
+  const lowerWord = word.word.toLowerCase();
+  const gender = word.gender;
+
+  for (const { ending, gender: expected } of germanNounRules) {
+    if (lowerWord.endsWith(ending)) {
+      if (gender === expected) {
+        console.log("matched")
+        return ` ${word.word} ends with "${ending}", a common ${expected} ending.`;
+
+      } else {
+        console.log("notMatch")
+
+        return `⚠️ Careful: ${word.word} ends with "${ending}", which is usually ${expected}, but here it's ${gender}.`;
+      }
+    }
+  }
+  for (const { starting, gender: expected } of germanNounRules) {
+    if (lowerWord.startsWith(starting)) {
+      console.log(gender, expected);
+      if (gender === expected) {
+        return ` ${word.word} starts with "${starting}", a common ${expected} starting.`;
+      } else {
+        return `⚠️ Careful: ${word.word} starts with "${starting}", which is usually ${expected}, but here it's ${gender}.`;
+      }
+    }
+  }
+  return null;
+}
+
+export function chopEtym(text) {
+  if (text.length <= 200) return text;
+
+  // Take substring up to maxLength
+  let chunk = text.slice(0, 200);
+
+  // Find the last comma or period within the chunk
+  let lastPunct = Math.max(chunk.lastIndexOf(","), chunk.lastIndexOf("."));
+
+  if (lastPunct !== -1) {
+    return chunk.slice(0, lastPunct + 1).trim();
+  }
+
+  // fallback: just return the chunk trimmed
+  return chunk.trim() + "...";
+}
 export const LANGUAGES = Object.freeze({
   GERMAN: "de",
   LATIN: "la",
@@ -901,9 +995,9 @@ export function prepareOptionsForQuiz6(correctVocab) {
       }
       let wrongAnswers = []
       if (conjugations.pos == "verb") {
-        wrongAnswers = ["first conjugation", "second conjugation", "third conjugation", "fourth conjugation", "irregular", "first&second conjugation"]
+        wrongAnswers = ["first", "second", "third", "fourth", "irregular", "first&second"]
       } else {
-        wrongAnswers = ["first declension", "second declension", "third declension", "fourth declension", "fifth declension", "irregular"]
+        wrongAnswers = ["first", "second", "third", "fourth", "fifth", "irregular"]
       }
       for (let i = 0; i < 3; i++) {
         //console.log(options)
@@ -1213,7 +1307,7 @@ export function getEligibleVocabs(vocabList, func = () => false, needSeen = true
 }
 export function setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition) {
   document.getElementById('quizQuestion').textContent = `What is the definition of "${correctVocab.word}"?`;
-  document.getElementById('trueFalseQuestion').textContent = `Is the definition of "${currentQuizWord}" "${currentQuizDefinition}"?`;
+  document.getElementById('trueFalseQuestion').textContent = `Is "${currentQuizWord}" "${currentQuizDefinition}"?`;
 
   // Show true/false quiz and hide vocab card
   document.getElementById('trueFalseContainer').style.display = 'block';

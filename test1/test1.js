@@ -348,7 +348,7 @@ function showNextItem() {
 function quizStyle1() {
   utils.ClearPageForQuizContainer();
   utils.removeSnooze();
-  shouldSpeak = true;
+  shouldSpeak = false;
   const correctVocab = filteredVocabList[currentVocabIndex];
   if (!utils.checkEligible(correctVocab, () => true, false)) {
     currentVocabIndex--;

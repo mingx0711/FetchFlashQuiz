@@ -84,7 +84,6 @@ export function getGermanLanguageTips(word) {
         return ` ${word.word} ends with "${ending}", a common ${expected} ending.`;
 
       } else {
-        console.log("notMatch")
 
         return `⚠️ Careful: ${word.word} ends with "${ending}", which is usually ${expected}, but here it's ${gender}.`;
       }

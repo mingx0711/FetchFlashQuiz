@@ -271,10 +271,27 @@
     display: block;
     font-size: 1vwpx;
     "></select>
-    <div class="progress-container">
-      <div class="progress-bar"></div>
-      <div class="progress-label">70%</div>
+    <div id="progressContainer" style="
+       position: relative;
+       width: 70%;
+       height: 20px;
+       background: #eee;
+       border-radius: 3px;   /* smooth rounded corners */
+       overflow: hidden;      /* keeps inner bars from spilling outside */
+     ">
+      <span id="progressLabel" style="
+          position: absolute;
+          width: 70%;
+          text-align: center;
+          font-size: 0.9em;
+          z-index: 10;
+          color: #000;
+          line-height: 20px;   /* vertically center text */
+        ">
+      </span>
     </div>
+
+
     <div style="display: flex; align-items: center; gap: 8px;">
       <input type="radio" style="font-size: 1vw;" id="newLastOption" name="focusOption" value="newLast" checked>
       <label id="newLastLabel" for="newLastOption">
@@ -288,11 +305,20 @@
     </label>
     <input type="number" id="vocabCount" min="4" step="1" value="15"
       style="font-size:1vw; width:80px; margin-bottom:18px;" />
-    <label><input type="radio" style="font-size: 1vw;display: inline-flex;" name="focusOption" value="newest"
-        id="newFirstOption">
-      newest vocabs</label>
-    <label><input type="radio" style="font-size: 1vw;display: inline-flex;" name="focusOption" value="random"> random
-      vocabs</label>
+    <div style="display: flex; align-items: center; gap: 1vw;">
+      <label>
+        <input type="radio" style="font-size: 1vw;" name="focusOption" value="newest" id="newFirstOption">
+        newest vocabs
+      </label>
+      <label>
+        <input type="radio" style="font-size: 1vw;" name="focusOption" value="random">
+        random vocabs
+      </label>
+      <label>
+        <input type="radio" style="font-size: 1vw;" name="focusOption" value="revise" id="reviseOption">
+        revise from learned vocabs
+      </label>
+    </div>
 
     <button style="font-size: 1vw;display: inline-flex;" class="ui button" id="start">Go!</button>
 

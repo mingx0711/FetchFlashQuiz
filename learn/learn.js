@@ -189,20 +189,62 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (data.vocabList) {
           let vocabList = data.vocabList;
           let filteredVocabList = vocabList.filter(vocab => vocab.book === selector.value);
+
+          const total = filteredVocabList.length;
+          if (total === 0) return;
+
+          // Define your colors for levels
+          const levelColors = [
+            '#cccccc', // 0 - unseen
+            '#f9b0cfff', // 1 - red
+            '#fbe2b6ff', // 2 - orange
+            '#fffbc7ff', // 3 - yellow
+            '#aeffaeff', // 4 - green
+            '#bddeffff', // 5 - blue
+            '#b691c9ff', // 6 - purple
+            '#f1cd00ff'  // 7 - gold
+          ];
+
+          // Clear previous bars
+          const container = document.getElementById("progressContainer");
+          container.querySelectorAll('.progressSegment').forEach(el => el.remove());
+
+          // Count how many words are at or above each level
+          const counts = Array(8).fill(0);
+          filteredVocabList.forEach(vocab => {
+            const level = Math.min(vocab.learnedTime, 7);
+            for (let i = 1; i <= level; i++) counts[i]++;
+          });
+          console.log(filteredVocabList.filter(item => item.learnedTime >= 1));
+
+          // Draw stacked progress bars
+          for (let i = 1; i < counts.length; i++) {
+            const percent = (counts[i] / total) * 100;
+            const bar = document.createElement("div");
+            bar.className = "progressSegment";
+            bar.style.position = "absolute";
+            bar.style.left = "0";
+            bar.style.top = "0";
+            bar.style.height = "100%";
+            bar.style.width = percent + "%";
+            bar.style.backgroundColor = levelColors[i];
+            bar.style.zIndex = i;
+            bar.style.opacity = 0.9;
+            container.appendChild(bar);
+          }
           const minTime = Math.min(...filteredVocabList.map(item => item.learnedTime ?? 0));
 
           let learnedCount = filteredVocabList.filter(vocab => vocab.learnedTime > minTime).length;
           const percentage = learnedCount / filteredVocabList.length * 100;
           const count = learnedCount + " / " + filteredVocabList.length;
-          bar.style.width = percentage + "%";
-          label.textContent = count + " ";
+          document.getElementById("progressLabel").textContent = count + " ";
           for (let i = 0; i < minTime; i++) {
-            label.textContent += '⭐';
+            document.getElementById("progressLabel").textContent += '⭐';
           }
         }
       });
-      container.style.display = "block";
-    } else {
+    }
+    else {
       container.style.display = "none";
     }
   }
@@ -290,6 +332,11 @@ function getLeastLearnedAmount(arr) {
     const reversedList = arr.slice().reverse();
     const firstLearnedIdx = reversedList.findIndex(vocab => vocab.hasOwnProperty('learnedTime'));
     return reversedList.slice(0, firstLearnedIdx);
+  } else if (focusOption === "revise") {
+    let leastLearned = Math.min(...filteredVocabList.map(item => item.learnedTime ?? 0));
+    let learnedWords = arr.filter(item => item.learnedTime === leastLearned + 1);
+    shuffleArray(learnedWords);
+    return learnedWords.slice(0, learnCount);
   } else {
     var rev = (arr.slice().reverse());
     const sorted = rev

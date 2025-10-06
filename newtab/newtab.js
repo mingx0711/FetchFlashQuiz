@@ -166,7 +166,9 @@ document.addEventListener('DOMContentLoaded', function () {
       missingCount = vocabList
         .filter(item => !item.hasOwnProperty('hasChecked') || item.hasChecked !== true)
         .length;
+      console.log(missingCount)
       if (missingCount > 0) {
+        fetchInfo.style.display = '';
         fetchInfo.textContent = missingCount + ' words may be missing etymology, inflection, or gender. Click here to fetch their info in the background from Wiktionary.'
       } else {
         fetchInfo.style.display = 'None'

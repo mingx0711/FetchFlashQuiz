@@ -9,6 +9,7 @@ let eligibleForQuiz4 = false;
 let eligibleForQuiz5 = false;
 let eligibleForConjugation = false;
 let shouldSpeak = false;
+let wordToSpeak;
 let isPairCorrect = null;
 let filteredVocabList = []
 let totalNoCount = null;
@@ -19,8 +20,6 @@ let correctCount = 0;
 let correctConj;
 let currentLanguage;
 let totalCountYet = 0;
-let currentTest;
-let wrongVocabs = [];
 let conjToTest;
 let correctVocab;
 let quizChartInstance = null; // Add this at the top of your file (or outside the function)
@@ -99,10 +98,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   document.querySelectorAll('.quiz-option').forEach(button => {
     button.addEventListener('click', function () {
-      if (shouldSpeak) {
-        utils.speakWord(currentLanguage, button.textContent);
-        shouldSpeak = false;
-      }
       checkAnswer(button);
     });
   });
@@ -348,8 +343,8 @@ function showNextItem() {
 function quizStyle1() {
   utils.ClearPageForQuizContainer();
   utils.removeSnooze();
-  shouldSpeak = false;
   const correctVocab = filteredVocabList[currentVocabIndex];
+  wordToSpeak = correctVocab.word;
   if (!utils.checkEligible(correctVocab, () => true, false)) {
     currentVocabIndex--;
     return showNextItem();
@@ -366,6 +361,7 @@ function quizStyle2() {
 
   const correctVocab = filteredVocabList[currentVocabIndex];
   //console.log("quizStyle2 called for " + correctVocab);
+  wordToSpeak = correctVocab.word;
 
   if (!utils.checkEligible(correctVocab, () => true, false)) {
     currentVocabIndex--;
@@ -393,6 +389,7 @@ function quizStyle3() {
   currentQuizWord = correctVocab.word;
   currentQuizDefinition = correctVocab.definition;
   quizType = 'truefalse';
+  wordToSpeak = correctVocab.word;
 
   isPairCorrect = Math.random() < 0.5;
 
@@ -419,8 +416,8 @@ function quizStyle4() {
     currentVocabIndex--;
     return showNextItem();
   }
-  console.log("quizStyle4 called for " + correctVocab.word);
 
+  wordToSpeak = correctVocab.word;
 
   currentQuizWord = correctVocab.word;
   currentQuizDefinition = correctVocab.pronounciation;
@@ -452,6 +449,7 @@ function quizStyle5() {
   currentQuizDefinition = correctVocab.gender;
   quizType = 'truefalse';
   isPairCorrect = Math.random() < 0.5;
+  wordToSpeak = correctVocab.word;
 
   if (!isPairCorrect) {
     var incorrectVocab = utils.LanguageGenderMap[correctVocab.language || correctVocab.book].filter(item => item !== currentQuizDefinition);
@@ -558,7 +556,6 @@ function quizStyle6() {
 
   utils.ClearPageForQuizContainer();
   utils.removeSnooze()
-  shouldSpeak = false;
 
   const correctVocab = filteredVocabList[currentVocabIndex];
   if (!utils.checkEligible(correctVocab, utils.hasConjugations, false)) {
@@ -571,6 +568,9 @@ function quizStyle6() {
   conjToTest = result[2];
   correctConj = currentQuizDefinition
   quizType = result[4];
+
+  wordToSpeak = currentQuizWord;
+
   utils.prepareQuiz6(result[0], result[1], result[5]);
   currentTest = { quizStyle: (quizType == "6") ? "Give inflection, ask type of inflection" : "Ask for word group", vocab: correctVocab.word, book: correctVocab.book };
 
@@ -594,6 +594,8 @@ function quizStyle7() {
   conjToTest = result[3];
   let options = result[0];
   correctConj = currentQuizDefinition;
+  wordToSpeak = wordToTest;
+
   utils.setupQuiz7(options, currentQuizDefinition, result[2]);
   currentTest = { quizStyle: "Give type of inflection, ask inflection", vocab: correctVocab.word, book: correctVocab.book };
 
@@ -618,6 +620,7 @@ function quizStyle8() {
       i--;
     }
   }
+  wordToSpeak = currentQuizWord;
   currentTest = { quizStyle: "Ask for pron", vocab: correctVocab.word, book: correctVocab.book };
 
   shuffleArray(options);
@@ -647,6 +650,7 @@ function checkAnswer(button) {
   updateQuizResults(result);
 
   if (button.textContent === correctAnswer) {
+    utils.speakWord(currentLanguage, currentQuizWord)
     button.classList.add('correct');
     correctMessage.style.display = 'block';
     setTimeout(() => {

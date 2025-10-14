@@ -22,6 +22,7 @@ document.getElementById('addVocabForm').addEventListener('submit', function (e) 
   e.preventDefault();
   const language = document.getElementById('selectLanguage').value;
   let word = document.getElementById('word').value.trim();
+  word = word.replaceAll("|", "");
   const definition = document.getElementById('definition').value.trim();
   const book = document.getElementById('bookSelector').value;
   const pronounciation = document.getElementById('pronounciation').value;
@@ -31,7 +32,10 @@ document.getElementById('addVocabForm').addEventListener('submit', function (e) 
     chrome.storage.local.get('vocabList', function (data) {
       let vocabList = data.vocabList || [];
       // Append the new word, definition, and snoozed field
-      vocabList.push({ word, definition, snoozed: false, book, gender, pronounciation, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'] });
+      vocab = { word, definition, snoozed: false, book, gender, pronounciation, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'] }
+      utils.addType(vocab);
+      //console.log(vocab)
+      vocabList.push(vocab);
       chrome.storage.local.set({ lastBook: book }, function () { });
       // Save updated vocab list to Chrome storage
       chrome.storage.local.set({ vocabList: vocabList }, function () {
@@ -113,7 +117,7 @@ async function getLatinAttributes(doc, word) {
   const book = document.getElementById('bookSelector').value;
   // Call the shared utils function
   vocab = await utils.getLatinAttributes(doc, word, book);
-  console.log(vocab)
+  //console.log(vocab)
 
   if (typeof vocab === 'string') {
     document.getElementById("vocabInfoInfInfs").style.display = 'block'
@@ -146,7 +150,7 @@ async function getLinkedAttributes(doc, word, lang) {
   const book = document.getElementById('bookSelector').value;
   // Call the shared utils function
   vocab = await utils.getLinkedAttributes(doc, word, lang, book)
-  console.log(vocab)
+  //console.log(vocab)
   if (typeof vocab === 'string') {
     document.getElementById("vocabInfoInfInfs").style.display = 'block'
     document.getElementById('addAuto').style.display = 'none'
@@ -154,7 +158,7 @@ async function getLinkedAttributes(doc, word, lang) {
     document.getElementById('vocabInfo').innerHTML = utils.invalidWord;
     return;
   }
-  console.log(vocab)
+  //console.log(vocab)
   vocabInfo.innerHTML = '';
   vocabInfo.innerHTML += `word: <span style="font-weight: bold;">${vocab.word}</span>`;
   vocabInfo.innerHTML += `<br>\n definition: <span style="font-weight: bold;">${vocab.definition}</span>`;
@@ -331,10 +335,10 @@ function getGermanAttributes(doc, word) {
 function populateBookSelector() {
   chrome.storage.local.get({ bookList: [] }, (result) => {
     const bookList = result.bookList || ["Default"];
-    console.log(bookList)
+    //console.log(bookList)
     chrome.storage.local.get('lastBook', function (data) {
       const lastBook = data.lastBook ? data.lastBook : (bookList ? bookList[0] : "Default");
-      console.log(lastBook)
+      //console.log(lastBook)
       if (lastBook) {
         document.getElementById('bookSelector').innerHTML = ""
         if (lastBook != "" || lastBook === "addNew") {
@@ -343,7 +347,7 @@ function populateBookSelector() {
         // Add books as options
         bookList.forEach(book => {
           let option = document.createElement('option');
-          console.log(book + "   " + lastBook)
+          //console.log(book + "   " + lastBook)
           if (book === data.lastBook) {
 
             var optionNewSelected = document.createElement('option');
@@ -368,7 +372,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
   const selectLanguage = document.getElementById('selectLanguage');
   chrome.storage.local.get('languageList', function (data) {
     if (data.languageList) {
-      //console.log(data.languageList)
+      ////console.log(data.languageList)
       let optionsArray = Array.from(selectLanguage.options);
       optionsArray.sort((a, b) => {
         const valueA = data.languageList[a.value] || 0;  // default to 0 if not in the dictionary
@@ -376,7 +380,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         return valueB - valueA;  // Descending order
       });
       selectLanguage.innerHTML = '';
-      //console.log(optionsArray)
+      ////console.log(optionsArray)
       optionsArray.forEach(option => {
         selectLanguage.add(option);
       });
@@ -398,7 +402,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     } else {
       document.getElementById('tipsBox1').style.display = 'none';
     }
-    //console.log(data.hideBox1)
+    ////console.log(data.hideBox1)
 
   });
   chrome.storage.local.get('hideBox0', function (data) {
@@ -407,7 +411,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     } else {
       document.getElementById('tipsBox0').style.display = 'none';
     }
-    //console.log(data.hideBox0)
+    ////console.log(data.hideBox0)
 
   });
 
@@ -524,15 +528,15 @@ function syncBook() {
       bookList.push(...distinctBooks);
       bookList = Array.from(new Set(bookList));
       bookList = bookList.filter(Boolean)
-      //console.log(bookList)
+      ////console.log(bookList)
       chrome.storage.local.set({ bookList: bookList }, () => {
         if (chrome.runtime.lastError) {
-          console.error("Error saving bookList:", chrome.runtime.lastError);
+          //console.error("Error saving bookList:", chrome.runtime.lastError);
         } else {
-          //console.log("bookList saved:", bookList);
+          ////console.log("bookList saved:", bookList);
         }
       });
-      console.log(bookList)
+      //console.log(bookList)
     });
     ;
   })
@@ -541,9 +545,9 @@ function syncBook() {
 document.getElementById('addAuto').addEventListener('click', function (e) {
   const currentVocab = vocab;
   const book = document.getElementById('bookSelector').value;
-  console.log(vocab)
+  //console.log(vocab)
   chrome.storage.local.get('vocabList', function (data) {
-    console.log(currentVocab);
+    //console.log(currentVocab);
     let vocabList = data.vocabList || [];
     const index = vocabList.findIndex(item => item.word === currentVocab.word && item.book === currentVocab.book);
     if (index !== -1) {

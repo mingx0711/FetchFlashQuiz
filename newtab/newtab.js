@@ -7,7 +7,8 @@ let isQuiz = false;
 var missingCount;
 let needDiatricts = ["de", "fr"]
 let correctConj;
-
+let currentLanguage;
+let wordToSpeak;
 document.addEventListener('DOMContentLoaded', function () {
 
   chrome.storage.local.get('currentCollectionSelection', function (data) {
@@ -166,13 +167,20 @@ document.addEventListener('DOMContentLoaded', function () {
       missingCount = vocabList
         .filter(item => !item.hasOwnProperty('hasChecked') || item.hasChecked !== true)
         .length;
-      console.log(missingCount)
       if (missingCount > 0) {
         fetchInfo.style.display = '';
         fetchInfo.textContent = missingCount + ' words may be missing etymology, inflection, or gender. Click here to fetch their info in the background from Wiktionary.'
       } else {
         fetchInfo.style.display = 'None'
       }
+      chrome.storage.local.get('typeAdded', function (data) {
+        if (data.typeAdded) { } else {
+          for (let i = 0; i < vocabList.length; i++) {
+            utils.addType(vocabList[i]);
+          }
+          chrome.storage.local.set({ vocabList: vocabList, typeAdded: true });
+        }
+      });
     }
     showNextItem(currentCollectionSelection);
   });
@@ -925,6 +933,8 @@ function quizStyle1() {
   utils.ClearPageForQuizContainer();
   const eligibleVocab = utils.getEligibleVocabs(vocabList);
   const correctVocab = utils.getTestWord(eligibleVocab);
+  currentLanguage = correctVocab.language;
+  wordToSpeak = correctVocab.word;
   currentQuizWord = correctVocab.word;
   utils.showNextAndAutoplay()
   utils.setupDefQuiz(correctVocab, eligibleVocab)
@@ -939,6 +949,8 @@ function quizStyle2() {
   currentQuizWord = correctVocab.word;
   currentQuizDefinition = correctVocab.definition;
   quizType = 'word';
+  currentLanguage = correctVocab.language;
+  wordToSpeak = correctVocab.word;
   // //console.log.log(currentQuizWord);
   utils.setupWordQuiz(correctVocab, eligibleVocab)
 }
@@ -954,7 +966,8 @@ function quizStyle3() {
   quizType = 'truefalse';
 
   isPairCorrect = Math.random() < 0.5;
-
+  currentLanguage = correctVocab.language;
+  wordToSpeak = correctVocab.word;
   if (!isPairCorrect) {
     let incorrectVocab;
     do {
@@ -980,6 +993,8 @@ function quizStyle4() {
   const correctVocab = utils.getTestWord(eligibleVocab);
   currentQuizWord = correctVocab.word;
   currentQuizDefinition = correctVocab.pronounciation;
+  currentLanguage = correctVocab.language;
+  wordToSpeak = correctVocab.word;
   if (currentQuizDefinition == "") {
     quizStyle1();
   } else {
@@ -1005,7 +1020,6 @@ function quizStyle5() {
   quizType = 'truefalse';
 
   isPairCorrect = Math.random() < 0.5;
-
   if (!isPairCorrect) {
     var incorrectVocab = eligibleOptions.filter(item => item !== currentQuizDefinition);
     currentQuizDefinition = utils.getRandomElement(incorrectVocab);
@@ -1037,6 +1051,8 @@ function quizStyle6() {
   conjToTest = result[2];
   correctConj = currentQuizDefinition
   quizType = result[4];
+  currentLanguage = correctVocab.language;
+  wordToSpeak = currentQuizWord;
   utils.prepareQuiz6(result[0], result[1], result[5]);
 }
 function quizStyle7() {
@@ -1058,6 +1074,8 @@ function quizStyle7() {
   conjToTest = result[3];
   let options = result[0];
   correctConj = currentQuizDefinition;
+  wordToSpeak = currentQuizWord;
+  currentLanguage = correctVocab.language;
   utils.setupQuiz7(options, currentQuizDefinition, result[2]);
 }
 function quizStyle8() {
@@ -1073,6 +1091,8 @@ function quizStyle8() {
   }
   const correctVocab = utils.getTestWord(eligibleVocab);
   currentQuizWord = correctVocab.word;
+  wordToSpeak = currentQuizWord;
+
   quizType = 'Listening';
   utils.setUp8Quiz(correctVocab, eligibleVocab);
 }
@@ -1087,6 +1107,8 @@ function checkAnswer(button) {
   updateQuizResults(result, correctWord);
 
   if (button.textContent === correctAnswer) {
+    utils.speakWord(currentLanguage, currentQuizWord)
+
     button.classList.add('correct');
     document.getElementById('snoozeButton').style.display = 'none';
     document.getElementById('nextButton').style.display = 'none';

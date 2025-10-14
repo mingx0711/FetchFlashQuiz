@@ -67,7 +67,51 @@ export const germanNounRules = [
   { ending: "ig", gender: GenderType.MASCULINE },  // Käfig, König
   { ending: "ismus", gender: GenderType.MASCULINE }
 ];
-
+export const wordTypes = Object.freeze({
+  NOUN: 'noun',
+  VERB: 'verb',
+  ADJECTIVE: 'adjective',
+  ADVERB: 'adverb',
+  PRONOUN: 'pronoun',
+  PREPOSITION: 'preposition',
+  CONJUNCTION: 'conjunction',
+  INTERJECTION: 'interjection',
+  OTHER: 'other',
+  TBD: 'tbd'
+});
+export function addType(word) {
+  let language = word.language || convertToAbbr(word.book);
+  switch (language) {
+    case 'de':
+      if (word.word[0] === word.word[0].toUpperCase()) {
+        word.wordType = wordTypes.NOUN;
+      } else if (word.word.endsWith("en")) {
+        word.wordType = wordTypes.VERB;
+      } else {
+        word.wordType = wordTypes.OTHER;
+      }
+      break;
+    case 'la':
+      if (word.conjugations && word.conjugations.pos && word.conjugations.pos === 'verb') {
+        word.wordType = wordTypes.VERB;
+      } else if (word.gender && word.gender !== null) {
+        word.wordType = wordTypes.NOUN;
+      } else if (word.conjugations) {
+        word.wordType = wordTypes.ADJECTIVE;
+      }
+      break;
+    case 'zh':
+      word.wordType = word.pronounciation ? (word.pronounciation.split(" ").length) : wordTypes.TBD;
+      break;
+    default:
+      if (word.gender) { word.wordType = wordTypes.NOUN; break; }
+      else if (word.definition && (word.definition.startsWith("to"))) {
+        word.wordType = wordTypes.VERB; break;
+      } else {
+        word.wordType = wordTypes.TBD; break;
+      }
+  }
+}
 export function getLanguageTips(word) {
   if (word.language === "de" && hasGender(word) && word.word !== "") {
     return getGermanLanguageTips(word);
@@ -405,7 +449,7 @@ export async function getLatinAttributes(doc, word, book) {
     }
     ////console.log(etym);
     let vocab = { word, definition, snoozed: false, book, pronounciation, language: "la", gender, conjugations, seen: 0, type: "verb", quizResults: ['n', 'n', 'n', 'n'], hasChecked: true, etym: hasEytm ? etym : "" }
-
+    addType(vocab);
     vocab.conjugations.type = 'latin';
     return vocab
   }
@@ -528,6 +572,7 @@ export async function getLatinAttributes(doc, word, book) {
       }
       let vocab = { word, definition, snoozed: false, book, pronounciation, language: "la", gender: autoGender ? autoGender : gender, conjugations, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'], etym: hasEytm ? etym : "" }
       ////console.log(vocab);
+      addType(vocab);
       return vocab
     } else {
       const latinElement = doc.querySelector('span.form-of-definition-link i.Latn.mention[lang="la"]');
@@ -799,7 +844,8 @@ export async function getEasyAttributes(doc, word, lang, book) {
     }
 
     let vocab = { word, definition, snoozed: false, book, language: lang, pronounciation: pronounciationText, gender: autoGender ? autoGender : gender, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'], etym: hasEytm ? etym : "" }
-
+    addType(vocab);
+    console.log(vocab)
     return vocab;
   } else {
     return "invalid"
@@ -1180,17 +1226,23 @@ export function hasPronounciation(wordObj) {
 }
 export function generateDefOptions(correctVocab, filteredVocabList) {
   const options = [correctVocab.definition];
+  const wordType = correctVocab.wordType;
+  let eligibleOptions = filteredVocabList.filter(item => item.wordType === wordType);
+  if (eligibleOptions.length < 4) {
+    eligibleOptions = filteredVocabList;
+  }
+  //console.log(eligibleOptions)
   for (let i = 0; i < 3; i++) {
-    let randomIndex = Math.floor(Math.random() * filteredVocabList.length);
-    let candidate = filteredVocabList[randomIndex];
+    let randomIndex = Math.floor(Math.random() * eligibleOptions.length);
+    let candidate = eligibleOptions[randomIndex];
 
     // Retry if not the same book or if duplicate
     while (
       candidate.book !== correctVocab.book ||
       options.includes(candidate.definition)
     ) {
-      randomIndex = Math.floor(Math.random() * filteredVocabList.length);
-      candidate = filteredVocabList[randomIndex];
+      randomIndex = Math.floor(Math.random() * eligibleOptions.length);
+      candidate = eligibleOptions[randomIndex];
     }
 
     options.push(candidate.definition);
@@ -1200,18 +1252,23 @@ export function generateDefOptions(correctVocab, filteredVocabList) {
 }
 export function generateWordOptions(correctVocab, filteredVocabList) {
   const options = [correctVocab.word];
-
+  const wordType = correctVocab.wordType;
+  let eligibleOptions = filteredVocabList.filter(item => item.wordType === wordType);
+  if (eligibleOptions.length < 4) {
+    eligibleOptions = filteredVocabList;
+  }
+  //console.log(eligibleOptions)
   for (let i = 0; i < 3; i++) {
-    let randomIndex = Math.floor(Math.random() * filteredVocabList.length);
-    let candidate = filteredVocabList[randomIndex];
+    let randomIndex = Math.floor(Math.random() * eligibleOptions.length);
+    let candidate = eligibleOptions[randomIndex];
 
     // Retry if not the same book or if duplicate
     while (
       candidate.book !== correctVocab.book ||
       options.includes(candidate.word)
     ) {
-      randomIndex = Math.floor(Math.random() * filteredVocabList.length);
-      candidate = filteredVocabList[randomIndex];
+      randomIndex = Math.floor(Math.random() * eligibleOptions.length);
+      candidate = eligibleOptions[randomIndex];
     }
 
     options.push(candidate.word);
@@ -1344,13 +1401,18 @@ export function setUpPronounciationQuiz(correctVocab, eligibleOptions) {
   prepareQuiz(options);
 }
 export function generatePronounciationOptions(correctVocab, eligibleOptions) {
+  let syllables = correctVocab.wordType;
   const options = [correctVocab.pronounciation];
+  let sameLengthWords = eligibleOptions.filter(item => item.wordType === syllables);
+  if (sameLengthWords.length < 4) {
+    sameLengthWords = eligibleOptions;
+  }
   for (let i = 0; i < 3; i++) {
-    let randomIndex = Math.floor(Math.random() * eligibleOptions.length);
-    while (eligibleOptions[randomIndex].book != correctVocab.book) {
+    let randomIndex = Math.floor(Math.random() * sameLengthWords.length);
+    while (sameLengthWords[randomIndex].book != correctVocab.book) {
       randomIndex = Math.floor(Math.random() * eligibleOptions.length);
     }
-    const randomPronounciation = eligibleOptions[randomIndex].pronounciation;
+    const randomPronounciation = sameLengthWords[randomIndex].pronounciation;
     if (!options.includes(randomPronounciation)) {
       options.push(randomPronounciation);
     } else {
@@ -1584,3 +1646,4 @@ function showCorrectAnswer(currentQuizWord) {
     vocabFlashcard.style.display = 'block';
   }
 }
+

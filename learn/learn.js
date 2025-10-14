@@ -5,6 +5,8 @@ let vocabList = [];
 let firstbook = "";
 let currentQuizWord = null;
 let sortedNewWordsByLang = {};
+let currentLanguage;
+let wordToSpeak;
 
 let currentQuizDefinition = null;
 let quizType = null;
@@ -215,7 +217,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             const level = Math.min(vocab.learnedTime, 7);
             for (let i = 1; i <= level; i++) counts[i]++;
           });
-          console.log(filteredVocabList.filter(item => item.learnedTime >= 1));
 
           // Draw stacked progress bars
           for (let i = 1; i < counts.length; i++) {
@@ -331,24 +332,17 @@ function getLeastLearnedAmount(arr) {
   } else if (focusOption === "newLast") {
     const reversedList = arr.slice().reverse();
     const firstLearnedIdx = reversedList.findIndex(vocab => vocab.hasOwnProperty('learnedTime'));
+    //console.log(firstLearnedIdx)
     return reversedList.slice(0, firstLearnedIdx);
   } else if (focusOption === "revise") {
     let leastLearned = Math.min(...filteredVocabList.map(item => item.learnedTime ?? 0));
     let learnedWords = arr.filter(item => item.learnedTime === leastLearned + 1);
     shuffleArray(learnedWords);
     return learnedWords.slice(0, learnCount);
-  } else {
-    var rev = (arr.slice().reverse());
-    const sorted = rev
-      .map((item, idx) => ({ ...item, _idx: idx }))
-      .sort((a, b) => (a.learnedTime ?? 0) - (b.learnedTime ?? 0) || a._idx - b._idx)
-      .slice(0, learnCount);
-    // Get the original indices of the selected items
-    const selectedIndices = new Set(sorted.map(item => item._idx));
-
-    // Return items in original order
-    var res = rev.filter((item, idx) => selectedIndices.has(idx));
-    return res;
+  } else { //newest
+    return arr
+      .filter(item => !('learnedTime' in item)) // keep only items without learnedTime
+      .slice(0, learnCount)
   }
 }
 async function generateLearningQueue(bookSelected) {
@@ -378,6 +372,7 @@ async function generateLearningQueue(bookSelected) {
         return;
       }
       const wordAppearances = {};
+      currentLanguage = filteredVocabList[0].language;
 
       filteredVocabList.forEach(wordObj => {
         const word = wordObj.word;
@@ -425,6 +420,7 @@ async function generateLearningQueue(bookSelected) {
     shuffleArray(randomWords);
     randomWords.slice(0, 8).forEach(wordObj => {
       var randomIndex = Math.random()
+      //console.log(randomIndex < 0.25 ? 8 : randomIndex < 0.5 ? 1 : randomIndex < 0.75 ? 2 : 3)
       if (randomIndex < 0.25) {
         learningQueue.push({ type: 'quiz8', word: wordObj });
       } else if (randomIndex < 0.5) {
@@ -434,13 +430,14 @@ async function generateLearningQueue(bookSelected) {
       } else {
         learningQueue.push({ type: 'quiz3', word: wordObj });
       }
-      if (hasGender(wordObj)) {
+      if (hasGender(wordObj) && Math.random() < 0.5) {
         learningQueue.push({ type: 'quiz5', word: wordObj });
       }
     });
     shuffleArray(randomWords);
     randomWords.slice(0, 8).forEach(wordObj => {
       var randomIndex = Math.random()
+      //console.log(randomIndex < 0.25 ? 8 : randomIndex < 0.5 ? 1 : randomIndex < 0.75 ? 2 : 3)
       if (randomIndex < 0.25) {
         learningQueue.push({ type: 'quiz8', word: wordObj });
       } else if (randomIndex < 0.5) {
@@ -450,11 +447,11 @@ async function generateLearningQueue(bookSelected) {
       } else {
         learningQueue.push({ type: 'quiz3', word: wordObj });
       }
-      if (hasPronounciation(wordObj)) {
+      if (hasPronounciation(wordObj) && Math.random() < 0.5) {
         learningQueue.push({ type: 'quiz4', word: wordObj });
       }
     });
-    //console.log(learningQueue)
+    console.log(learningQueue)
     currentStep = 0;
     showNextLearningStep();
   });
@@ -480,7 +477,7 @@ function showNextLearningStep() {
       break;
 
     case "quiz3":
-      quizStyle4()
+      quizStyle3()
       break;
 
     case "quiz5":
@@ -633,6 +630,7 @@ function quizStyle8() {
     }
   }
   currentTest = { quizStyle: "Ask for pron", vocab: correctVocab.word, book: correctVocab.book };
+  wordToSpeak = currentQuizWord;
 
   shuffleArray(options);
 
@@ -711,6 +709,7 @@ function quizStyle1() {
   shouldSpeak = true;
   const correctVocab = learningQueue[currentStep].word;
   currentQuizWord = correctVocab.word;
+  wordToSpeak = correctVocab.word;
   utils.setupDefQuiz(correctVocab, filteredVocabList)
   currentTest = { quizStyle: "Ask for definition", vocab: correctVocab.word, book: correctVocab.book };
 }
@@ -718,6 +717,8 @@ function quizStyle2() {
   shouldSpeak = true;
   const correctVocab = learningQueue[currentStep].word;
   currentQuizWord = correctVocab.word;
+  wordToSpeak = correctVocab.word;
+
   currentQuizDefinition = correctVocab.definition;
   utils.setupWordQuiz(correctVocab, filteredVocabList)
   currentTest = { quizStyle: "Ask for word", vocab: correctVocab.word, book: correctVocab.book };
@@ -756,6 +757,8 @@ function quizStyle4() {
 
 
   currentQuizWord = correctVocab.word;
+  wordToSpeak = correctVocab.word;
+
   currentQuizDefinition = correctVocab.pronounciation;
   if (currentQuizDefinition == "") {
     if (learningQueue[currentStep - 1].type === 'quiz2') {
@@ -915,6 +918,8 @@ function quizStyle6() {
   correctConj = currentQuizDefinition
   quizType = result[4];
   utils.prepareQuiz6(result[0], result[1], result[5]);
+  wordToSpeak = currentQuizWord;
+
   currentTest = { quizStyle: (quizType == "6") ? "Give inflection, ask type of inflection" : "Ask for word group", vocab: correctVocab.word, book: correctVocab.book };
 
 }
@@ -931,6 +936,8 @@ function quizStyle7() {
   conjToTest = result[3];
   let options = result[0];
   correctConj = currentQuizDefinition;
+  wordToSpeak = wordToTest;
+
   utils.setupQuiz7(options, currentQuizDefinition, result[2]);
 }
 function checkAnswer(button) {
@@ -941,6 +948,8 @@ function checkAnswer(button) {
   const result = button.textContent === correctAnswer ? 't' : 'f';
 
   if (button.textContent === correctAnswer) {
+    utils.speakWord(currentLanguage, currentQuizWord)
+
     currentStep += 1;
     button.classList.add('correct');
     correctMessage.style.display = 'block';
@@ -952,7 +961,7 @@ function checkAnswer(button) {
     }, 500);
   } else {
     incorrectMessage.style.display = 'block';
-    showCorrectAnswer();
+    utils.showCorrectAnswer();
     wrongVocabs.push(currentQuizWord);
     document.getElementById('nextAfterIncorrectButton').style.display = 'Block';
   }

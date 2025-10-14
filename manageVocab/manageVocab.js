@@ -42,6 +42,9 @@ chrome.storage.local.getBytesInUse(null, function (bytesInUse) {
 //   chrome.tabs.create({ url: 'inflections/inflections.html' });
 // });
 document.getElementById('clearButton').addEventListener('click', function () {
+  if (!confirm('Are you sure you want to clear all vocabulary data? This action cannot be undone.')) {
+    return;
+  }
   chrome.storage.local.clear(function () {
     console.log('Chrome storage local data cleared');
     updateVocabList([]);  // Clear the displayed list

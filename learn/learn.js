@@ -961,7 +961,7 @@ function checkAnswer(button) {
     }, 500);
   } else {
     incorrectMessage.style.display = 'block';
-    utils.showCorrectAnswer();
+    showCorrectAnswer();
     wrongVocabs.push(currentQuizWord);
     document.getElementById('nextAfterIncorrectButton').style.display = 'Block';
   }

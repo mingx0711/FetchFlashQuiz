@@ -7,7 +7,9 @@ let isQuiz = false;
 var missingCount;
 let needDiatricts = ["de", "fr"]
 let correctConj;
+let showTips;
 let currentLanguage;
+let latinMedieval = false;
 let wordToSpeak;
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -55,6 +57,48 @@ document.addEventListener('DOMContentLoaded', function () {
   const backupRemindLater = document.getElementById('backupRemindLater');
   const backupRemindMonth = document.getElementById('backupRemindMonth');
   const backupReminderClose = document.getElementById('backupReminderClose');
+  // Wait for DOM to load
+  const checkbox = document.getElementById("tipsCheckbox");
+
+  // Load saved state from chrome.storage.local
+  chrome.storage.local.get("showLanguageTips", (data) => {
+    if (data.showLanguageTips === undefined) {
+      data.showLanguageTips = true;
+    }
+    checkbox.checked = data.showLanguageTips === true;
+    showTips = data.showLanguageTips;
+  });
+
+  // Add event listener to update storage when clicked
+  checkbox.addEventListener("change", () => {
+    const show = checkbox.checked;
+    showTips = show;
+    //console.log("Show language tips:", show);
+    chrome.storage.local.set({ showLanguageTips: show }, () => {
+      //console.log("Language tips setting updated:", show);
+    });
+  });
+
+  // Medieval Latin Pronunciation checkbox
+  const medievalCheckbox = document.getElementById("medieval");
+
+  // Load saved state from chrome.storage.sync
+  chrome.storage.sync.get("medievalPronunciation", (data) => {
+    if (data.medievalPronunciation === undefined) {
+      data.medievalPronunciation = false; // Default to medieval
+    }
+    medievalCheckbox.checked = data.medievalPronunciation === true;
+  });
+
+  // Add event listener to update storage when clicked
+  medievalCheckbox.addEventListener("change", () => {
+    const isMedieval = medievalCheckbox.checked;
+    latinMedieval = isMedieval;
+    //console.log("Medieval pronunciation:", isMedieval);
+    chrome.storage.sync.set({ medievalPronunciation: isMedieval }, () => {
+      //console.log("Medieval pronunciation setting updated:", isMedieval);
+    });
+  });
 
   // Helper to get days since a date string
   function daysSince(dateStr) {
@@ -68,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!installDate) {
       installDate = new Date().toISOString().slice(0, 10);
       chrome.storage.local.set({ installDate });
-      console.log('Install date set to:', installDate);
+      //console.log('Install date set to:', installDate);
     }
     const daysInstalled = daysSince(installDate);
     if (daysInstalled !== null && daysInstalled > 7) {
@@ -100,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function () {
       e.preventDefault();
       const nextWeek = new Date();
       nextWeek.setDate(nextWeek.getDate() + 7);
-      console.log('Next week reminder set to:', nextWeek.toISOString().slice(0, 10));
+      //console.log('Next week reminder set to:', nextWeek.toISOString().slice(0, 10));
       chrome.storage.local.set({ backupRemindUntil: nextWeek.toISOString().slice(0, 10) });
       reminderDiv.style.display = 'none';
     });
@@ -110,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function () {
       e.preventDefault();
       const nextMonth = new Date();
       nextMonth.setMonth(nextMonth.getMonth() + 1);
-      console.log('Next month reminder set to:', nextMonth.toISOString().slice(0, 10));
+      //console.log('Next month reminder set to:', nextMonth.toISOString().slice(0, 10));
       chrome.storage.local.set({ backupRemindUntil: nextMonth.toISOString().slice(0, 10) });
       reminderDiv.style.display = 'none';
     });
@@ -119,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function () {
     backupReminderClose.addEventListener('click', function () {
       const nextYear = new Date();
       nextYear.setFullYear(nextYear.getFullYear() + 1);
-      console.log('Next year reminder set to:', nextYear.toISOString().slice(0, 10));
+      //console.log('Next year reminder set to:', nextYear.toISOString().slice(0, 10));
       chrome.storage.local.set({ backupRemindUntil: nextYear.toISOString().slice(0, 10) });
       reminderDiv.style.display = 'none';
     });
@@ -230,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function () {
           chrome.storage.local.set(
             { intervalHistory },
             () => {
-              // //console.log.log('Saved new interval', parsed);
+              // ////console.log.log('Saved new interval', parsed);
             }
           );
         }
@@ -254,7 +298,7 @@ document.addEventListener('DOMContentLoaded', function () {
           if (currentVocabIndex >= 0 && currentVocabIndex < vocabList.length) {
             const currentItem = vocabList[currentVocabIndex];
             currentItem.focus = false;
-            ////console.log.log(currentItem+" unfocused");
+            //////console.log.log(currentItem+" unfocused");
             vocabList = vocabList.map(item =>
               item.word === currentItem.word
                 ? currentItem      // replace the entire object
@@ -272,7 +316,7 @@ document.addEventListener('DOMContentLoaded', function () {
           if (currentVocabIndex >= 0 && currentVocabIndex < vocabList.length) {
             const currentItem = vocabList[currentVocabIndex];
             currentItem.focus = true;
-            ////console.log.log(currentItem.word +" is focused");
+            //////console.log.log(currentItem.word +" is focused");
             vocabList = vocabList.map(item =>
               item.word === currentItem.word
                 ? currentItem      // replace the entire object
@@ -304,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Find the next word that needs to be fetched
         const item = vocabList.find(item => !item.hasChecked || item.hasChecked !== true);
         if (!item) break; // No more items to fetch
-        //console.log.log(new Date().toLocaleTimeString());
+        ////console.log.log(new Date().toLocaleTimeString());
         await fetchInfoFromWik(item);
         missingCount--;
         fetchInfo.textContent = 'fetching...' + missingCount + " words left";
@@ -317,14 +361,14 @@ document.addEventListener('DOMContentLoaded', function () {
     return new Promise(resolve => setTimeout(resolve, sleepMs));
   }
   async function fetchInfoFromWik(vocab) {
-    //console.log.log(vocabList.length)
+    ////console.log.log(vocabList.length)
     var language = vocab.language ? vocab.language : vocab.book
     language = utils.convertToAbbr(language)
     var word = vocab.word.replace(/\(.*?\)/g, "").replace(/\/.*/g, "").replace(/[!?]/g, "").trim();
     if (!needDiatricts.includes(language)) {
       word = removeDiacritics(word)
     }
-    //console.log.log(vocab.word+"-----"+word+"-----"+language );
+    ////console.log.log(vocab.word+"-----"+word+"-----"+language );
     var url = `https://en.wiktionary.org/wiki/${word}`
     fetch(url)
       .then(response => { return response.text(); })
@@ -353,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function () {
         );
         chrome.storage.local.set({ vocabList: vocabList }, function (data) { })
 
-        console.log(vocab);
+        //console.log(vocab);
       })
       .catch(err => {
         vocab.hasChecked = true;
@@ -383,11 +427,15 @@ document.addEventListener('DOMContentLoaded', function () {
   window.addEventListener('resize', adjustFontSize);
   adjustFontSize();
   changeIntervalBtn.addEventListener('click', () => {
-    // Toggle visibility of Auto Play
-    if (intervalInput.style.display === 'none' || intervalInput.style.display === '') {
-      intervalInput.style.display = 'inline';
-    } else {
-      intervalInput.style.display = 'none';
+    // Toggle visibility of Settings Menu
+    const settingsMenu = document.getElementById('settingsMenu');
+    settingsMenu.classList.toggle('open');
+  });
+  // Close settings menu when clicking outside
+  document.addEventListener('click', (event) => {
+    const settingsMenu = document.getElementById('settingsMenu');
+    if (!event.target.closest('#changeInterval') && !event.target.closest('#settingsMenu')) {
+      settingsMenu.classList.remove('open');
     }
   });
   document.getElementById('trueButton').addEventListener('click', function () {
@@ -406,9 +454,9 @@ document.addEventListener('DOMContentLoaded', function () {
   chrome.storage.local.get({ bookList: [] }, (result) => {
     chrome.storage.local.get({ currentCollectionSelection }, (data) => {
       selectedbooks = data.currentCollectionSelection || ""
-      // //console.log.log(selectedbooks)
+      // ////console.log.log(selectedbooks)
       const bookList = result.bookList;
-      // //console.log.log(bookList)
+      // ////console.log.log(bookList)
       displayBookList.innerHTML = '';
       bookList.forEach(book => {
         let checkboxContainer = document.createElement('div');
@@ -648,7 +696,7 @@ function changeColor(palette) {
 
 
   chrome.storage.local.set({ selectedPalette: palette }, function () {
-    // //console.log.log('Palette saved:', palette);
+    // ////console.log.log('Palette saved:', palette);
   });
 
 }
@@ -670,7 +718,7 @@ function showNextVocab(collection = currentCollectionSelection) {
   }
   const startIndex = currentVocabIndex === null ? -1 : currentVocabIndex;
   let nextIndex = (startIndex + 1) % currentCollection.length;
-  // //console.log.log("current collection",currentCollection.length)
+  // ////console.log.log("current collection",currentCollection.length)
   if (currentCollection.length == 0) {
     let wordDiv = document.getElementById('wordDiv');
     wordDiv.innerHTML = "No available words yet"
@@ -692,7 +740,7 @@ function showNextVocab(collection = currentCollectionSelection) {
       const displayFocused = (currentCollection.length > 500) ? 0.15 : focusedWordRatio;
       const displayProb = Math.max(displayFocused, 0.15); // Ensure at least a 10% chance
       if ((Math.random() < displayProb) && currentFocusedWords.length > 0) {
-        //console.log.log("displaying focused word")
+        ////console.log.log("displaying focused word")
         const randomIndex = Math.floor(Math.random() * currentFocusedWords.length);
         const randomFocusedWord = currentFocusedWords[randomIndex];
         currentVocabIndex = currentCollection.findIndex(item => item === randomFocusedWord);
@@ -704,27 +752,27 @@ function showNextVocab(collection = currentCollectionSelection) {
       }
       while (nextIndex !== startIndex && currentCollection[currentVocabIndex].snoozed) {
         currentVocabIndex = (nextIndex + 1) % currentCollection.length;
-        // //console.log.log("le word has been snoozy shouldnt show up ")
+        // ////console.log.log("le word has been snoozy shouldnt show up ")
       }
       if (currentCollection[currentVocabIndex].seen >= 200) {
         if (Math.random() < 0.9) {
-          // //console.log.log(currentCollection[currentVocabIndex].word + "has been seen too many times therefore skipped")
+          // ////console.log.log(currentCollection[currentVocabIndex].word + "has been seen too many times therefore skipped")
           currentVocabIndex = Math.floor(Math.random() * currentCollection.length);
         }
       }
       if (currentCollection[currentVocabIndex].seen >= 100) {
         if (Math.random() < 0.75) {
-          // //console.log.log(currentCollection[currentVocabIndex].word + "has been seen too many times therefore skipped")
+          // ////console.log.log(currentCollection[currentVocabIndex].word + "has been seen too many times therefore skipped")
           currentVocabIndex = Math.floor(Math.random() * currentCollection.length);
         }
       }
       if (currentCollection[currentVocabIndex] && currentCollection[currentVocabIndex].seen >= 50) {
         if (Math.random() < 0.5) {
-          // //console.log.log(currentCollection[currentVocabIndex].word + "has been seen too many times therefore skipped")
+          // ////console.log.log(currentCollection[currentVocabIndex].word + "has been seen too many times therefore skipped")
           currentVocabIndex = Math.floor(Math.random() * currentCollection.length);
         }
       }
-      // //console.log.log(currentCollection[currentVocabIndex]);
+      // ////console.log.log(currentCollection[currentVocabIndex]);
       currentVocabIndex = Math.floor(Math.random() * currentCollection.length);
       const vocabFlashcard = document.getElementById('vocabFlashcard');
       let wordDiv = document.getElementById('wordDiv');
@@ -750,7 +798,7 @@ function showNextVocab(collection = currentCollectionSelection) {
         definition = currentCollection[currentVocabIndex].definition;
       }
       document.getElementById('speak').addEventListener('click', async function () {
-        await utils.speakWord(currentCollection[currentVocabIndex].language, word)
+        await utils.speakWord(currentCollection[currentVocabIndex].language, word, latinMedieval)
       });
       const maxSize = 3
       const minSize = 1
@@ -777,6 +825,12 @@ function showNextVocab(collection = currentCollectionSelection) {
       wordDiv.innerHTML = word.bold();
       defDiv.textContent = definition;
       bookDiv.textContent = book;
+      let groupDiv = document.getElementById('groupDiv');
+      if (currentCollection[currentVocabIndex].conjugations && currentCollection[currentVocabIndex].conjugations.group) {
+        groupDiv.textContent = "group:" + currentCollection[currentVocabIndex].conjugations.group
+      } else {
+        groupDiv.textContent = ""
+      }
       if (currentCollection[currentVocabIndex].etym) {
         const etymText = utils.chopEtym(currentCollection[currentVocabIndex].etym);
         const etymSize =
@@ -789,13 +843,18 @@ function showNextVocab(collection = currentCollectionSelection) {
       } else {
         etymDiv.textContent = ""
       }
-      const tips = utils.getLanguageTips(currentCollection[currentVocabIndex]);
-      if (tips) {
-        tipsDiv.style.display = '';
-        tipsDiv.textContent = tips;
-      } else {
-        tipsDiv.textContent = "";
+      //console.log(showTips)
+      if (showTips) {
+        const tips = utils.getLanguageTips(currentCollection[currentVocabIndex]);
+        if (tips) {
+          tipsDiv.style.display = '';
+          tipsDiv.textContent = tips;
+        } else {
+          tipsDiv.textContent = "";
 
+        }
+      } else {
+        tipsDiv.style.display = 'none';
       }
       // Increment the seen count
       chrome.storage.local.get('vocabList', function (data) {
@@ -807,7 +866,7 @@ function showNextVocab(collection = currentCollectionSelection) {
           });
 
         }
-        // //console.log.log(`Incremented seen count for "${word}".`);
+        // ////console.log.log(`Incremented seen count for "${word}".`);
       });
 
       // Show vocab card and hide quiz
@@ -842,12 +901,12 @@ function enterAutoPlay() {
         chrome.storage.local.set(
           { intervalHistory: newHistory },
           () => {
-            // //console.log.log('No previous interval found. Defaulted to 6 and saved into history.');
+            // ////console.log.log('No previous interval found. Defaulted to 6 and saved into history.');
           }
         );
       } else {
         intervalSeconds = history[history.length - 1].value;
-        // //console.log.log('Loaded interval from history:', intervalSeconds);
+        // ////console.log.log('Loaded interval from history:', intervalSeconds);
       }
       timerId = setInterval(() => {
         showNextItem();
@@ -868,13 +927,13 @@ function snoozeCurrentVocab() {
     }
     chrome.storage.local.set({ vocabList: vocabList }, function () {
     });
-    // //console.log.log(`Snoozed "${vocabList[currentVocabIndex].word}".`);
+    // ////console.log.log(`Snoozed "${vocabList[currentVocabIndex].word}".`);
     showNextItem();  // Show the next item (vocab or quiz)
   });
 }
 function showQuiz() {
   const quizStyle = Math.floor(Math.random() * 11);
-  // //console.log.log(quizStyle);
+  // ////console.log.log(quizStyle);
   switch (quizStyle) {
     case 0:
       quizStyle1();
@@ -912,10 +971,10 @@ function showQuiz() {
   }
 }
 function updateQuizResults(result, word) {
-  // //console.log.log(result,word)
+  // ////console.log.log(result,word)
   for (const item of vocabList) {
     if (item.word === word) {
-      // //console.log.log(item)
+      // ////console.log.log(item)
       let quizResults = item.quizResults;
       quizResults.unshift(result);
       if (quizResults.length > 4) {
@@ -929,7 +988,7 @@ function updateQuizResults(result, word) {
   }
 }
 function quizStyle1() {
-  console.log("quizStyle1 called");
+  //console.log("quizStyle1 called");
   utils.ClearPageForQuizContainer();
   const eligibleVocab = utils.getEligibleVocabs(vocabList);
   const correctVocab = utils.getTestWord(eligibleVocab);
@@ -951,7 +1010,7 @@ function quizStyle2() {
   quizType = 'word';
   currentLanguage = correctVocab.language;
   wordToSpeak = correctVocab.word;
-  // //console.log.log(currentQuizWord);
+  // ////console.log.log(currentQuizWord);
   utils.setupWordQuiz(correctVocab, eligibleVocab)
 }
 
@@ -980,7 +1039,7 @@ function quizStyle3() {
 }
 function quizStyle4() {
   utils.ClearPageForQuizContainer();
-  // //console.log.log("4, ask for pronounciation")
+  // ////console.log.log("4, ask for pronounciation")
   utils.showNextAndAutoplay()
 
   const eligibleVocab = vocabList.filter(entry => utils.hasPronounciation(entry));
@@ -1079,7 +1138,7 @@ function quizStyle7() {
   utils.setupQuiz7(options, currentQuizDefinition, result[2]);
 }
 function quizStyle8() {
-  console.log("quiz style 8, listening quiz")
+  //console.log("quiz style 8, listening quiz")
   utils.ClearPageForQuizContainer();
   utils.showNextAndAutoplay()
 
@@ -1094,7 +1153,7 @@ function quizStyle8() {
   wordToSpeak = currentQuizWord;
 
   quizType = 'Listening';
-  utils.setUp8Quiz(correctVocab, eligibleVocab);
+  utils.setUp8Quiz(correctVocab, eligibleVocab, latinMedieval);
 }
 function checkAnswer(button) {
   document.getElementById('speakQuiz').style.display = "none"
@@ -1128,7 +1187,7 @@ function checkAnswer(button) {
 }
 
 function showCorrectAnswer() {
-  // //console.log.log(quizType)
+  // ////console.log.log(quizType)
   const quizContainer = document.querySelector('.quiz-container');
   quizContainer.style.display = "none";
   const tfContainer = document.querySelector('.true-false-container');

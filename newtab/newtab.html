@@ -252,6 +252,38 @@
       font: inherit;
       /* match the surrounding text font */
     }
+
+    #settingsMenu {
+      position: fixed;
+      bottom: 70%;
+      left: 10%;
+      background-color: #ffffff;
+      border: 2px solid #b8a9a7;
+      border-radius: 8px;
+      padding: 12px 16px;
+      box-shadow: 0 4px 12px rgba(90, 79, 77, 0.15);
+      z-index: 1000;
+      display: none;
+      min-width: 10vw;
+    }
+
+    #settingsMenu.open {
+      display: block;
+    }
+
+    #settingsMenu label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1vw;
+      color: #4b5437;
+      cursor: pointer;
+      margin: 8px 0;
+    }
+
+    #settingsMenu input[type="checkbox"] {
+      cursor: pointer;
+    }
   </style>
   <link rel="stylesheet" href="../libs/semantic.css">
 </head>
@@ -271,9 +303,25 @@
       style="position: fixed;top:20%;right:0%;border-width: 2px;font-size: 1vw;display: none;border: 2px solid #000000;background-color:whitesmoke;text-align: left;">
       [Focused words will show up more frequently]
     </p>
-    <input class="ui text" type="text" id="interval" name="interval"
-      style="display: None;position: fixed;bottom:88%;transform: translateX(-50%);left: 17%;font-weight: bold;"
-      placeholder="Enter autoplay interval (seconds)">
+
+
+    <div id="settingsMenu">
+
+      <label>
+        <input type="checkbox" id="tipsCheckbox" name="tipsOrNot" value="show">
+        show language tips
+      </label>
+      <label>
+        <input type="checkbox" id="medieval" value="show">
+        (latin only)use medieval(italian) latin pronounciation (default is classic)
+      </label>
+      <label>
+        Change autoplay interval to
+        <input class="ui text" type="text" id="interval" name="interval" style="width: 4vw;" placeholder="seconds">
+        <button class="button" style="background-color: #b8a9a7;"> set </button>
+      </label>
+
+    </div>
 
     <div style="font-size: 1vw; color:#4b5437;" id="bookDiv"></div>
     <div style="font-size: 2vw;color:#272623;" id="pronounDiv"></div>
@@ -282,11 +330,14 @@
       id="wordDiv"></div>
     <button class="ui button" id="speak"
       style="background-color: transparent;display: inline-flex;border: none; outline: none;font-size: 3vh;">&#128266;</button>
-    <div style="font-size: 2vw;color:#272623;" id="genderDiv"></div>
+    <div style="display:flex;justify-content: center; align-items:center; gap:1vw;">
+      <div style="font-size: 1.5vw; color:#272623;" id="genderDiv"></div>
+      <div style="font-size: 1.5vw; color:#272623;" id="groupDiv"></div>
+    </div>
     <div class="ui horizontal divider" id="divider" style="color:#545150; height: 5px"></div>
     <div style="font-size: 3vw; color:#4b5437;" id="defDiv"></div>
     <div style="font-size: 1.8vw; color:#737373; " id="etymDiv"></div>
-    <div style="font-size: 1.5vw; color:#303030; position:absolute; bottom:2%; width: 100%; left:0" id="tipsDiv">
+    <div style="font-size: 1.1vw; color:#303030; position:absolute; bottom:1%; width: 100%; left:0" id="tipsDiv">
     </div>
   </div>
 
@@ -400,6 +451,20 @@
     <div style="display: flex;justify-content: center;
             align-items: center;flex-wrap: wrap;;font-size:1vw;" id="displayBookList"></div>
   </div>
+
+  <!-- <div style="bottom:5%;font-size: 1vw;position: fixed;left: 35%;">
+    <label>
+      <input type="checkbox" id="tipsCheckbox" name="tipsOrNot" value="show">
+      show eytomology
+    </label>
+  </div> -->
+  <!-- <div style="bottom:5%;font-size: 1vw;position: fixed;left: 55%;">
+    <label>
+      <input type="checkbox" id="tipsCheckbox" name="tipsOrNot" value="show">
+      show quotations
+    </label>
+  </div> -->
+
 
   <!-- Wrap your color option buttons in a container with animation styles -->
   <button class="ui circular icon massive button" id="toggleThemeOptions"

@@ -7,6 +7,7 @@ let currentQuizWord = null;
 let sortedNewWordsByLang = {};
 let currentLanguage;
 let wordToSpeak;
+let latinMedieval = false;
 
 let currentQuizDefinition = null;
 let quizType = null;
@@ -156,7 +157,12 @@ document.addEventListener('DOMContentLoaded', async function () {
       utils.changeBG(result.selectedBG);
     }
   });
-
+  chrome.storage.sync.get("medievalPronunciation", (data) => {
+    if (data.medievalPronunciation === undefined) {
+      data.medievalPronunciation = false; // Default to medieval
+    }
+    latinMedieval = data.medievalPronunciation;
+  });
   await populateBookSelector();
   const selector = document.getElementById("bookSelector");
   const container = document.querySelector(".progress-container");
@@ -340,7 +346,7 @@ function getLeastLearnedAmount(arr) {
     shuffleArray(learnedWords);
     return learnedWords.slice(0, learnCount);
   } else { //newest
-    return arr
+    return arr.slice().reverse()
       .filter(item => !('learnedTime' in item)) // keep only items without learnedTime
       .slice(0, learnCount)
   }
@@ -607,17 +613,7 @@ function quizStyle8() {
   // Add to the .quiz-container
   document.getElementById('speakQuiz').style.display = 'inline-block'
   document.getElementById('speakQuiz').addEventListener('click', async function () {
-    speechSynthesis.cancel();
-    const currentWord = correctVocab.word;
-    var language = correctVocab.language || correctVocab.book
-    language = convertToAbbr(language)
-    const currentLang = getSpeechLang(language);
-    const utterance = new SpeechSynthesisUtterance(currentWord);
-    utterance.lang = currentLang;
-    const voices = await loadVoices();
-    const voice = voices.find(v => v.lang === currentLang);
-    if (voice) utterance.voice = voice;
-    speechSynthesis.speak(utterance);
+    utils.speakWord(currentLanguage, currentQuizWord, latinMedieval);
   });
   const options = [correctVocab.definition];
   for (let i = 0; i < 3; i++) {
@@ -948,7 +944,7 @@ function checkAnswer(button) {
   const result = button.textContent === correctAnswer ? 't' : 'f';
 
   if (button.textContent === correctAnswer) {
-    utils.speakWord(currentLanguage, currentQuizWord)
+    utils.speakWord(currentLanguage, currentQuizWord, latinMedieval);
 
     currentStep += 1;
     button.classList.add('correct');

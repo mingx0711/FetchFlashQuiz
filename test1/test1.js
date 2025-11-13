@@ -9,12 +9,15 @@ let eligibleForQuiz4 = false;
 let eligibleForQuiz5 = false;
 let eligibleForConjugation = false;
 let shouldSpeak = false;
+let latinMedieval = false;
 let wordToSpeak;
 let isPairCorrect = null;
 let filteredVocabList = []
 let totalNoCount = null;
 let currentQuizNo = 0;
+let currentTest;
 let wordToTest = "";
+let wrongVocabs = [];
 let recordHistory = [];
 let correctCount = 0;
 let correctConj;
@@ -37,7 +40,12 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   const allCheckbox = document.querySelector('input[name="coverage"][value="all"]');
   const otherCheckboxes = Array.from(document.querySelectorAll('input[name="coverage"]:not([value="all"])'));
-
+  chrome.storage.sync.get("medievalPronunciation", (data) => {
+    if (data.medievalPronunciation === undefined) {
+      data.medievalPronunciation = false; // Default to medieval
+    }
+    latinMedieval = data.medievalPronunciation;
+  });
   // When any other checkbox is checked, uncheck "All"
   otherCheckboxes.forEach(cb => {
     cb.addEventListener('change', () => {
@@ -601,45 +609,24 @@ function quizStyle7() {
 
 }
 function quizStyle8() {
-  utils.removeSnooze()
-  const correctVocab = filteredVocabList[currentVocabIndex];
-  currentQuizWord = correctVocab.word;
-  quizType = 'Listening';
-  // Add to the .quiz-container
-  document.getElementById('speakQuiz').style.display = 'inline-block'
-  document.getElementById('speakQuiz').addEventListener('click', async function () {
-    utils.speakWord(correctVocab.language, currentQuizWord)
-  });
-  const options = [correctVocab.definition];
-  for (let i = 0; i < 3; i++) {
-    const randomIndex = Math.floor(Math.random() * filteredVocabList.length);
-    const randomWord = filteredVocabList[randomIndex].definition;
-    if (!options.includes(randomWord)) {
-      options.push(randomWord);
-    } else {
-      i--;
-    }
+  //console.log("quiz style 8, listening quiz")
+  utils.ClearPageForQuizContainer();
+  utils.showNextAndAutoplay()
+
+  document.getElementById('speakQuiz').style.display = "block"
+  const eligibleVocab = utils.getEligibleVocabs(filteredVocabList);
+  if (eligibleVocab.length < 1) {
+    showNextVocab();
+    return;
   }
+  const correctVocab = utils.getTestWord(eligibleVocab);
+  currentQuizWord = correctVocab.word;
   wordToSpeak = currentQuizWord;
-  currentTest = { quizStyle: "Ask for pron", vocab: correctVocab.word, book: correctVocab.book };
 
-  shuffleArray(options);
+  quizType = 'Listening';
+  utils.setUp8Quiz(correctVocab, eligibleVocab, latinMedieval);
+  currentTest = { quizStyle: "Pronounciation", vocab: correctVocab.word, book: correctVocab.book };
 
-  document.getElementById('quizQuestion').textContent = `What is the definition for this?`;
-  document.getElementById('option1').textContent = options[0];
-  document.getElementById('option2').textContent = options[1];
-  document.getElementById('option3').textContent = options[2];
-  document.getElementById('option4').textContent = options[3];
-
-  document.getElementById('quizContainer').dataset.correctAnswer = correctVocab.definition;
-
-  // Show quiz and hide vocab card
-  document.getElementById('quizContainer').style.display = 'block';
-  document.getElementById('vocabFlashcard').style.display = 'none';
-  document.getElementById('correctMessage').style.display = 'none';
-  document.getElementById('incorrectMessage').style.display = 'none';
-  document.getElementById('correctDefinition').style.display = 'none';
-  document.getElementById('nextAfterIncorrectButton').style.display = 'none';
 }
 function checkAnswer(button) {
   const correctAnswer = document.getElementById('quizContainer').dataset.correctAnswer;
@@ -650,7 +637,7 @@ function checkAnswer(button) {
   updateQuizResults(result);
 
   if (button.textContent === correctAnswer) {
-    utils.speakWord(currentLanguage, currentQuizWord)
+    utils.speakWord(currentLanguage, currentQuizWord, latinMedieval);
     button.classList.add('correct');
     correctMessage.style.display = 'block';
     setTimeout(() => {

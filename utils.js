@@ -67,6 +67,49 @@ export const germanNounRules = [
   { ending: "ig", gender: GenderType.MASCULINE },  // Käfig, König
   { ending: "ismus", gender: GenderType.MASCULINE }
 ];
+
+export const latinNounRules = [
+  { ending: "a", gender: GenderType.FEMININE },
+  { ending: "heit", gender: GenderType.FEMININE },
+  { ending: "keit", gender: GenderType.FEMININE },
+  { ending: "schaft", gender: GenderType.FEMININE },
+  { ending: "ion", gender: GenderType.FEMININE },
+  { ending: "tät", gender: GenderType.FEMININE },
+  { ending: "ik", gender: GenderType.FEMININE },
+  { ending: "ei", gender: GenderType.FEMININE },  // Bäckerei, Polizei
+  { ending: "ie", gender: GenderType.FEMININE },   // Philosophie, Melodie
+  { ending: "ur", gender: GenderType.FEMININE },   // Kultur, Natur
+  { ending: "ade", gender: GenderType.FEMININE },  // Marmelade, Fassade
+  { ending: "age", gender: GenderType.FEMININE },  // Garage, Etage
+  { ending: "anz", gender: GenderType.FEMININE },  // Distanz, Toleranz
+  { ending: "enz", gender: GenderType.FEMININE },
+  { ending: "e", gender: GenderType.FEMININE },
+
+  { ending: "chen", gender: GenderType.NEUTER },
+  { ending: "lein", gender: GenderType.NEUTER },
+  { ending: "ment", gender: GenderType.NEUTER },
+  { ending: "um", gender: GenderType.NEUTER },
+  { ending: "ma", gender: GenderType.NEUTER },
+  { ending: "o", gender: GenderType.NEUTER },      // Auto, Büro
+  { ending: "nis", gender: GenderType.NEUTER },    // Ergebnis, Zeugnis
+  { ending: "tum", gender: GenderType.NEUTER },
+  { ending: "tel", gender: GenderType.NEUTER },
+  { ending: "sal", gender: GenderType.NEUTER },
+
+  { starting: "Ge", gender: GenderType.NEUTER }, // Gebäude, Geschenk
+
+  { ending: "er", gender: GenderType.MASCULINE }, // often for people/professions, e.g. Arbeiter
+  { ending: "ling", gender: GenderType.MASCULINE },
+  { ending: "ismus", gender: GenderType.MASCULINE },
+  { ending: "ist", gender: GenderType.MASCULINE },
+  { ending: "or", gender: GenderType.MASCULINE },
+  { ending: "us", gender: GenderType.MASCULINE },  // Rhythmus, Zirkus
+  { ending: "ant", gender: GenderType.MASCULINE }, // Diamant, Demonstrant
+  { ending: "ent", gender: GenderType.MASCULINE }, // Student, Präsident
+  { ending: "ich", gender: GenderType.MASCULINE }, // Teppich
+  { ending: "ig", gender: GenderType.MASCULINE },  // Käfig, König
+  { ending: "ismus", gender: GenderType.MASCULINE }
+];
 export const wordTypes = Object.freeze({
   NOUN: 'noun',
   VERB: 'verb',
@@ -112,10 +155,209 @@ export function addType(word) {
       }
   }
 }
-export function getLanguageTips(word) {
+export function getLanguageTips(word, inflection = "") {
   if (word.language === "de" && hasGender(word) && word.word !== "") {
     return getGermanLanguageTips(word);
   }
+  if (word.language === "la") {
+    return getLatinLanguageTips(word, inflection);
+  }
+}
+export const latinDeclensions = {
+  firstDeclension: {
+    gender: "feminine",
+    singular_nominative: "a",
+    singular_genitive: "ae",
+    singular_dative: "ae",
+    singular_accusative: "am",
+    singular_ablative: "ā",
+    singular_vocative: "a",
+
+    plural_nominative: "ae",
+    plural_genitive: "ārum",
+    plural_dative: "īs",
+    plural_accusative: "ās",
+    plural_ablative: "īs",
+    plural_vocative: "ae"
+  },
+
+  secondDeclension: {
+    masculine: {
+      singular_nominative: ["us"],
+      singular_genitive: "ī",
+      singular_dative: "ō",
+      singular_accusative: "um",
+      singular_ablative: "ō",
+      singular_vocative: "e",
+
+      plural_nominative: "ī",
+      plural_genitive: "ōrum",
+      plural_dative: "īs",
+      plural_accusative: "ōs",
+      plural_ablative: "īs",
+      plural_vocative: "ī"
+    },
+    neuter: {
+      singular_nominative: ["um"],
+      singular_genitive: "ī",
+      singular_dative: "ō",
+      singular_accusative: "um",
+      singular_ablative: "ō",
+      singular_vocative: "um",
+
+      plural_nominative: "a",
+      plural_genitive: "ōrum",
+      plural_dative: "īs",
+      plural_accusative: "a",
+      plural_ablative: "īs",
+      plural_vocative: "a"
+    }
+  },
+
+  thirdDeclension: {
+    masculine_feminine: {
+      singular_nominative: ["s", "(modified stem)"],
+      singular_genitive: "is",
+      singular_dative: "ī",
+      singular_accusative: ["em", "im"],
+      singular_ablative: ["e", "ī"],
+      singular_vocative: ["s", "(modified stem)"],
+
+      plural_nominative: "ēs",
+      plural_genitive: ["um", "ium"],
+      plural_dative: "ibus",
+      plural_accusative: ["ēs", "īs"],
+      plural_ablative: "ibus",
+      plural_vocative: "ēs"
+    },
+    neuter: {
+      singular_nominative: "(modified stem)",
+      singular_genitive: "is",
+      singular_dative: "ī",
+      singular_accusative: "(like Nom.)",
+      singular_ablative: ["e", "ī"],
+      singular_vocative: "(like Nom.)",
+
+      plural_nominative: ["a", "ia"],
+      plural_genitive: ["um", "ium"],
+      plural_dative: "ibus",
+      plural_accusative: ["a", "ia"],
+      plural_ablative: "ibus",
+      plural_vocative: ["a", "ia"]
+    }
+  },
+
+  fourthDeclension: {
+    masculine: {
+      singular_nominative: "us",
+      singular_genitive: "ūs",
+      singular_dative: ["uī", "ū"],
+      singular_accusative: "um",
+      singular_ablative: "ū",
+      singular_vocative: "us",
+
+      plural_nominative: "ūs",
+      plural_genitive: "uum",
+      plural_dative: ["ibus", "ubus"],
+      plural_accusative: "ūs",
+      plural_ablative: ["ibus", "ubus"],
+      plural_vocative: "ūs"
+    },
+    neuter: {
+      singular_nominative: "ū",
+      singular_genitive: "ūs",
+      singular_dative: "ū",
+      singular_accusative: "ū",
+      singular_ablative: "ū",
+      singular_vocative: "ū",
+
+      plural_nominative: "ua",
+      plural_genitive: "uum",
+      plural_dative: ["ibus", "ubus"],
+      plural_accusative: "ua",
+      plural_ablative: ["ibus", "ubus"],
+      plural_vocative: "ua"
+    }
+  },
+
+  fifthDeclension: {
+    gender: "feminine",
+    singular_nominative: "ēs",
+    singular_genitive: ["eī", "ē"],
+    singular_dative: ["eī", "ē"],
+    singular_accusative: "em",
+    singular_ablative: "ē",
+    singular_vocative: "ēs",
+
+    plural_nominative: "ēs",
+    plural_genitive: "ērum",
+    plural_dative: "ēbus",
+    plural_accusative: "ēs",
+    plural_ablative: "ēbus",
+    plural_vocative: "ēs"
+  }
+};
+export const latinVerbGroups = {
+  first: { infinitive: "āre", present: "ō", example: "amō" },
+  second: { infinitive: "ēre", present: "eō", example: "moneō" },
+  third: { infinitive: "ere", present: "ō", example: "regō" },
+  fourth: { infinitive: "īre", present: "iō", example: "audiō" },
+  third_io: { infinitive: "ere", present: "iō", example: "capiō" }
+};
+
+export function getLatinLanguageTips(word, inflection = "") {
+  if (word.wordType == wordTypes.NOUN) {
+    console.log(inflection)
+    const group = word.conjugations.group?.toLowerCase();
+    const gender = word.gender?.toLowerCase();
+    const baseForm = word.conjugations.inflections.singular_nominative?.[0] || "";
+    if (!group || !baseForm) return "";
+
+    const decl = latinDeclensions[`${group}Declension`];
+    if (!decl) return "";
+    console.log()
+    // Pick possible gender tables
+    let candidates = [];
+    if (decl.masculine_feminine) {
+      candidates.push(decl.masculine_feminine, decl.neuter);
+    } else if (decl.masculine && decl.neuter) {
+      if (gender.startsWith("m")) candidates.push(decl.masculine);
+      else if (gender.startsWith("n")) candidates.push(decl.neuter);
+      else candidates.push(decl.feminine || decl.masculine);
+    } else {
+      candidates.push(decl);
+    }
+    console.log(candidates);
+    for (const table of candidates) {
+      const rule = table.singular_nominative;
+      if (!rule) continue;
+
+      const endings = Array.isArray(rule) ? rule : [rule];
+
+      for (const ending of endings) {
+        // Ignore "(modified stem)" or "(none)"
+        if (
+          !ending ||
+          ending.includes("modified") ||
+          ending.includes("none") ||
+          ending.includes("(")
+        )
+          continue;
+        if (baseForm.endsWith(ending)) {
+          return `${group} declension ${gender} nouns like ${word.word} ends in “${ending}”.`;
+        }
+      }
+    }
+
+    return "";
+  }
+}
+function capitalizeFirst(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function getActualEnding(word, len) {
+  return word.slice(-len);
 }
 export function getGermanLanguageTips(word) {
   const lowerWord = word.word.toLowerCase();
@@ -996,8 +1238,12 @@ export function findSubfieldsForWord(word, conjugations) {
 }
 export function showNextAndAutoplay() {
 
-  document.getElementById('nextButton').style.display = '';
-  document.getElementById('autoplayButton').style.display = '';
+
+  if (document.getElementById('autoplayButton')) {
+    document.getElementById('nextButton').style.display = '';
+    document.getElementById('autoplayButton').style.display = '';
+
+  }
 }
 export function expandWord(input) {
   return input
@@ -1422,11 +1668,11 @@ export function generatePronounciationOptions(correctVocab, eligibleOptions) {
   return options;
 
 }
-export function setUp8Quiz(correctVocab, eligibleVocab) {
+export function setUp8Quiz(correctVocab, eligibleVocab, medievalLatin = false) {
   // Add to the .quiz-container
   document.getElementById('speakQuiz').style.display = ""
   document.getElementById('speakQuiz').addEventListener('click', async function () {
-    speakWord(correctVocab.language, correctVocab.word)
+    speakWord(correctVocab.language, correctVocab.word, medievalLatin)
   });
   const options = generateDefOptions(correctVocab, eligibleVocab)
   shuffleArray(options);
@@ -1571,10 +1817,17 @@ export function getSpeechLang(code) {
   return langMap[code.toLowerCase()] || "en-US"; // Default fallback
 }
 
-export async function speakWord(lang, word) {
+export async function speakWord(lang, word, medieval = false) {
   speechSynthesis.cancel();
   var language = lang
   language = convertToAbbr(language)
+  if (language === "la" && !medieval) {
+    if (typeof word === 'string' && word.includes('c')) {
+      word = word.replace(/ci(?!h)/gi, (m) => (m === m.toUpperCase() ? 'KEE' : 'kee'));
+      word = word.replace(/c(?!h)/gi, (m) => (m === m.toUpperCase() ? 'K' : 'k'));
+      console.log(word)
+    }
+  }
   const currentLang = getSpeechLang(language);
   word = expandWord(word);
   const utterance = new SpeechSynthesisUtterance(word);

@@ -536,17 +536,7 @@ function showNextVocab() {
   let wordObj = learningQueue[currentStep].word;
   ////console.log(wordObj)
   document.getElementById('speak').addEventListener('click', async function () {
-    speechSynthesis.cancel();
-    const currentWord = word.split('/')[0];;
-    var language = wordObj.language || wordObj.book
-    language = convertToAbbr(language)
-    const currentLang = getSpeechLang(language);
-    const utterance = new SpeechSynthesisUtterance(currentWord);
-    utterance.lang = currentLang;
-    const voices = await loadVoices();
-    const voice = voices.find(v => v.lang === currentLang);
-    if (voice) utterance.voice = voice;
-    speechSynthesis.speak(utterance);
+    utils.speakWord(currentLanguage, wordObj.word, latinMedieval);
   });
   word = wordObj.word
   definition = wordObj.definition;

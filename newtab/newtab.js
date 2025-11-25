@@ -11,8 +11,8 @@ let showTips;
 let currentLanguage;
 let latinMedieval = false;
 let wordToSpeak;
+let selectedPalette;
 document.addEventListener('DOMContentLoaded', function () {
-
   chrome.storage.local.get('currentCollectionSelection', function (data) {
     currentCollectionSelection = data.currentCollectionSelection || []
   });
@@ -98,6 +98,79 @@ document.addEventListener('DOMContentLoaded', function () {
     chrome.storage.sync.set({ medievalPronunciation: isMedieval }, () => {
       //console.log("Medieval pronunciation setting updated:", isMedieval);
     });
+  });
+
+  // Layout buttons
+  const layoutTwoColumn = document.getElementById("layoutTwoColumn");
+  const layoutSingleColumn = document.getElementById("layoutSingleColumn");
+  const layoutThreeColumn = document.getElementById("layoutThreeColumn");
+
+  // Load saved layout from chrome.storage.local
+  chrome.storage.local.get("selectedLayout", (data) => {
+    const savedLayout = data.selectedLayout || "twoColumn";
+    setLayoutActive(savedLayout);
+  });
+
+  function setLayoutActive(layout) {
+
+    const flashcard = document.getElementById('flashcard');
+    const quiz = document.getElementById('quizzes');
+    const utilities = document.getElementById('searchAndBookMark');
+    const searchcontainer = document.getElementById('search-container');
+    const box2 = document.getElementById('box2');
+    const focus = document.getElementById('search-container');
+    const autoplay = document.getElementById('search-container');
+    const setting = document.getElementById('search-container');
+
+    // Set all buttons to transparent
+    layoutTwoColumn.style.backgroundColor = "transparent";
+    layoutSingleColumn.style.backgroundColor = "transparent";
+    layoutThreeColumn.style.backgroundColor = "transparent";
+
+    // Set selected button to Snooze color
+    if (layout === "twoColumn") {
+      console.log("style1")
+      layoutTwoColumn.style.backgroundColor = selectedPalette.Snooze;
+      flashcard.style.width = '40vw';
+      flashcard.style.left = '0%';
+      quiz.style.width = '40vw';
+      quiz.style.left = '0%';
+      utilities.style.display = '';
+      utilities.style.left = '57%';
+      searchcontainer.style.left = '60%';
+    } else if (layout === "singleColumn") {
+      layoutSingleColumn.style.backgroundColor = selectedPalette.Snooze;
+      flashcard.style.width = '';
+      flashcard.style.left = '0%';
+      quiz.style.width = '100vw';
+      quiz.style.left = '0%';
+      utilities.style.display = 'none';
+      utilities.style.right = '';
+    } else if (layout === "threeColumn") {
+      console.log("style3")
+      layoutThreeColumn.style.backgroundColor = selectedPalette.Snooze;
+      flashcard.style.width = '40vw';
+      flashcard.style.translateX = '50%';
+      quiz.style.width = '40vw';
+      quiz.style.left = '60%';
+      utilities.style.display = '';
+      utilities.style.left = '14%';
+      searchcontainer.style.left = '30%';
+    }
+  }
+  layoutTwoColumn.addEventListener("click", () => {
+    setLayoutActive("twoColumn");
+    chrome.storage.local.set({ selectedLayout: "twoColumn" });
+  });
+
+  layoutSingleColumn.addEventListener("click", () => {
+    setLayoutActive("singleColumn");
+    chrome.storage.local.set({ selectedLayout: "singleColumn" });
+  });
+
+  layoutThreeColumn.addEventListener("click", () => {
+    setLayoutActive("threeColumn");
+    chrome.storage.local.set({ selectedLayout: "threeColumn" });
   });
 
   // Helper to get days since a date string
@@ -645,7 +718,7 @@ function changeColor(palette) {
       buttonShadow: '4px 4px 1px 0px rgb(223, 212, 161)'
     }
   };
-  const selectedPalette = colors[palette];
+  selectedPalette = colors[palette];
   document.querySelectorAll('.flashcard').forEach(element => {
     element.style.borderColor = selectedPalette.borderColor;
     element.style.backgroundColor = selectedPalette.vocabFlashcardBg;
@@ -690,8 +763,18 @@ function changeColor(palette) {
   document.getElementById('nextButton').style.boxShadow = selectedPalette.buttonShadow;
   document.getElementById('nextAfterIncorrectButton').style.backgroundColor = selectedPalette.Snooze;
   document.getElementById('nextAfterIncorrectButton').style.boxShadow = selectedPalette.buttonShadow;
-  //document.getElementById('autoplayButton').style.backgroundColor = selectedPalette.Snooze;
-  //document.getElementById('autoplayButton').style.boxShadow = selectedPalette.buttonShadow;
+
+  // Update selected layout button color
+  chrome.storage.local.get("selectedLayout", (data) => {
+    const savedLayout = data.selectedLayout || "twoColumn";
+    if (savedLayout === "twoColumn") {
+      layoutTwoColumn.style.backgroundColor = selectedPalette.Snooze;
+    } else if (savedLayout === "singleColumn") {
+      layoutSingleColumn.style.backgroundColor = selectedPalette.Snooze;
+    } else if (savedLayout === "threeColumn") {
+      layoutThreeColumn.style.backgroundColor = selectedPalette.Snooze;
+    }
+  });
 
 
 
@@ -802,9 +885,9 @@ function showNextVocab(collection = currentCollectionSelection) {
       });
       const maxSize = 3
       const minSize = 1
-      const clamped = Math.min(definition.length, 200);
+      const clamped = Math.min(definition.length, 150);
       const size =
-        maxSize - ((maxSize - minSize) * (clamped / 200));
+        maxSize - ((maxSize - minSize) * (clamped / 150));
       defDiv.style.fontSize = size.toFixed(1) + 'vw';
       const book = currentCollection[currentVocabIndex].book || '';
       if (currentCollection[currentVocabIndex].gender) {
@@ -834,11 +917,11 @@ function showNextVocab(collection = currentCollectionSelection) {
       if (currentCollection[currentVocabIndex].etym) {
         const etymText = utils.chopEtym(currentCollection[currentVocabIndex].etym);
         const etymSize =
-          maxSize - ((maxSize - minSize) * (Math.min(etymText.length, 300) / 300));
+          maxSize - ((maxSize - minSize) * (Math.min(etymText.length, 300) / 500));
 
         etymDiv.textContent = etymText.replace(/\.mw[\s\S]*\}/, '');
         etymDiv.textContent = etymDiv.textContent.replace('undefined', '');
-        etymDiv.style.fontSize = etymSize.toFixed(1) + 'vw';
+        etymDiv.style.fontSize = (etymSize.toFixed(1)) * 0.7 + 'vw';
 
       } else {
         etymDiv.textContent = ""

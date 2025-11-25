@@ -598,43 +598,21 @@ function queueQuizzesForWord(wordObj) {
 }
 function quizStyle8() {
   const correctVocab = learningQueue[currentStep].word;
-  currentQuizWord = correctVocab.word;
-  quizType = 'Listening';
-  // Add to the .quiz-container
-  document.getElementById('speakQuiz').style.display = 'inline-block'
-  document.getElementById('speakQuiz').addEventListener('click', async function () {
-    utils.speakWord(currentLanguage, currentQuizWord, latinMedieval);
-  });
-  const options = [correctVocab.definition];
-  for (let i = 0; i < 3; i++) {
-    const randomIndex = Math.floor(Math.random() * filteredVocabList.length);
-    const randomWord = filteredVocabList[randomIndex].definition;
-    if (!options.includes(randomWord)) {
-      options.push(randomWord);
-    } else {
-      i--;
-    }
+  utils.ClearPageForQuizContainer();
+  utils.showNextAndAutoplay()
+
+  document.getElementById('speakQuiz').style.display = "block"
+  const eligibleVocab = utils.getEligibleVocabs(filteredVocabList);
+  if (eligibleVocab.length < 1) {
+    showNextVocab();
+    return;
   }
-  currentTest = { quizStyle: "Ask for pron", vocab: correctVocab.word, book: correctVocab.book };
+  currentQuizWord = correctVocab.word;
   wordToSpeak = currentQuizWord;
 
-  shuffleArray(options);
-
-  document.getElementById('quizQuestion').textContent = `What is the definition for this?`;
-  document.getElementById('option1').textContent = options[0];
-  document.getElementById('option2').textContent = options[1];
-  document.getElementById('option3').textContent = options[2];
-  document.getElementById('option4').textContent = options[3];
-
-  document.getElementById('quizContainer').dataset.correctAnswer = correctVocab.definition;
-
-  // Show quiz and hide vocab card
-  document.getElementById('quizContainer').style.display = 'block';
-  document.getElementById('vocabFlashcard').style.display = 'none';
-  document.getElementById('correctMessage').style.display = 'none';
-  document.getElementById('incorrectMessage').style.display = 'none';
-  document.getElementById('correctDefinition').style.display = 'none';
-  document.getElementById('nextAfterIncorrectButton').style.display = 'none';
+  quizType = 'Listening';
+  utils.setUp8Quiz(correctVocab, eligibleVocab, latinMedieval);
+  currentTest = { quizStyle: "Pronounciation", vocab: correctVocab.word, book: correctVocab.book };
 }
 async function populateBookSelector() {
   return new Promise(resolve => {

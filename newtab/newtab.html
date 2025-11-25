@@ -14,8 +14,7 @@
       text-align: center;
       height: 60vh;
       width: 80vw;
-      margin: auto;
-      padding: 20px;
+      padding: 0 2vw;
       border: 10px solid;
       border-radius: 25px;
       display: inline-block;
@@ -47,6 +46,7 @@
       display: block;
       border: 30px;
       border-color: #272623;
+      height: 7vh;
     }
 
     #correctMessage,
@@ -75,7 +75,7 @@
       background: #fffdfa;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
-      padding: 24px 0 18px 0;
+      padding: 1vwpx 0 18px 0;
     }
 
     .quiz-container p,
@@ -89,7 +89,7 @@
     .true-false-container .ui.button {
       font-size: 1.5vh;
       margin: 10px 12px 0 12px;
-      padding: 12px 24px;
+      padding: 12px 1vwpx;
       border-radius: 8px;
       border: 2px solid #b8a9a7;
       font-weight: bold;
@@ -142,7 +142,7 @@
       max-width: 600px;
       background: #fffdfa;
       border-radius: 12px;
-      box-shadow: 0 4px 24px rgba(90, 79, 77, 0.08), 0 1.5px 6px rgba(90, 79, 77, 0.10);
+      box-shadow: 0 4px 1vwpx rgba(90, 79, 77, 0.08), 0 1.5px 6px rgba(90, 79, 77, 0.10);
       font-size: 1.2em;
       font-weight: bold;
       color: #5a4f4d;
@@ -284,146 +284,532 @@
     #settingsMenu input[type="checkbox"] {
       cursor: pointer;
     }
+
+    /* Bookmarks Styling - Grid Layout */
+    #bookmarks {
+      display: grid;
+      top: 50%;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      padding: 16px 0;
+      margin: 0;
+      font-size: 0.85vw;
+      max-height: 60vh;
+      overflow-y: auto;
+      list-style: none;
+    }
+
+    #bookmarks li {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    /* Bookmark link item */
+    #bookmarks a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #4b5437;
+      padding: 12px 8px;
+      border-radius: 8px;
+      transition: all 0.2s;
+      word-break: break-word;
+      text-align: center;
+      min-height: 100px;
+    }
+
+    #bookmarks a:hover {
+      background-color: #f0ede9;
+      color: #2c1810;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(90, 79, 77, 0.1);
+    }
+
+    .bookmark-icon {
+      width: 3vw;
+      height: 3vw;
+      border-radius: 8px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-color: #f5f5f5;
+      border: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8vh;
+      flex-shrink: 0;
+    }
+
+    .bookmark-label {
+      font-weight: 500;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      max-width: 100%;
+      font-size: 0.9vw;
+      line-height: 1.2;
+    }
+
+    /* Bookmark folder in grid */
+    .bookmark-folder {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .bookmark-folder-title {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 12px;
+      cursor: pointer;
+      border-radius: 8px;
+      font-weight: 600;
+      color: #5a4f4d;
+      text-align: center;
+    }
+
+    .bookmark-folder-icon {
+      width: 1.7vw;
+      height: 1.7vw;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1vw;
+      flex-shrink: 0;
+    }
+
+    .bookmark-folder-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .bookmark-folder-items {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0 12px;
+      padding: 1px;
+      margin: 0;
+      background-color: transparent;
+      border-radius: 8px;
+      border: none;
+      list-style: none;
+      max-height: 100vh;
+      overflow-y: auto;
+      transition: max-height 0.3s ease-in-out;
+    }
+
+    .engine-icon {
+      display: inline-block;
+      width: 1vw;
+      height: 1vw;
+      vertical-align: middle;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    .engine-icon.google {
+      background-image: url('https://www.google.com/favicon.ico');
+    }
+
+    .engine-icon.bing {
+      background-image: url('https://www.bing.com/sa/simg/favicon-2x.ico');
+    }
+
+    .engine-icon.duckduckgo {
+      background-image: url('https://duckduckgo.com/favicon.ico');
+    }
+
+    .bookmark-folder-items.collapsed {
+      max-height: 0;
+      overflow: hidden;
+      padding: 0;
+      margin: 0;
+    }
+
+    .bookmark-folder-items li {
+      margin: 0;
+      padding: 0;
+    }
+
+    .bookmark-folder-items a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: #4b5437;
+      padding: 12px;
+      border-radius: 8px;
+      transition: all 0.2s;
+      word-break: break-word;
+      text-align: center;
+    }
+
+    .bookmark-folder-items a:hover {
+      background-color: #ffffff;
+      color: #2c1810;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(90, 79, 77, 0.1);
+    }
+
+    /* Search Bar Styling */
+    #search-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 500px;
+      margin: 32px auto 1vwpx auto;
+      padding: 0;
+      background: none;
+      top: -10%;
+    }
+
+    #search-input {
+      flex: 1;
+      height: 5vh;
+      width: 18vw;
+      padding: 0 16px;
+      font-size: 1.1vw;
+      border: 1px solid #dfe1e5;
+      border-radius: 1vwpx 0 0 1vwpx;
+      background-color: #fff;
+      color: #222;
+      outline: none;
+      box-shadow: none;
+      transition: border-color 0.2s;
+    }
+
+    #engine-dropdown {
+      position: relative;
+      height: 5vh;
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border-top: 1px solid #dfe1e5;
+      border-bottom: 1px solid #dfe1e5;
+      border-right: 1px solid #dfe1e5;
+      border-left: none;
+      border-radius: 0;
+      cursor: pointer;
+      padding: 0 16px 0 8px;
+      font-size: 1.1vw;
+      color: #3c4043;
+      z-index: 10;
+      user-select: none;
+    }
+
+    #engine-dropdown:focus {
+      outline: none;
+      border-color: #4285f4;
+    }
+
+    #engine-arrow {
+      font-size: 1vw;
+      color: #888;
+    }
+
+    #engine-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid #dfe1e5;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 2px 8px rgba(32, 33, 36, .28);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      z-index: 100;
+    }
+
+    #engine-list li {
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 1.05vw;
+      color: #222;
+      transition: background 0.2s;
+    }
+
+    #engine-list li:hover {
+      background: #f1f3f4;
+    }
+
+    #search-input:focus {
+      border-color: #4285f4;
+      box-shadow: 0 1px 6px rgba(32, 33, 36, .28);
+    }
+
+    #search-input::placeholder {
+      color: #a9a9a9;
+      font-size: 1vw;
+    }
+
+    #search-button {
+      height: 5vh;
+      padding: 0 1vwpx;
+      font-size: 1.1vw;
+      font-weight: 500;
+      border: 1px solid #dfe1e5;
+      border-left: none;
+      border-radius: 0 1vwpx 1vwpx 0;
+      background: #f8f9fa;
+      color: #3c4043;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    #search-button:hover {
+      background: #f1f3f4;
+      box-shadow: 0 1px 6px rgba(32, 33, 36, .28);
+    }
+
+    #search-button:active {
+      background: #e8eaed;
+    }
+
+    .layout-button {
+      padding: 0 !important;
+      min-width: auto !important;
+      min-height: auto !important;
+      width: fit-content !important;
+      height: fit-content !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    #topsites li {
+      list-style: none;
+      display: inline-block;
+      margin: 8px;
+    }
+
+    #topsites a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+    }
   </style>
   <link rel="stylesheet" href="../libs/semantic.css">
 </head>
 
-<body style="background: url('/bg/bg2.png') no-repeat center center fixed; background-size: cover;"> <button
-    class="ui button" id="autoplayButton"
-    style="position: fixed;bottom:78%;right:84.5%;font-weight: bold;font-size: 2.3vw;z-index: 99;">&#9654;</button>
+<body style="background: url('/bg/bg2.png') no-repeat center center fixed; background-size: cover;">
 
   <div id="vocabFlashcard" class="flashcard" style="background-color:#ffffff;margin: auto ;">
-    <button class="ui button" id="snoozeButton"
-      style="background-color:transparent;position: fixed;bottom:86%;right: 9%;font-weight: bold;font-size:1vw;">Snooze</button>
-    <button class="ui button" id="changeInterval"
-      style="position: fixed;bottom:85%;transform: translateX(-50%);left: 8%;font-weight: bold;font-size: 2.3vw;">&#9881;</button>
-    <button class="ui button" id="focusButton"
-      style="position: fixed;background: none;bottom:80%;right:-2%;font-size: 2.3vw;">&#9734;</button>
+    <div id="layoutButtons" style="position: fixed;bottom:1%; right: 2%; display: flex; gap: 2px; z-index: 100;">
+      <button class="ui icon button layout-button" id="layoutTwoColumn" title="Two Column Layout"
+        style="font-size: 2.5vh; background-color: transparent; ">
+        <svg width=" 1.5vw" height="1.5vw" viewBox="0 0 64 64" style="vertical-align: middle;">
+          <rect x="8" y="8" width="22" height="48" fill="#999" rx="4" />
+          <rect x="34" y="8" width="22" height="48" fill="#ccc" rx="4" />
+        </svg>
+      </button>
+      <button class="ui icon button layout-button" id="layoutSingleColumn"
+        style="font-size: 2.5vh; background-color: transparent;">
+        <svg width=" 1.5vw" height="1.5vw" viewBox="0 0 64 64" style="vertical-align: middle;">
+          <rect x="8" y="8" width="48" height="48" fill="#999" rx="4" />
+        </svg>
+      </button>
+      <button class="ui icon button layout-button" id="layoutThreeColumn" title="Three Column Layout"
+        style="font-size: 2.5vh; background-color: transparent; ">
+        <svg width="1.5vw" height="1.5vw" viewBox="0 0 64 64" style="vertical-align: middle;">
+          <rect x="8" y="8" width="22" height="48" fill="#ccc" rx="4" />
+          <rect x="34" y="8" width="22" height="48" fill="#999" rx="4" />
+        </svg>
+      </button>
+    </div>
     <p class="ui" id="focusTip"
-      style="position: fixed;top:20%;right:0%;border-width: 2px;font-size: 1vw;display: none;border: 2px solid #000000;background-color:whitesmoke;text-align: left;">
+      style="border-width: 2px;font-size: 1vw;display: none;border: 2px solid #000000;background-color:whitesmoke;text-align: left;top:-3%;z-index: 100;position: fixed;">
       [Focused words will show up more frequently]
     </p>
+    <div id="flashcard" style="width: 40vw;gap: 0 0;">
+      <div id="flashcardHeader" style="display: flex; justify-content: space-between; align-items: center;
+            ">
 
+        <!-- LEFT GROUP: A + B -->
+        <div style="display: flex; gap: 1vw; align-items: center;">
 
-    <div id="settingsMenu">
+          <!-- A: autoplay -->
+          <button class="ui button" id="autoplayButton" style="background: none; font-size: 2vw; font-weight: bold;">
+            &#9654;
+          </button>
 
-      <label>
-        <input type="checkbox" id="tipsCheckbox" name="tipsOrNot" value="show">
-        show language tips
-      </label>
-      <label>
-        <input type="checkbox" id="medieval" value="show">
-        (latin only)use medieval(italian) latin pronounciation (default is classic)
-      </label>
-      <label>
-        Change autoplay interval to
-        <input class="ui text" type="text" id="interval" name="interval" style="width: 4vw;" placeholder="seconds">
-        <button class="button" style="background-color: #b8a9a7;"> set </button>
-      </label>
+          <!-- B: settings gear -->
+          <button class="ui button" id="changeInterval" style="background: none; font-size: 2vw;">
+            &#9881;
+          </button>
 
+        </div>
+
+        <!-- RIGHT GROUP: C + D -->
+        <div style="display: flex;  align-items: center; margin: 0 0 0 0; gap: 1.5vw" id="box2">
+
+          <!-- C: snooze -->
+          <button class="ui button" id="snoozeButton"
+            style="background: none; font-size: 1vw; font-weight: bold;transform: translateX(30%)">
+            Snooze
+          </button>
+
+          <!-- D: focus -->
+          <button class="button" id="focusButton" style="background: none; font-size: 2vw; border: none;">
+            &#9734;
+          </button>
+
+        </div>
+
+      </div>
+
+      <div id="settingsMenu">
+
+        <label>
+          <input type="checkbox" id="tipsCheckbox" name="tipsOrNot" value="show">
+          show language tips
+        </label>
+        <label>
+          <input type="checkbox" id="medieval" value="show">
+          (latin only)use medieval(italian) latin pronounciation (default is classic)
+        </label>
+        <label>
+          Change autoplay interval to
+          <input class="ui text" type="text" id="interval" name="interval" style="width: 4vw;" placeholder="seconds">
+          <button class="button" style="background-color: #b8a9a7;"> set </button>
+        </label>
+
+      </div>
+
+      <div style="font-size: 1vw; color:#4b5437;" id="bookDiv"></div>
+      <div style="font-size: 2vw;color:#272623;" id="pronounDiv"></div>
+      <div
+        style="font-size: 4vw;color:#272623;display: inline-block;justify-content: center; align-self: center;margin: auto;"
+        id="wordDiv"></div>
+      <button class="ui button" id="speak"
+        style="background-color: transparent;display: inline-flex;border: none; outline: none;font-size: 3vh;">&#128266;</button>
+      <div style="display:flex;justify-content: center; align-items:center; gap:1vw;">
+        <div style="font-size: 1.5vw; color:#272623;" id="genderDiv"></div>
+        <div style="font-size: 1.5vw; color:#272623;" id="groupDiv"></div>
+      </div>
+      <div class="ui horizontal divider" id="divider" style="color:#545150; height: 5px"></div>
+      <div style="font-size: 3vw; color:#4b5437;" id="defDiv"></div>
+      <div style="font-size: 1.8vw; color:#737373; " id="etymDiv"></div>
+      <div style="font-size: 1.1vw; color:#303030; position:absolute; bottom:1%; width: 100%; left:0" id="tipsDiv">
+      </div>
     </div>
 
-    <div style="font-size: 1vw; color:#4b5437;" id="bookDiv"></div>
-    <div style="font-size: 2vw;color:#272623;" id="pronounDiv"></div>
-    <div
-      style="font-size: 4vw;color:#272623;display: inline-block;justify-content: center; align-self: center;margin: auto;"
-      id="wordDiv"></div>
-    <button class="ui button" id="speak"
-      style="background-color: transparent;display: inline-flex;border: none; outline: none;font-size: 3vh;">&#128266;</button>
-    <div style="display:flex;justify-content: center; align-items:center; gap:1vw;">
-      <div style="font-size: 1.5vw; color:#272623;" id="genderDiv"></div>
-      <div style="font-size: 1.5vw; color:#272623;" id="groupDiv"></div>
+    <button class="ui button" id="fetchInfo"
+      style="position: fixed;top:8%;background-color:transparent;right:8%;font-size: 0.9vw;text-align: right;">auto-complete
+      vocab in the background(?)</button>
+    <p class="ui" id="fetchTip"
+      style="position: fixed;top:15%;right:0%;border-width: 2px;font-size: 1vw;display: none;border: 2px solid #000000;background-color:whitesmoke;text-align: left;">
+      When you click this button, the extension will:
+      <br> - Scan your vocab list for entries missing etymology, gender, or inflection.
+      <br> - Fetch any missing data from Wiktionary in the background, pausing 60~300 seconds between each request to
+      avoid overloading the server.
+      <br> - Not all the vocabs in your vocab list has wiktionary entries, and some might not have gender or eytmology.
+      <br>For this feature to work, your collection has to be downloaded from this extensions or your collection name
+      must exactly match the language name with an initial capital letter (for example, 'German'), or the json file you
+      upload the vocabs with must have "language" field.
+      <br>Existing informations of the vocabs will not be overriden.
+    </p>
+  </div>
+  <div id="searchAndBookMark" style="position: fixed; top: 20%;left: 45%; ">
+    <div style="position: relative; width: 100%;top: 10%;">
+      <div id="search-container">
+        <input id="search-input" placeholder="Search or type a URL" autocomplete="off" />
+        <div id="engine-dropdown" tabindex="0">
+          <span id="engine-selected" class="engine-icon google"></span>
+          <span id="engine-arrow">&#9660;</span>
+          <ul id="engine-list" style="display:none;">
+            <li data-engine="google"><span class="engine-icon google"></span></li>
+            <li data-engine="bing"><span class="engine-icon bing"></span></li>
+            <li data-engine="duckduckgo"><span class="engine-icon duckduckgo"></span></li>
+          </ul>
+        </div>
+        <button id="search-button">Search</button>
+
+      </div>
     </div>
-    <div class="ui horizontal divider" id="divider" style="color:#545150; height: 5px"></div>
-    <div style="font-size: 3vw; color:#4b5437;" id="defDiv"></div>
-    <div style="font-size: 1.8vw; color:#737373; " id="etymDiv"></div>
-    <div style="font-size: 1.1vw; color:#303030; position:absolute; bottom:1%; width: 100%; left:0" id="tipsDiv">
+    <ul id="bookmarks" style="position: fixed; top: 25%; width: 70vw; height: 20vw;"></ul>
+  </div>
+  </div>
+  <div id="quizzes">
+    <div class="quiz-container" style="top: 2%;margin: auto ;border: 10px solid;" id="quizContainer">
+      <p style="font-size: 4vh;" id="quizQuestion"></p>
+      <button class="ui button" id="speakQuiz"
+        style="background-color: transparent;display: none;border: none; outline: none;font-size: 4vh;">&#128266;</button>
+      <br><button
+        style="font-size:3vh;margin: auto ;margin-top: 20px; border: 10px; border-radius: 5px; border-color: #607059;"
+        class="ui quiz-option" id="option1"></button>
+      <br><button
+        style="font-size:3vh;margin: auto ;margin-top: 20px;border: 10px;  border-radius: 5px;border-color: #607059;"
+        class="ui quiz-option" id="option2"></button>
+      <br><button
+        style="font-size:3vh;margin: auto ;margin-top: 20px;border: 10px;  border-radius: 5px;border-color: #607059;"
+        class="ui quiz-option" id="option3"></button>
+      <br><button
+        style="font-size:3vh;margin: auto ;margin-top: 20px;border: 10px;  border-radius: 5px;border-color: #607059;"
+        class="ui quiz-option" id="option4"></button>
     </div>
-  </div>
+    <div class="true-false-container" style="top: 2%;margin: auto ;border: 10px solid;" id="trueFalseContainer">
+      <p style="font-size: 4vh;" id="trueFalseQuestion"></p>
+      <button
+        style="font-size: 3vh;margin: auto ;margin-top: 30px;border: 4px;  border-radius: 5px;border-color: #607059;"
+        class="ui button" id="trueButton">True</button>
+      <button
+        style="font-size: 3vh;margin: auto ;margin-top: 30px;border: 4px;  border-radius: 5px;border-color: #607059;"
+        class="ui button" id="falseButton">False</button>
+    </div>
+    <div class="match-container" style="top: 2%;margin: auto ;" id="matchContainer">
+      <p style="font-size: 3.5vw;" id="matchQuestion"></p>
+      <div id="words" class="list"></div>
+      <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;"
+        class="ui match-option" id="word1"></button>
+      <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;"
+        class="ui match-option" id="word2"></button>
+      <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;"
+        class="ui match-option" id="word3"></button>
+      <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;"
+        class="ui match-option" id="word4"></button>
 
-  <button class="ui button" id="fetchInfo"
-    style="position: fixed;top:8%;background-color:transparent;right:8%;font-size: 0.9vw;text-align: right;">auto-complete
-    vocab in the background(?)</button>
-  <p class="ui" id="fetchTip"
-    style="position: fixed;top:15%;right:0%;border-width: 2px;font-size: 1vw;display: none;border: 2px solid #000000;background-color:whitesmoke;text-align: left;">
-    When you click this button, the extension will:
-    <br> - Scan your vocab list for entries missing etymology, gender, or inflection.
-    <br> - Fetch any missing data from Wiktionary in the background, pausing 60~300 seconds between each request to
-    avoid overloading the server.
-    <br> - Not all the vocabs in your vocab list has wiktionary entries, and some might not have gender or eytmology.
-    <br>For this feature to work, your collection has to be downloaded from this extensions or your collection name
-    must exactly match the language name with an initial capital letter (for example, 'German'), or the json file you
-    upload the vocabs with must have "language" field.
-    <br>Existing informations of the vocabs will not be overriden.
-  </p>
+      <div id="definitions" class="list"></div>
+      <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;"
+        class="ui match-" id="def1"></button>
+      <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;"
+        class="ui button" id="def2"></button>
+      <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;"
+        class="ui button" id="def3"></button>
+      <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;"
+        class="ui button" id="def4"></button>
 
-  </div>
-  <div class="quiz-container" style="top: 2%;margin: auto ;border: 10px solid;" id="quizContainer">
-    <p style="font-size: 4vh;" id="quizQuestion"></p>
-    <button class="ui button" id="speakQuiz"
-      style="background-color: transparent;display: none;border: none; outline: none;font-size: 4vh;">&#128266;</button>
-    <br><button
-      style="font-size:3vh;margin: auto ;margin-top: 10px; border: 10px; border-radius: 5px; border-color: #607059;"
-      class="ui quiz-option" id="option1"></button>
-    <br><button
-      style="font-size:3vh;margin: auto ;margin-top: 10px;border: 10px;  border-radius: 5px;border-color: #607059;"
-      class="ui quiz-option" id="option2"></button>
-    <br><button
-      style="font-size:3vh;margin: auto ;margin-top: 10px;border: 10px;  border-radius: 5px;border-color: #607059;"
-      class="ui quiz-option" id="option3"></button>
-    <br><button
-      style="font-size:3vh;margin: auto ;margin-top: 10px;border: 10px;  border-radius: 5px;border-color: #607059;"
-      class="ui quiz-option" id="option4"></button>
-  </div>
-  <div class="true-false-container" style="top: 2%;margin: auto ;border: 10px solid;" id="trueFalseContainer">
-    <p style="font-size: 4vh;" id="trueFalseQuestion"></p>
-    <button
-      style="font-size: 3vh;margin: auto ;margin-top: 30px;border: 4px;  border-radius: 5px;border-color: #607059;"
-      class="ui button" id="trueButton">True</button>
-    <button
-      style="font-size: 2vh;margin: auto ;margin-top: 30px;border: 4px;  border-radius: 5px;border-color: #607059;"
-      class="ui button" id="falseButton">False</button>
-  </div>
-  <div class="match-container" style="top: 2%;margin: auto ;" id="matchContainer">
-    <p style="font-size: 3.5vw;" id="matchQuestion"></p>
-    <div id="words" class="list"></div>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;"
-      class="ui match-option" id="word1"></button>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;"
-      class="ui match-option" id="word2"></button>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;"
-      class="ui match-option" id="word3"></button>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;"
-      class="ui match-option" id="word4"></button>
-
-    <div id="definitions" class="list"></div>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;" class="ui match-"
-      id="def1"></button>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;" class="ui button"
-      id="def2"></button>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;" class="ui button"
-      id="def3"></button>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;" class="ui button"
-      id="def4"></button>
-
-  </div>
-  <p class="ui message" id="correctMessage"
-    style="margin: auto ;width: 300px; margin-top: 10px ; font-size:3.5vw; text-align: center;">Correct!</p>
-  <p class="ui message" id="incorrectMessage" style=" text-align: center;">Incorrect! The correct answer is:</p>
-  <div id="correctDefinition" class="ui flashcard"
-    style="background-color:#ebebe9;height:200px; font-size: 2vw;margin: auto ;"></div>
-  <div style="display: block;justify-content: center;
+    </div>
+    <p class="ui message" id="correctMessage"
+      style="margin: auto ;width: 300px; margin-top: 10px ; font-size:3.5vw; text-align: center;">Correct!</p>
+    <p class="ui message" id="incorrectMessage" style=" text-align: center;">Incorrect! The correct answer is:</p>
+    <div id="correctDefinition" class="ui flashcard"
+      style="background-color:#ebebe9;height:200px; font-size: 2vw;margin: auto ;"></div>
+    <div style="display: block;justify-content: center;
             align-items: center;flex-wrap: wrap; padding-top:20px;">
-    <button class="ui button" id="nextButton"
-      style="border: 3px solid;position: fixed;bottom:14%;transform: translateX(-50%);left: 70%;font-weight: bold;font-size:1vw;">Next</button>
-    <button class="ui button" id="learnButton"
-      style="border: 3px solid;position: fixed;bottom:14%;transform: translateX(-50%);left: 30%;font-weight: bold;font-size:1vw;">Learn
-      your vocabs</button>
-    <button class="ui button" id="testButton"
-      style="border: 3px solid;position: fixed;bottom:14%;transform: translateX(-50%);left: 50%;font-weight: bold;font-size:1vw;">Test
-      your vocabs</button>
-    <button class="ui button" id="nextAfterIncorrectButton"
-      style="border: 3px solid;position: relative ; left:50% ; margin-top: 50px">Next</button>
+      <button class="ui button" id="nextButton"
+        style="border: 3px solid;position: fixed;bottom:14%;transform: translateX(-50%);left: 70%;font-weight: bold;font-size:1vw;">Next</button>
+      <button class="ui button" id="learnButton"
+        style="border: 3px solid;position: fixed;bottom:14%;transform: translateX(-50%);left: 30%;font-weight: bold;font-size:1vw;">Learn
+        your vocabs</button>
+      <button class="ui button" id="testButton"
+        style="border: 3px solid;position: fixed;bottom:14%;transform: translateX(-50%);left: 50%;font-weight: bold;font-size:1vw;">Test
+        your vocabs</button>
+      <button class="ui button" id="nextAfterIncorrectButton"
+        style="border: 3px solid;position: relative ; left:50% ; margin-top: 50px">Next</button>
+    </div>
   </div>
   <div class="ui form"
     style="display: flex;position: fixed;bottom:8%;justify-content: center;transform: translateX(-50%);left: 50%;
@@ -566,6 +952,7 @@
       title="snack">&#x1F96A; </button>
   </div>
   <script src="../libs/semantic.css"></script>
+  <script src="search.js"></script>
   <script type="module" src="newtab.js"></script>
 </body>
 

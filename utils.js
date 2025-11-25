@@ -1596,15 +1596,11 @@ export function setupQuiz7(options, correctAnswer, questionText) {
 export function checkEligible(word, func = () => false, needSeen = true, desirableLength = 0) {
   return (!(needSeen && word.seen <= 3) && func(word) && word.word.length > 0 && word.definition.length > 0);
 }
-export function getEligibleVocabs(vocabList, func = () => false, needSeen = true) {
+export function getEligibleVocabs(vocabList, func = () => false, needSeen = false) {
   const eligibleVocab = vocabList.filter(entry => {
     const seenCondition = needSeen ? entry.seen > 3 : true;
     return (seenCondition || func(entry)) && entry.word.length > 0 && entry.definition.length > 0;
   });
-  if (eligibleVocab.length < 1) {
-    showNextVocab();
-    return;
-  }
   return eligibleVocab;
 }
 export function setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition) {
@@ -1819,13 +1815,12 @@ export function getSpeechLang(code) {
 
 export async function speakWord(lang, word, medieval = false) {
   speechSynthesis.cancel();
-  var language = lang
-  language = convertToAbbr(language)
+  var language = lang;
+  language = convertToAbbr(language);
   if (language === "la" && !medieval) {
-    if (typeof word === 'string' && word.includes('c')) {
-      word = word.replace(/ci(?!h)/gi, (m) => (m === m.toUpperCase() ? 'KEE' : 'kee'));
+    // Classical Latin pronunciation: replace 'c' with 'k' (except 'ch')
+    if (typeof word === 'string') {
       word = word.replace(/c(?!h)/gi, (m) => (m === m.toUpperCase() ? 'K' : 'k'));
-      console.log(word)
     }
   }
   const currentLang = getSpeechLang(language);
@@ -1845,9 +1840,6 @@ export function getNRandomElements(arr, n) {
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   return shuffled.slice(0, n);
-}
-export function allEligible(arr, func) {
-
 }
 function showCorrectAnswer(currentQuizWord) {
   // //////console.log.log(quizType)

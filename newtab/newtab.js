@@ -114,10 +114,9 @@ document.addEventListener('DOMContentLoaded', function () {
   function setLayoutActive(layout) {
 
     const flashcard = document.getElementById('flashcard');
-    const quiz = document.getElementById('quizzes');
+    const quiz = document.getElementsByClassName('quizzes');
     const utilities = document.getElementById('searchAndBookMark');
-    const searchcontainer = document.getElementById('search-container');
-    const box2 = document.getElementById('box2');
+    const quizResultsContainer = document.getElementById('quiz-results');
     const focus = document.getElementById('search-container');
     const autoplay = document.getElementById('search-container');
     const setting = document.getElementById('search-container');
@@ -133,29 +132,44 @@ document.addEventListener('DOMContentLoaded', function () {
       layoutTwoColumn.style.backgroundColor = selectedPalette.Snooze;
       flashcard.style.width = '40vw';
       flashcard.style.left = '0%';
-      quiz.style.width = '40vw';
-      quiz.style.left = '0%';
+      flashcard.style.transform = '';
+      for (let el of quiz) {
+        el.style.width = '40vw';
+        el.style.left = '0%';
+        el.style.transform = '';
+      }
+      quizResultsContainer.style.width = '40vw';
+      quizResultsContainer.style.left = '20%';
+
       utilities.style.display = '';
       utilities.style.left = '57%';
-      searchcontainer.style.left = '60%';
     } else if (layout === "singleColumn") {
       layoutSingleColumn.style.backgroundColor = selectedPalette.Snooze;
       flashcard.style.width = '';
       flashcard.style.left = '0%';
-      quiz.style.width = '100vw';
-      quiz.style.left = '0%';
+      flashcard.style.transform
+      for (let el of quiz) {
+        el.style.width = '';
+        el.style.left = '0%';
+        el.style.transform = '';
+
+      }
       utilities.style.display = 'none';
       utilities.style.right = '';
+
+      quizResultsContainer.style.width = '';
+      quizResultsContainer.style.left = '';
     } else if (layout === "threeColumn") {
       console.log("style3")
       layoutThreeColumn.style.backgroundColor = selectedPalette.Snooze;
       flashcard.style.width = '40vw';
-      flashcard.style.translateX = '50%';
-      quiz.style.width = '40vw';
-      quiz.style.left = '60%';
+      flashcard.style.transform = 'TranslateX(90%)';
+      for (let el of quiz) {
+        el.style.width = '40vw';
+        el.style.transform = 'TranslateX(90%)';
+      }
       utilities.style.display = '';
       utilities.style.left = '14%';
-      searchcontainer.style.left = '30%';
     }
   }
   layoutTwoColumn.addEventListener("click", () => {
@@ -787,7 +801,6 @@ function showNextVocab(collection = currentCollectionSelection) {
   let currentCollection = [];
   document.getElementById('quizContainer').style.display = 'none';
   document.getElementById('trueFalseContainer').style.display = 'none';
-  document.getElementById('matchContainer').style.display = 'none';
   document.getElementById('incorrectMessage').style.display = 'none';
   document.getElementById('snoozeButton').style.display = '';
   document.getElementById('autoplayButton').style.display = '';
@@ -1271,44 +1284,43 @@ function checkAnswer(button) {
 
 function showCorrectAnswer() {
   // ////console.log.log(quizType)
-  const quizContainer = document.querySelector('.quiz-container');
-  quizContainer.style.display = "none";
-  const tfContainer = document.querySelector('.true-false-container');
-  tfContainer.style.display = "none";
   const nextButton = document.getElementById('nextAfterIncorrectButton');
   nextButton.style.display = 'block';
 
-  const vocabFlashcard = document.getElementById('correctDefinition');
-  vocabFlashcard.style.display = 'block';
+  const correctDefinitionCard = document.getElementById('correctDefinition');
+  correctDefinitionCard.style.display = 'block';
   const correctVocab = vocabList.find(entry => entry.word === currentQuizWord);
   if (correctVocab) {
-    vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
+    correctDefinitionCard.innerHTML += String.fromCodePoint(0x1F4A0);
 
-    vocabFlashcard.textContent = `${correctVocab.word}: ${correctVocab.definition}`;
+    correctDefinitionCard.textContent = `${correctVocab.word}: ${correctVocab.definition}`;
     if (correctVocab.gender && correctVocab.gender != "") {
-      vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-      vocabFlashcard.textContent += " gender:"
-      vocabFlashcard.textContent += correctVocab.gender
+      correctDefinitionCard.innerHTML += String.fromCodePoint(0x1F4A0);
+      correctDefinitionCard.textContent += " gender:"
+      correctDefinitionCard.textContent += correctVocab.gender
     }
     if (correctVocab.pronounciation && correctVocab.pronounciation != "") {
-      vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-      vocabFlashcard.textContent += " pronounciation:"
-      vocabFlashcard.textContent += correctVocab.pronounciation
+      correctDefinitionCard.innerHTML += String.fromCodePoint(0x1F4A0);
+      correctDefinitionCard.textContent += " pronounciation:"
+      correctDefinitionCard.textContent += correctVocab.pronounciation
     }
     if ((conjToTest || false) && conjToTest.length > 0 && quizType == "6") {
-      vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-      vocabFlashcard.innerHTML += `<br><b>${correctConj}</b> is one of the ${makeStringReadable(conjToTest.toString())} form of <b>${correctVocab.word}</b>`;
+      correctDefinitionCard.innerHTML += String.fromCodePoint(0x1F4A0);
+      correctDefinitionCard.innerHTML += `<br><b>${correctConj}</b> is one of the ${makeStringReadable(conjToTest.toString())} form of <b>${correctVocab.word}</b>`;
     }
     if ((conjToTest || false) && conjToTest.length > 0 && quizType == "7") {
-      vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-      vocabFlashcard.innerHTML += `<br><b>${wordToTest}</b> is one of the ${makeStringReadable(conjToTest.toString())} form of <b>${correctVocab.word}</b>`;
+      correctDefinitionCard.innerHTML += String.fromCodePoint(0x1F4A0);
+      correctDefinitionCard.innerHTML += `<br><b>${wordToTest}</b> is one of the ${makeStringReadable(conjToTest.toString())} form of <b>${correctVocab.word}</b>`;
     }
     if (quizType == "groupTest") {
-      vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-      vocabFlashcard.innerHTML += ` group: <b>${correctVocab.conjugations.group}</b>`;
+      correctDefinitionCard.innerHTML += String.fromCodePoint(0x1F4A0);
+      correctDefinitionCard.innerHTML += ` group: <b>${correctVocab.conjugations.group}</b>`;
     }
-    document.getElementById('quizContainer').style.display = 'none';
-    vocabFlashcard.style.display = 'block';
+    //document.getElementById('quizContainer').style.display = 'none';
+    correctDefinitionCard.style.display = 'block';
+    for (let el of document.getElementsByClassName('quizzes')) {
+      el.style.display = 'none';
+    }
   }
 }
 function checkTrueFalse(isTrue) {

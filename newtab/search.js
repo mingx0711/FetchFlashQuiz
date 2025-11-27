@@ -152,24 +152,154 @@ searchButton.addEventListener("click", () => {
 
 
 function getIconForDomain(url) {
+    let hostname = "";
     try {
-        const hostname = new URL(url).hostname.toLowerCase();
+        hostname = new URL(url).hostname.toLowerCase();
+    } catch {
+        return "https://icon.horse/icon/default";
+    }
 
-        // 1. Check custom icon list first
-        for (const [domain, iconUrl] of Object.entries(WEBSITE_ICONS)) {
-            if (hostname.includes(domain)) {
-                return iconUrl;
-            }
+    // 1. SPECIAL RULES (contains multiple keywords)
+    for (const rule of FAVICON_RULES) {
+        if (rule.keywords.every(k => url.includes(k))) {
+            return rule.icon;
         }
+    }
 
-        // 2. Return Google fallback icon
+    // 2. CUSTOM OVERRIDES
+    for (const [domain, iconUrl] of Object.entries(WEBSITE_ICONS)) {
+        if (hostname.includes(domain)) {
+            return iconUrl;
+        }
+    }
+    if (isGoogleReachable) {
         return `https://www.google.com/s2/favicons?sz=64&domain=${hostname}`;
-
-    } catch (e) {
-        // If URL parsing fails, return a default icon
-        return "default_favicon.png";
+    } else {
+        return `https://icon.horse/icon/${hostname}`;
     }
 }
+const FAVICON_RULES = [
+    //
+    // GOOGLE PRODUCT: MAPS
+    //
+    {
+        keywords: ["google", "map"],
+        icon: "https://www.google.com/images/branding/product/ico/maps15_bnuw3a_64dp.ico"
+    },
+
+    //
+    // GOOGLE PRODUCT: GMAIL
+    //
+    {
+        keywords: ["google", "mail"],
+        icon: "https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico"
+    },
+    {
+        keywords: ["google", "gmail"],
+        icon: "https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico"
+    },
+
+    //
+    // GOOGLE PRODUCT: DOCUMENTS
+    //
+    {
+        keywords: ["google", "docs"],
+        icon: "https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_document_x64.png"
+    },
+    {
+        keywords: ["google", "document"],
+        icon: "https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_document_x64.png"
+    },
+
+    //
+    // GOOGLE PRODUCT: SPREADSHEETS
+    //
+    {
+        keywords: ["google", "sheet"],
+        icon: "https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_spreadsheet_x64.png"
+    },
+    {
+        keywords: ["google", "sheets"],
+        icon: "https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_spreadsheet_x64.png"
+    },
+
+    //
+    // GOOGLE PRODUCT: FORMS
+    //
+    {
+        keywords: ["google", "form"],
+        icon: "https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_2_form_x64.png"
+    },
+
+    //
+    // GOOGLE PRODUCT: DRAWINGS
+    //
+    {
+        keywords: ["google", "drawing"],
+        icon: "https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_drawing_x64.png"
+    },
+    {
+        keywords: ["google", "draw"],
+        icon: "https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_drawing_x64.png"
+    },
+
+    //
+    // GOOGLE PRODUCT: SLIDES / PRESENTATIONS
+    //
+    {
+        keywords: ["google", "slide"],
+        icon: "https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_presentation_x64.png"
+    },
+    {
+        keywords: ["google", "presentation"],
+        icon: "https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_presentation_x64.png"
+    },
+
+    //
+    // GOOGLE PRODUCT: DRIVE FOLDERS
+    //
+    {
+        keywords: ["google", "folder"],
+        icon: "https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_folder_x64.png"
+    },
+
+    //
+    // GOOGLE PRODUCT: KEEP
+    //
+    {
+        keywords: ["google", "keep"],
+        icon: "https://ssl.gstatic.com/gb/images/a/911e3628e6.png"
+    },
+
+    //
+    // FILE FORMATS (Word, Excel, PowerPoint, PDF)
+    //
+    {
+        keywords: ["google", "word"],
+        icon: "https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_word_x64.png"
+    },
+    {
+        keywords: ["google", "excel"],
+        icon: "https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_excel_x64.png"
+    },
+    {
+        keywords: ["google", "powerpoint"],
+        icon: "https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_powerpoint_x64.png"
+    },
+    {
+        keywords: ["google", "pdf"],
+        icon: "https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_3_pdf_x64.png"
+    },
+
+    //
+    // DEFAULT GOOGLE FALLBACK
+    //
+    {
+        keywords: ["google"],
+        icon: "https://www.google.com/favicon.ico"
+    }
+];
+
 
 const WEBSITE_ICONS = {
     "google.com": "https://www.google.com/favicon.ico",

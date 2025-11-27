@@ -14,7 +14,7 @@
       text-align: center;
       height: 68vh;
       width: 80vw;
-      padding: 0;
+      padding: 1.5%;
       border: 10px solid;
       border-radius: 25px;
       display: inline-block;
@@ -82,7 +82,7 @@
     .true-false-container .ui.button {
       font-size: 1.5vh;
       margin: 10px 12px 0 12px;
-      padding: 12px 1vwpx;
+      padding: 2vh 1vwpx;
       border-radius: 8px;
       border: 2px solid #b8a9a7;
       font-weight: bold;
@@ -210,7 +210,6 @@
       left: 20%;
       border-radius: 10px;
       padding: 18px 0;
-      max-width: 90vw;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -304,7 +303,7 @@
       gap: 10px;
       text-decoration: none;
       color: #4b5437;
-      padding: 12px 8px;
+      padding: 1vh 0.5vw;
       border-radius: 8px;
       transition: all 0.2s;
       word-break: break-word;
@@ -358,8 +357,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
-      padding: 12px;
       cursor: pointer;
       border-radius: 8px;
       font-weight: 600;
@@ -383,8 +380,7 @@
 
     .bookmark-folder-items {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 0 12px;
+      grid-template-columns: repeat(5, 1fr);
       padding: 1px;
       margin: 0;
       background-color: transparent;
@@ -434,10 +430,8 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
       text-decoration: none;
       color: #4b5437;
-      padding: 12px;
       border-radius: 8px;
       transition: all 0.2s;
       word-break: break-word;
@@ -454,14 +448,12 @@
     /* Search Bar Styling */
     #search-container {
       display: flex;
-      align-items: center;
-      justify-content: center;
       width: 100%;
       max-width: 500px;
-      margin: 32px auto 1vwpx auto;
       padding: 0;
       background: none;
-      top: -10%;
+      left: 50%;
+      transform: translateX(5%);
     }
 
     #search-input {
@@ -707,7 +699,7 @@
     </p>
   </div>
   <div id="searchAndBookMark" style="position: fixed; top: 20%;left: 45%; z-index: 2;">
-    <div style="position: relative; top: 10%;">
+    <div style="position: relative;">
       <div id="search-container">
         <input id="search-input" placeholder="Search or type a URL" autocomplete="off" />
         <div id="engine-dropdown" tabindex="0">
@@ -723,11 +715,11 @@
 
       </div>
     </div>
-    <ul id="bookmarks" style="position: fixed; top: 25%; height: 20vw; width: 30vw"></ul>
+    <ul id="bookmarks" style="position: fixed; top: 29%; width: 30vw"></ul>
   </div>
   </div>
   <div class="quiz-container" style="margin: auto ;border: 10px solid;" id="quizContainer">
-    <div class="quizzes" style="width: 40vw;">
+    <div id="quiz" class="quizzes" style="width: 40vw;">
       <p style="font-size: 4vh;" id="quizQuestion"></p>
       <button class="ui button" id="speakQuiz"
         style="background-color: transparent;display: none;border: none; outline: none;font-size: 4vh; width: 100%;">&#128266;</button>
@@ -747,7 +739,7 @@
     </div>
   </div>
   <div class="true-false-container" style="margin: auto ;border: 10px solid; height: 68vh;" id="trueFalseContainer">
-    <div class="quizzes" style="width: 40vw;">
+    <div class="quizzes" id="tf" style="width: 40vw;">
       <p style="font-size: 4vh;" id="trueFalseQuestion"></p>
       <button
         style="font-size: 3vh;margin: auto ;margin-top: 30px;border: 4px;  border-radius: 5px;border-color: #607059;; width: 100%;"
@@ -784,7 +776,7 @@
       style="margin: auto ;width: 300px; margin-top: 10px ; font-size:3.5vw; text-align: center;">Correct!</p>
     <p class="ui message" id="incorrectMessage" style=" text-align: center; width: 40vw;">Incorrect! The correct answer
       is:</p>
-    <div id="correctDefinition" class="ui flashcard" style="display: flex;"></div>
+    <div id="correctDefinition" class="ui" style="display: flex;"></div>
 
     <button class="ui button" id="nextAfterIncorrectButton"
       style="border: 3px solid;position: relative ; left:50% ; margin-top: 50px">Next</button>

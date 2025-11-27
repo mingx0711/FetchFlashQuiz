@@ -139,7 +139,8 @@ document.addEventListener('DOMContentLoaded', function () {
         el.style.transform = '';
       }
       quizResultsContainer.style.width = '40vw';
-      quizResultsContainer.style.left = '20%';
+      quizResultsContainer.style.transform = '';
+      quizResultsContainer.style.transform = 'translate(30%,-150%)';
 
       utilities.style.display = '';
       utilities.style.left = '57%';
@@ -147,13 +148,16 @@ document.addEventListener('DOMContentLoaded', function () {
       layoutSingleColumn.style.backgroundColor = selectedPalette.Snooze;
       flashcard.style.width = '';
       flashcard.style.left = '0%';
-      flashcard.style.transform
+      flashcard.style.transform = ''
       for (let el of quiz) {
         el.style.width = '';
         el.style.left = '0%';
         el.style.transform = '';
-
       }
+      quizResultsContainer.style.width = '';
+      quizResultsContainer.style.transform = '';
+      quizResultsContainer.style.transform = 'translate(30%,-150%)';
+
       utilities.style.display = 'none';
       utilities.style.right = '';
 
@@ -170,6 +174,10 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       utilities.style.display = '';
       utilities.style.left = '14%';
+
+      quizResultsContainer.style.width = '40vw';
+      quizResultsContainer.style.transform = '';
+      quizResultsContainer.style.transform = 'translate(120%,-150%)';
     }
   }
   layoutTwoColumn.addEventListener("click", () => {
@@ -1287,6 +1295,11 @@ function showCorrectAnswer() {
   const nextButton = document.getElementById('nextAfterIncorrectButton');
   nextButton.style.display = 'block';
 
+  const quiz = document.getElementsByClassName('quizzes');
+
+  for (let el of quiz) {
+    el.style.display = 'none';
+  }
   const correctDefinitionCard = document.getElementById('correctDefinition');
   correctDefinitionCard.style.display = 'block';
   const correctVocab = vocabList.find(entry => entry.word === currentQuizWord);
@@ -1318,9 +1331,7 @@ function showCorrectAnswer() {
     }
     //document.getElementById('quizContainer').style.display = 'none';
     correctDefinitionCard.style.display = 'block';
-    for (let el of document.getElementsByClassName('quizzes')) {
-      el.style.display = 'none';
-    }
+
   }
 }
 function checkTrueFalse(isTrue) {
@@ -1345,7 +1356,7 @@ function checkTrueFalse(isTrue) {
     document.getElementById('nextAfterIncorrectButton').style.display = 'block';
 
   }
-  document.getElementById('trueFalseContainer').style.display = 'none';
+  document.getElementById('tf').style.display = 'none';
 
 }
 

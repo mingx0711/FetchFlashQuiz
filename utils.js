@@ -1392,6 +1392,10 @@ export function prepareQuiz6(options, answer, questionText) {
   document.getElementById('quizQuestion').textContent = questionText;
   // Show quiz and hide vocab card
   document.getElementById('quizContainer').style.display = 'block';
+  if (document.getElementById('quiz')) {
+    document.getElementById('quiz').style.display = '';
+  }
+
   document.getElementById('vocabFlashcard').style.display = 'none';
   document.getElementById('correctMessage').style.display = 'none';
   document.getElementById('incorrectMessage').style.display = 'none';
@@ -1584,6 +1588,9 @@ export function setupQuiz7(options, correctAnswer, questionText) {
   document.getElementById('quizContainer').style.display = 'block';
 
   prepareOptions(options, correctAnswer);
+  if (document.getElementById('quiz')) {
+    document.getElementById('quiz').style.display = '';
+  }
 
   // Show quiz and hide vocab card
   document.getElementById('quizContainer').style.display = 'block';
@@ -1609,6 +1616,9 @@ export function setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition
 
   // Show true/false quiz and hide vocab card
   document.getElementById('trueFalseContainer').style.display = 'block';
+  if (document.getElementById('tf')) {
+    document.getElementById('tf').style.display = '';
+  }
   document.getElementById('quizContainer').style.display = 'none';
   document.getElementById('vocabFlashcard').style.display = 'none';
   showSnooze();
@@ -1703,6 +1713,10 @@ export function prepareQuiz(options) {
 
   // Show quiz and hide vocab card
   document.getElementById('quizContainer').style.display = 'block';
+  if (document.getElementById('quiz')) {
+    document.getElementById('quiz').style.display = '';
+  }
+
   document.getElementById('vocabFlashcard').style.display = 'none';
   document.getElementById('correctMessage').style.display = 'none';
   document.getElementById('incorrectMessage').style.display = 'none';

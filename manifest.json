@@ -7,8 +7,7 @@
     "storage",
     "topSites",
     "*://*.wiktionary.org/*",
-    "bookmarks",
-    "topSites"
+    "bookmarks"
   ],
   "action": {
     "default_popup": "popup/popup.html",

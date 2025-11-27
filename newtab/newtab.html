@@ -276,16 +276,13 @@
 
     /* Bookmarks Styling - Grid Layout */
     #bookmarks {
-      width: 45vw;
-      display: flex;
+      width: 30vw;
+      display: block;
+      position: relative;
       top: 50%;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 20px;
-      padding: 16px 0;
+      padding: 4vh 0;
       margin: 0;
       font-size: 0.85vw;
-      max-height: 60vh;
-      overflow-y: auto;
       list-style: none;
     }
 
@@ -309,6 +306,7 @@
       word-break: break-word;
       text-align: center;
       min-height: 100px;
+      z-index: 1;
     }
 
     #bookmarks a:hover {
@@ -353,17 +351,6 @@
       list-style: none;
     }
 
-    .bookmark-folder-title {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      cursor: pointer;
-      border-radius: 8px;
-      font-weight: 600;
-      color: #5a4f4d;
-      text-align: center;
-    }
-
     .bookmark-folder-icon {
       width: 1.7vw;
       height: 1.7vw;
@@ -390,6 +377,7 @@
       max-height: 100vh;
       overflow-y: auto;
       transition: max-height 0.3s ease-in-out;
+      top: 10%
     }
 
     .engine-icon {
@@ -448,7 +436,7 @@
     /* Search Bar Styling */
     #search-container {
       display: flex;
-      width: 100%;
+      width: 90%;
       max-width: 500px;
       padding: 0;
       background: none;
@@ -486,7 +474,6 @@
       padding: 0 16px 0 8px;
       font-size: 1.1vw;
       color: #3c4043;
-      z-index: 10;
       user-select: none;
     }
 
@@ -530,11 +517,13 @@
     }
 
     #engine-list li {
+      position: relative;
       padding: 10px 16px;
       cursor: pointer;
       font-size: 1.05vw;
       color: #222;
       transition: background 0.2s;
+      z-index: 100;
     }
 
     #engine-list li:hover {
@@ -617,9 +606,8 @@
         <div style="display: flex; gap: 1vw; align-items: center;">
 
           <!-- A: autoplay -->
-          <button class="ui button" id="autoplayButton" style="background: none; font-size: 2vw; font-weight: bold;">
-            &#9654;
-          </button>
+          <button class="ui button" id="autoplayButton"
+            style="background: none; font-size: 2vw; font-weight: bold;">&#9654;</button>
 
           <!-- B: settings gear -->
           <button class="ui button" id="changeInterval" style="background: none; font-size: 2vw;">
@@ -683,10 +671,10 @@
     </div>
 
     <button class="ui button" id="fetchInfo"
-      style="position: fixed;top:8%;background-color:transparent;right:8%;font-size: 0.9vw;text-align: right;">auto-complete
+      style="position: fixed;top:-8%;background-color:transparent;right:2%;font-size: 0.9vw;text-align: right;">auto-complete
       vocab in the background(?)</button>
     <p class="ui" id="fetchTip"
-      style="position: fixed;top:15%;right:0%;border-width: 2px;font-size: 1vw;display: none;border: 2px solid #000000;background-color:whitesmoke;text-align: left;">
+      style="position: fixed;top:15%;left:0%;border-width: 2px;font-size: 1vw;display: none;border: 2px solid #000000;background-color:whitesmoke;text-align: left; width: 40vw;">
       When you click this button, the extension will:
       <br> - Scan your vocab list for entries missing etymology, gender, or inflection.
       <br> - Fetch any missing data from Wiktionary in the background, pausing 60~300 seconds between each request to
@@ -698,8 +686,8 @@
       <br>Existing informations of the vocabs will not be overriden.
     </p>
   </div>
-  <div id="searchAndBookMark" style="position: fixed; top: 20%;left: 45%; z-index: 2;">
-    <div style="position: relative;">
+  <div id="searchAndBookMark" style="position: fixed; top: 20%;left: 45%; ">
+    <div style="position: relative;z-index: 10;">
       <div id="search-container">
         <input id="search-input" placeholder="Search or type a URL" autocomplete="off" />
         <div id="engine-dropdown" tabindex="0">
@@ -715,7 +703,7 @@
 
       </div>
     </div>
-    <ul id="bookmarks" style="position: fixed; top: 29%; width: 30vw"></ul>
+    <ul id="bookmarks"></ul>
   </div>
   </div>
   <div class="quiz-container" style="margin: auto ;border: 10px solid;" id="quizContainer">
@@ -936,6 +924,7 @@
   </div>
   <script src="../libs/semantic.css"></script>
   <script src="search.js"></script>
+  <script src="../libs/tldts.min.js"></script>
   <script type="module" src="newtab.js"></script>
 </body>
 

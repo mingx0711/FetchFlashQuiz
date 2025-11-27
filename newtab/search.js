@@ -154,8 +154,7 @@ searchButton.addEventListener("click", () => {
 function getIconForDomain(url) {
     let hostname = "";
     try {
-        hostname = new URL(url).hostname.toLowerCase();
-        hostname = hostname.replace(/^[^.]+\./, ""); // Remove subdomain
+        hostname = tldts.parse(url).domain;
     } catch {
         return "https://icon.horse/icon/default";
     }
@@ -176,18 +175,6 @@ function getIconForDomain(url) {
     return `https://favicon.pub/${hostname}`;
     // 3. DEFAULT GOOGLE S2 FALLBACK
 }
-async function pingGoogle() {
-    try {
-        const res = await fetch("https://www.google.com/generate_204", {
-            method: "GET",
-            cache: "no-store"
-        });
-        return true; // Google reachable
-    } catch {
-        return false; // unreachable / blocked / DNS fail
-    }
-}
-
 const FAVICON_RULES = [
     //
     // GOOGLE PRODUCT: MAPS

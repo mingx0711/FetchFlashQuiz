@@ -327,6 +327,7 @@ document.addEventListener('DOMContentLoaded', function () {
     snoozeCurrentVocab();
   });
   document.getElementById('autoplayButton').addEventListener('click', function () {
+    console.log('Autoplay clicked');
     enterAutoPlay();
   });
   document.getElementById('nextButton').addEventListener('click', function () {

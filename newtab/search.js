@@ -155,6 +155,7 @@ function getIconForDomain(url) {
     let hostname = "";
     try {
         hostname = new URL(url).hostname.toLowerCase();
+        hostname = hostname.replace(/^[^.]+\./, ""); // Remove subdomain
     } catch {
         return "https://icon.horse/icon/default";
     }
@@ -172,12 +173,21 @@ function getIconForDomain(url) {
             return iconUrl;
         }
     }
-    if (isGoogleReachable) {
-        return `https://www.google.com/s2/favicons?sz=64&domain=${hostname}`;
-    } else {
-        return `https://icon.horse/icon/${hostname}`;
+    return `https://favicon.pub/${hostname}`;
+    // 3. DEFAULT GOOGLE S2 FALLBACK
+}
+async function pingGoogle() {
+    try {
+        const res = await fetch("https://www.google.com/generate_204", {
+            method: "GET",
+            cache: "no-store"
+        });
+        return true; // Google reachable
+    } catch {
+        return false; // unreachable / blocked / DNS fail
     }
 }
+
 const FAVICON_RULES = [
     //
     // GOOGLE PRODUCT: MAPS

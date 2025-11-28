@@ -46,9 +46,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if (bgOpen) {
       bgOptions.style.maxHeight = '120px';
       bgOptions.style.opacity = '1';
+      bgOptions.style.display = 'flex';
     } else {
-      bgOptions.style.maxHeight = '0';
+      console.log("bg should be closed")
       bgOptions.style.opacity = '0';
+      bgOptions.style.maxHeight = '0';
+      bgOptions.style.display = 'none';
     }
   });
   const reminderDiv = document.getElementById('backupReminder');

@@ -14,6 +14,7 @@ export const GenderType = Object.freeze({
   NEUTER: 'neuter',
   COMMON: 'common'
 });
+let lastLang = '';
 export const LanguageGenderMap = {
   "de": [GenderType.MASCULINE, GenderType.FEMININE, GenderType.NEUTER], // German
   "it": [GenderType.MASCULINE, GenderType.FEMININE], // Italian
@@ -307,7 +308,7 @@ export const latinVerbGroups = {
 
 export function getLatinLanguageTips(word, inflection = "") {
   if (word.wordType == wordTypes.NOUN) {
-    console.log(inflection)
+    //console.log(inflection)
     const group = word.conjugations.group?.toLowerCase();
     const gender = word.gender?.toLowerCase();
     const baseForm = word.conjugations.inflections.singular_nominative?.[0] || "";
@@ -315,7 +316,7 @@ export function getLatinLanguageTips(word, inflection = "") {
 
     const decl = latinDeclensions[`${group}Declension`];
     if (!decl) return "";
-    console.log()
+    //console.log()
     // Pick possible gender tables
     let candidates = [];
     if (decl.masculine_feminine) {
@@ -327,7 +328,7 @@ export function getLatinLanguageTips(word, inflection = "") {
     } else {
       candidates.push(decl);
     }
-    console.log(candidates);
+    //console.log(candidates);
     for (const table of candidates) {
       const rule = table.singular_nominative;
       if (!rule) continue;
@@ -366,7 +367,7 @@ export function getGermanLanguageTips(word) {
   for (const { ending, gender: expected } of germanNounRules) {
     if (lowerWord.endsWith(ending)) {
       if (gender === expected) {
-        console.log("matched")
+        //console.log("matched")
         return ` ${word.word} ends with "${ending}", a common ${expected} ending.`;
 
       } else {
@@ -377,7 +378,7 @@ export function getGermanLanguageTips(word) {
   }
   for (const { starting, gender: expected } of germanNounRules) {
     if (lowerWord.startsWith(starting)) {
-      console.log(gender, expected);
+      //console.log(gender, expected);
       if (gender === expected) {
         return ` ${word.word} starts with "${starting}", a common ${expected} starting.`;
       } else {
@@ -547,13 +548,13 @@ export async function getLatinAttributes(doc, word, book) {
   let pronounciation;
   let gender;
   const spanElement = doc.querySelector('span.Latn.form-of.lang-la[lang="la"]');
-  //////console.log(word);
+  ////////console.log(word);
   if (spanElement) {
     // Get its parent element
     const parentElement = spanElement.parentElement.parentElement.parentElement.parentElement;
 
     if (parentElement) {
-      //////console.log(parentElement)
+      ////////console.log(parentElement)
       verbInflectionTableNew = parentElement
       if (verbInflectionTableNew.classList.contains("roa-inflection-table")) {
         isVerb = true
@@ -689,7 +690,7 @@ export async function getLatinAttributes(doc, word, book) {
       etym = nextElem.innerText;
       etym = etym.replace(/\.mw[\s\S]*\}/, '');
     }
-    ////console.log(etym);
+    //////console.log(etym);
     let vocab = { word, definition, snoozed: false, book, pronounciation, language: "la", gender, conjugations, seen: 0, type: "verb", quizResults: ['n', 'n', 'n', 'n'], hasChecked: true, etym: hasEytm ? etym : "" }
     addType(vocab);
     vocab.conjugations.type = 'latin';
@@ -813,7 +814,7 @@ export async function getLatinAttributes(doc, word, book) {
         etym = etym.replace(/\.mw[\s\S]*\}/, '');
       }
       let vocab = { word, definition, snoozed: false, book, pronounciation, language: "la", gender: autoGender ? autoGender : gender, conjugations, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'], etym: hasEytm ? etym : "" }
-      ////console.log(vocab);
+      //////console.log(vocab);
       addType(vocab);
       return vocab
     } else {
@@ -836,7 +837,7 @@ export async function getLatinAttributes(doc, word, book) {
           let finallinkText = processWordByLanguage(LANGUAGES.LATIN, linkText)
           if (finalStr.trim() != finallinkText.trim()) {
             var url = `https://en.wiktionary.org/wiki/${finallinkText}`
-            ////console.log(url)
+            //////console.log(url)
             const res = await fetch(url);
             const html = await res.text();
             const parser = new DOMParser();
@@ -851,7 +852,7 @@ export async function getLatinAttributes(doc, word, book) {
         if (isLatinWord) {
           return getEasyAttributes(doc, word, "la", book)
         } else {
-          ////console.log("No latin word found")
+          //////console.log("No latin word found")
           return "invalid"
         }
       }
@@ -879,7 +880,7 @@ export async function getLinkedAttributes(doc, word, lang, book) {
     const anchorTag = hasBaseForm.querySelector('a');
     if (anchorTag) {
       const linkText = anchorTag.textContent; // Get the text content of the <a>
-      //console.log(linkText, word);
+      ////console.log(linkText, word);
       const spanElement = hasBaseForm.parentElement;
       const spanElement1 = spanElement.parentElement;
       const liElement = spanElement1.parentElement;
@@ -893,7 +894,7 @@ export async function getLinkedAttributes(doc, word, lang, book) {
           definition = liElement.textContent.trim()
         }
       }
-      //console.log(linkText, definition);
+      ////console.log(linkText, definition);
       let noramlizedWord = word.normalize('NFD');
       let noDiacritics = noramlizedWord.replace(/[\u0300-\u036f]/g, "");
       let finalStr = noDiacritics.replace(/-/g, "");
@@ -904,7 +905,7 @@ export async function getLinkedAttributes(doc, word, lang, book) {
         try {
           await fetch(url)
           var url = `https://en.wiktionary.org/wiki/${finallinkText}`
-          ////console.log(url)
+          //////console.log(url)
           const res = await fetch(url);
           const html = await res.text();
           const parser = new DOMParser();
@@ -917,12 +918,12 @@ export async function getLinkedAttributes(doc, word, lang, book) {
       }
 
     } else if (title) {
-      ////console.log(title, word);
+      //////console.log(title, word);
       var url = `https://en.wiktionary.org/wiki/${title}`;
       try {
         await fetch(url)
         var url = `https://en.wiktionary.org/wiki/${finallinkText}`
-        ////console.log(url)
+        //////console.log(url)
         const res = await fetch(url);
         const html = await res.text();
         const parser = new DOMParser();
@@ -958,7 +959,7 @@ export async function getEasyAttributes(doc, word, lang, book) {
 
   const queryWord = 'strong.' + mention + '.headword[lang="' + lang + '"]'
   let isWord = doc.querySelector(queryWord);
-  ////console.log(isWord)
+  //////console.log(isWord)
   if (lang === "zh" && !isWord) {
     isWord = doc.querySelector('strong.Hant.headword[lang="zh"]')
     if (!isWord) {
@@ -977,7 +978,7 @@ export async function getEasyAttributes(doc, word, lang, book) {
       definition = liElement.textContent.trim()
       definition = definition.replace(/ *\([^)]*\) */g, "");
     }
-    ////console.log(definition)
+    //////console.log(definition)
     const spanElement = doc.querySelector('span.' + mention + '.form-of.lang-' + lang + '[lang="' + lang + '"]');
     let isVerb = false;
     let verbInflectionTableNew;
@@ -1005,7 +1006,7 @@ export async function getEasyAttributes(doc, word, lang, book) {
     const genderSpan = grannyElement.querySelector("span.gender");
     if (genderSpan) {
       const genderDef = genderSpan.firstChild.textContent;
-      ////console.log(genderDef)
+      //////console.log(genderDef)
       switch (genderDef) {
         case 'f':
           autoGender = GenderType.FEMININE
@@ -1029,8 +1030,8 @@ export async function getEasyAttributes(doc, word, lang, book) {
     definition = definition.split(";")[0];
     const language = convertFromAbbr(lang);
     var h2 = doc.getElementById(language);
-    ////console.log(h2);
-    ////console.log(definition)
+    //////console.log(h2);
+    //////console.log(definition)
     var h2Parent = h2.parentElement;
     while (true) {
       if (h2Parent && h2Parent.firstChild && h2Parent.firstChild.id && h2Parent.firstChild.id.includes('Etymology')) {
@@ -1087,7 +1088,7 @@ export async function getEasyAttributes(doc, word, lang, book) {
 
     let vocab = { word, definition, snoozed: false, book, language: lang, pronounciation: pronounciationText, gender: autoGender ? autoGender : gender, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'], etym: hasEytm ? etym : "" }
     addType(vocab);
-    console.log(vocab)
+    //console.log(vocab)
     return vocab;
   } else {
     return "invalid"
@@ -1278,7 +1279,7 @@ export function prepareOptionsForQuiz6(correctVocab) {
       quizType = 'groupTest';
       questionText = "what is the group of " + correctVocab.word
       correctAnswer = conjugations.group;
-      // //////console.log.log(correctAnswer)
+      // ////////console.log.log(correctAnswer)
       options = [correctAnswer];
       currentQuizWord = correctVocab.word;
       if (Array.isArray(correctAnswer)) {
@@ -1291,7 +1292,7 @@ export function prepareOptionsForQuiz6(correctVocab) {
         wrongAnswers = ["first", "second", "third", "fourth", "fifth", "irregular"]
       }
       for (let i = 0; i < 3; i++) {
-        //console.log(options)
+        ////console.log(options)
         const index = getRandomNumber(0, wrongAnswers.length - 1)
         if (!options.includes(wrongAnswers[index])) {
           options.push(wrongAnswers[index]);
@@ -1317,12 +1318,12 @@ export function prepareOptionsForQuiz6(correctVocab) {
         selectedField = verbFields3
       }
     } else {
-      // //////console.log.log("not a verb")
+      // ////////console.log.log("not a verb")
       if (conjugations.inflections) {
         numberOfFields = 1;
         selectedField = ['inflections'];
       } else {
-        // //////console.log.log(correctVocab.word + "data format outdatted ")
+        // ////////console.log.log(correctVocab.word + "data format outdatted ")
         showNextItem();
       }
     }
@@ -1331,17 +1332,17 @@ export function prepareOptionsForQuiz6(correctVocab) {
     let conjugationLists = [];
     selectedKeys.forEach(field => {
       const subfield = getRandomSubfield(conjugations[field]);
-      // //////console.log.log(subfield)
+      // ////////console.log.log(subfield)
       conjToTest.push(subfield);
       conjugationLists.push(conjugations[field][subfield]);
     });
     const commonWordsList = findCommonWordAcrossLists(conjugationLists);
     const commonWord = commonWordsList[getRandomNumber(0, commonWordsList.length)];
     if (!commonWord) {
-      // //////console.log.log("No common word found, retrying...");
+      // ////////console.log.log("No common word found, retrying...");
       return prepareOptionsForQuiz6(correctVocab); // Restart quiz if no common word is found
     }
-    ////console.log("Common word found:", commonWord);
+    //////console.log("Common word found:", commonWord);
     correctAnswer = commonWord;
     let wrongAnswers = [];
     while (wrongAnswers.length < 3) {
@@ -1350,12 +1351,12 @@ export function prepareOptionsForQuiz6(correctVocab) {
         wrongAnswers.push(wrongWord);
       }
     }
-    // //////console.log.log(wrongAnswers)
+    // ////////console.log.log(wrongAnswers)
     currentQuizWord = correctVocab.word;
     currentQuizDefinition = correctAnswer;
     quizType = '6';
     options = [correctAnswer];
-    // //////console.log.log(options);
+    // ////////console.log.log(options);
     for (let i = 0; i < 3; i++) {
       if (!options.includes(wrongAnswers)) {
         options.push(wrongAnswers[i]);
@@ -1371,7 +1372,7 @@ export function prepareOptionsForQuiz6(correctVocab) {
     questionText = `What is one ${names} form of the word "${correctVocab.word}"?`
   }
 
-  ////console.log(correctAnswer)
+  //////console.log(correctAnswer)
   return [options, correctAnswer, conjToTest, currentQuizWord, quizType, questionText];
 }
 function makeStringReadable(names) {
@@ -1437,13 +1438,13 @@ export function getRandomWordFromConjugations(conjugations, commonWordsList = []
   let randomSubfield = subfields[Math.floor(Math.random() * subfields.length)];
   const words = conjugations[randomField][randomSubfield];
   const randomWord = words[Math.floor(Math.random() * words.length)];
-  // //////console.log.log(randomField+":"+randomSubfield+":"+randomWord)
+  // ////////console.log.log(randomField+":"+randomSubfield+":"+randomWord)
   if (randomWord == undefined) {
     return getRandomWordFromConjugations(conjugations, commonWordsList);
   }
   const isInAllSubfields = commonWordsList.includes(randomWord)
   if (randomWord.length <= 1 || randomWord == null || isInAllSubfields) {
-    // //////console.log.log(randomWord+" is not not a wrong answer")
+    // ////////console.log.log(randomWord+" is not not a wrong answer")
     return getRandomWordFromConjugations(conjugations, commonWordsList);
   } else {
     return randomWord;
@@ -1481,7 +1482,7 @@ export function generateDefOptions(correctVocab, filteredVocabList) {
   if (eligibleOptions.length < 4) {
     eligibleOptions = filteredVocabList;
   }
-  //console.log(eligibleOptions)
+  ////console.log(eligibleOptions)
   for (let i = 0; i < 3; i++) {
     let randomIndex = Math.floor(Math.random() * eligibleOptions.length);
     let candidate = eligibleOptions[randomIndex];
@@ -1507,7 +1508,7 @@ export function generateWordOptions(correctVocab, filteredVocabList) {
   if (eligibleOptions.length < 4) {
     eligibleOptions = filteredVocabList;
   }
-  //console.log(eligibleOptions)
+  ////console.log(eligibleOptions)
   for (let i = 0; i < 3; i++) {
     let randomIndex = Math.floor(Math.random() * eligibleOptions.length);
     let candidate = eligibleOptions[randomIndex];
@@ -1555,14 +1556,14 @@ export function prepareOptionsForQuizStyle7(correctVocab) {
   let wordToTest = getRandomWordFromConjugations(conjugations)
   const subFields = findSubfieldsForWord(wordToTest, conjugations)
   let conjToTest = Object.values(subFields);
-  // //////console.log.log(conjToTest)
+  // ////////console.log.log(conjToTest)
   correctAnswer = conjToTest.toString();
   correctAnswer = makeStringReadable(correctAnswer);
 
   let wrongAnswers = [];
   while (wrongAnswers.length < 3) {
     const wrongWord = getRandomWordFromConjugations(conjugations);
-    // //////console.log.log(wrongWord)
+    // ////////console.log.log(wrongWord)
     const wrongConj = makeStringReadable(Object.values(findSubfieldsForWord(wrongWord, conjugations)).toString());
     if (!wrongAnswers.includes(wrongConj) && !(wrongConj == correctAnswer)) {
       wrongAnswers.push(wrongConj);
@@ -1637,7 +1638,7 @@ export function setupWordQuiz(correctVocab, eligibleVocab) {
 export function setupDefQuiz(correctVocab, eligibleVocab) {
   const options = generateDefOptions(correctVocab, eligibleVocab);
   shuffleArray(options);
-  //console.log(options)
+  ////console.log(options)
   prepareDefQuizQuestions(correctVocab);
   prepareQuiz(options);
 }
@@ -1674,9 +1675,28 @@ export function generatePronounciationOptions(correctVocab, eligibleOptions) {
   return options;
 
 }
+
+export function detectLanguage(filteredVocabList) {
+  if (!Array.isArray(filteredVocabList) || filteredVocabList.length === 0) {
+    return null;
+  }
+
+  // Find the first item that actually has a 'language' field
+  const itemWithLang = filteredVocabList.find(item => item && item.language);
+
+  if (itemWithLang) {
+    return itemWithLang.language;
+  }
+
+  // Otherwise fallback
+  return utils.nameToAbbr[filteredVocabList[0].book];
+}
 export function setUp8Quiz(correctVocab, eligibleVocab, medievalLatin = false) {
   // Add to the .quiz-container
   document.getElementById('speakQuiz').style.display = ""
+  if (correctVocab.language === null || correctVocab.language === undefined) {
+    correctVocab.language = detectLanguage(eligibleVocab);
+  }
   document.getElementById('speakQuiz').addEventListener('click', async function () {
     speakWord(correctVocab.language, correctVocab.word, medievalLatin)
   });
@@ -1726,7 +1746,7 @@ export function prepareQuiz(options) {
 }
 
 export function shuffleArray(array) {
-  //console.log(array)
+  ////console.log(array)
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
@@ -1753,7 +1773,7 @@ export function changeBG(palette) {
   };
   document.body.style.background = BG[palette] || BG['default'];
   chrome.storage.local.set({ selectedBG: palette }, function () {
-    // //console.log.log('Palette saved:', palette);
+    // ////console.log.log('Palette saved:', palette);
   });
 }
 export const langMap = {
@@ -1830,6 +1850,9 @@ export function getSpeechLang(code) {
 export async function speakWord(lang, word, medieval = false) {
   speechSynthesis.cancel();
   var language = lang;
+
+  //console.log(language)
+  //console.log(word)
   language = convertToAbbr(language);
   if (language === "la" && !medieval) {
     // Classical Latin pronunciation: replace 'c' with 'k' (except 'ch')
@@ -1856,7 +1879,7 @@ export function getNRandomElements(arr, n) {
   return shuffled.slice(0, n);
 }
 function showCorrectAnswer(currentQuizWord) {
-  // //////console.log.log(quizType)
+  // ////////console.log.log(quizType)
   const quizContainer = document.querySelector('.quiz-container');
   quizContainer.style.display = "none";
   const tfContainer = document.querySelector('.true-false-container');

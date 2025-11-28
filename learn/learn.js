@@ -132,7 +132,7 @@ function getNewWordsData() {
           sortedResult[lang] = sortedNewWordsByLang[lang];
         });
 
-        //console.log(sortedResult);
+        ////console.log(sortedResult);
         resolve(sortedResult);
       } else {
         resolve({});
@@ -170,11 +170,11 @@ document.addEventListener('DOMContentLoaded', async function () {
   const label = document.querySelector(".progress-label");
   async function updateProgress() {
     const book = selector.value || selector
-    //console.log(book)
+    ////console.log(book)
 
     const newWordsData = await getNewWordsData();
     const newWordsCount = newWordsData[utils.nameToAbbr[selector.value.toLowerCase()]] || 0;
-    //console.log(newWordsData)
+    ////console.log(newWordsData)
 
     if (newWordsCount > 4) {
       newLastOptionLabel.style.display = '';
@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       newLastOption.checked = false;
       document.getElementById('newFirstOption').checked = true;
     }
-    //console.log(book)
+    ////console.log(book)
 
     if (book) {
       chrome.storage.local.get('vocabList', function (data) {
@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('showTestResult').style.display = "None"
 
     filteredVocabList = filteredVocabList.filter(item => wrongVocabs.includes(item.word));
-    ////console.log(filteredVocabList)
+    //////console.log(filteredVocabList)
     currentQuizNo = 0;
     wordToTest = "";
     recordHistory = [];
@@ -338,7 +338,7 @@ function getLeastLearnedAmount(arr) {
   } else if (focusOption === "newLast") {
     const reversedList = arr.slice().reverse();
     const firstLearnedIdx = reversedList.findIndex(vocab => vocab.hasOwnProperty('learnedTime'));
-    //console.log(firstLearnedIdx)
+    ////console.log(firstLearnedIdx)
     return reversedList.slice(0, firstLearnedIdx);
   } else if (focusOption === "revise") {
     let leastLearned = Math.min(...filteredVocabList.map(item => item.learnedTime ?? 0));
@@ -351,6 +351,8 @@ function getLeastLearnedAmount(arr) {
       .slice(0, learnCount)
   }
 }
+
+
 async function generateLearningQueue(bookSelected) {
   await chrome.storage.local.get('vocabList', function (data) {
     if (data.vocabList) {
@@ -363,7 +365,7 @@ async function generateLearningQueue(bookSelected) {
       filteredVocabList = vocabList.filter(vocab => vocab.book === bookSelected);
       totalVocabList = filteredVocabList;
       filteredVocabList = getLeastLearnedAmount(filteredVocabList);
-      //console.log(filteredVocabList)
+      ////console.log(filteredVocabList)
       document.getElementById('start').style.display = 'none';
       document.getElementById('nextButton').style.display = '';
       document.getElementById('stepCounter').style.display = '';
@@ -378,7 +380,7 @@ async function generateLearningQueue(bookSelected) {
         return;
       }
       const wordAppearances = {};
-      currentLanguage = filteredVocabList[0].language;
+      currentLanguage = utils.detectLanguage(filteredVocabList);
 
       filteredVocabList.forEach(wordObj => {
         const word = wordObj.word;
@@ -426,7 +428,7 @@ async function generateLearningQueue(bookSelected) {
     shuffleArray(randomWords);
     randomWords.slice(0, 8).forEach(wordObj => {
       var randomIndex = Math.random()
-      //console.log(randomIndex < 0.25 ? 8 : randomIndex < 0.5 ? 1 : randomIndex < 0.75 ? 2 : 3)
+      ////console.log(randomIndex < 0.25 ? 8 : randomIndex < 0.5 ? 1 : randomIndex < 0.75 ? 2 : 3)
       if (randomIndex < 0.25) {
         learningQueue.push({ type: 'quiz8', word: wordObj });
       } else if (randomIndex < 0.5) {
@@ -443,7 +445,7 @@ async function generateLearningQueue(bookSelected) {
     shuffleArray(randomWords);
     randomWords.slice(0, 8).forEach(wordObj => {
       var randomIndex = Math.random()
-      //console.log(randomIndex < 0.25 ? 8 : randomIndex < 0.5 ? 1 : randomIndex < 0.75 ? 2 : 3)
+      ////console.log(randomIndex < 0.25 ? 8 : randomIndex < 0.5 ? 1 : randomIndex < 0.75 ? 2 : 3)
       if (randomIndex < 0.25) {
         learningQueue.push({ type: 'quiz8', word: wordObj });
       } else if (randomIndex < 0.5) {
@@ -457,7 +459,7 @@ async function generateLearningQueue(bookSelected) {
         learningQueue.push({ type: 'quiz4', word: wordObj });
       }
     });
-    console.log(learningQueue)
+    //console.log(learningQueue)
     currentStep = 0;
     showNextLearningStep();
   });
@@ -467,7 +469,7 @@ function showNextLearningStep() {
   document.getElementById('nextButton').style.display = 'none';
   document.getElementById('speakQuiz').style.display = 'none'
   // If queue is empty, finish
-  ////console.log("CurrentStep is" + currentStep)
+  //////console.log("CurrentStep is" + currentStep)
   if (currentStep >= learningQueue.length) {
     endTest();
     return;
@@ -534,7 +536,7 @@ function showNextVocab() {
   let word;
   let definition;
   let wordObj = learningQueue[currentStep].word;
-  ////console.log(wordObj)
+  //////console.log(wordObj)
   document.getElementById('speak').addEventListener('click', async function () {
     utils.speakWord(currentLanguage, wordObj.word, latinMedieval);
   });
@@ -708,7 +710,7 @@ function quizStyle3() {
   utils.setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition)
 }
 function quizStyle4() {
-  ////console.log("4, ask for pronounciation")
+  //////console.log("4, ask for pronounciation")
   quizType = "pronounciation"
 
   const correctVocab = learningQueue[currentStep].word;
@@ -717,7 +719,7 @@ function quizStyle4() {
     currentVocabIndex--;
     return showNextItem();
   }
-  //console.log("quizStyle4 called for " + correctVocab.word);
+  ////console.log("quizStyle4 called for " + correctVocab.word);
 
 
   currentQuizWord = correctVocab.word;
@@ -746,7 +748,7 @@ function quizStyle4() {
 }
 function quizStyle5() {
   quizType = "gender"
-  ////console.log("5, ask for gender")
+  //////console.log("5, ask for gender")
   const correctVocab = learningQueue[currentStep].word;
   shouldSpeak = false;
   if (!utils.checkEligible(correctVocab, utils.hasGender, false)) {
@@ -771,7 +773,7 @@ function quizStyle5() {
 
   if (!isPairCorrect) {
     var incorrectVocab = utils.LanguageGenderMap[correctVocab.language || correctVocab.book].filter(item => item !== currentQuizDefinition);
-    //console.log(incorrectVocab)
+    ////console.log(incorrectVocab)
     currentQuizDefinition = utils.getRandomElement(incorrectVocab);
   }
   utils.setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition)
@@ -819,13 +821,13 @@ function getRandomWordFromConjugations(conjugations, commonWordsList = []) {
   let randomSubfield = subfields[Math.floor(Math.random() * subfields.length)];
   const words = conjugations[randomField][randomSubfield];
   const randomWord = words[Math.floor(Math.random() * words.length)];
-  ////console.log(randomField + ":" + randomSubfield + ":" + randomWord)
+  //////console.log(randomField + ":" + randomSubfield + ":" + randomWord)
   if (randomWord == undefined) {
     return getRandomWordFromConjugations(conjugations, commonWordsList);
   }
   const isInAllSubfields = commonWordsList.includes(randomWord)
   if (randomWord.length <= 1 || randomWord == null || isInAllSubfields) {
-    ////console.log(randomWord + " is not not a wrong answer")
+    //////console.log(randomWord + " is not not a wrong answer")
     return getRandomWordFromConjugations(conjugations, commonWordsList);
   } else {
     return randomWord;
@@ -920,7 +922,7 @@ function checkAnswer(button) {
     setTimeout(() => {
       button.classList.remove('correct');
       correctMessage.style.display = 'none';
-      ////console.log("correct")
+      //////console.log("correct")
       showNextLearningStep();
     }, 500);
   } else {
@@ -932,7 +934,7 @@ function checkAnswer(button) {
 }
 
 function showCorrectAnswer() {
-  ////console.log(quizType)
+  //////console.log(quizType)
   const quizContainer = document.querySelector('.quiz-container');
   quizContainer.style.display = "none";
   const tfContainer = document.querySelector('.true-false-container');
@@ -1029,7 +1031,7 @@ function endTest() {
       });
       // Save updated vocabList back to storage
       chrome.storage.local.set({ vocabList: data.vocabList }, function () {
-        ////console.log("Updated vocabList saved to storage.");
+        //////console.log("Updated vocabList saved to storage.");
       });
     }
   });

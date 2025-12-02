@@ -551,6 +551,7 @@ document.getElementById('addAuto').addEventListener('click', function (e) {
     let vocabList = data.vocabList || [];
     const index = vocabList.findIndex(item => item.word === currentVocab.word && item.book === currentVocab.book);
     if (index !== -1) {
+      console.log(index)
       vocabList.splice(index, 1);
       currentVocab.quizResults.unshift('f');
       if (currentVocab.quizResults.length > 4) {

@@ -6,8 +6,7 @@
   "permissions": [
     "storage",
     "topSites",
-    "*://*.wiktionary.org/*",
-    "bookmarks"
+    "*://*.wiktionary.org/*"
   ],
   "action": {
     "default_popup": "popup/popup.html",

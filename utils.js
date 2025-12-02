@@ -1453,7 +1453,7 @@ export function getRandomWordFromConjugations(conjugations, commonWordsList = []
 const dontRemoveDiacritics = [LANGUAGES.GERMAN];
 // ...existing code...
 export function hasConjugations(vocab) {
-  return vocab.conjugations && vocab.conjugations.type != "";
+  return vocab && vocab.conjugations && vocab.conjugations !== undefined && vocab.conjugations.type != "";
 }
 // ...existing code...
 export function processWordByLanguage(language, word) {

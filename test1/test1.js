@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('showTestResult').style.display = "None"
 
     filteredVocabList = filteredVocabList.filter(item => wrongVocabs.includes(item.word));
-    //////console.log(filteredVocabList)
+    //console.log(filteredVocabList)
     currentQuizNo = 0;
     wordToTest = "";
     recordHistory = [];
@@ -94,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
     totalCountYet = 0;
     currentTest;
     wrongVocabs = [];
+    currentVocabIndex = -1;
     showNextItem();
   });
 
@@ -319,8 +320,7 @@ function showNextItem() {
     document.getElementById('quizContainer').style.display = 'none';
     document.getElementById('trueFalseContainer').style.display = 'none';
 
-
-
+    console.log(filteredVocabList)
     currentVocabIndex++;
     if (currentVocabIndex >= filteredVocabList.length) {
       endTest();

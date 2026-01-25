@@ -627,7 +627,7 @@ function showFolderContents(folderName, items) {
 // Get and display most visited sites from Chrome history
 function renderTopSites(sites) {
     if (!sites || sites.length === 0) return;
-
+    console.log(sites);
     const root = document.getElementById("bookmarks");
 
     const li = document.createElement("li");

@@ -547,6 +547,7 @@ export async function getLatinAttributes(doc, word, book) {
   let isVerb = false;
   let pronounciation;
   let gender;
+  let usage;
   const spanElement = doc.querySelector('span.Latn.form-of.lang-la[lang="la"]');
   ////////console.log(word);
   if (spanElement) {
@@ -588,6 +589,7 @@ export async function getLatinAttributes(doc, word, book) {
     }
     if (lastOl) {
       const ListItems = lastOl.querySelectorAll('ol > li');
+
       let firstListItem;
       for (let i = 0; i < ListItems.length; i++) {
         if (ListItems[i].textContent.trim() !== "") {
@@ -595,13 +597,24 @@ export async function getLatinAttributes(doc, word, book) {
           break;
         }
       }
+      if (firstListItem.querySelector('div.wiktQuote') || firstListItem.querySelector('div.h-usage-example') || firstListItem.querySelector('span.h-usage-example')) {
+        usage = firstListItem.querySelector('div.wiktQuote') || firstListItem.querySelector('div.h-usage-example') || firstListItem.querySelector('span.h-usage-example');
+        usage = usage.innerText.replace(/<\/?dl>/g, '');
+      } else {
+        if (lastOl.querySelector('div.wiktQuote') || lastOl.querySelector('div.h-usage-example') || lastOl.querySelector('span.h-usage-example')) {
+          usage = lastOl.querySelector('div.wiktQuote') || lastOl.querySelector('div.h-usage-example') || lastOl.querySelector('span.h-usage-example');
+          usage = usage.innerText.replace(/<\/?dl>/g, '');
+        }
+      }
       firstListItem.querySelectorAll('span, dl,ul').forEach(el => el.remove());
       var rawDef = firstListItem.textContent.trim();
       if (rawDef.includes('.mw')) {
-        definition = rawDef.slice(0, definition.indexOf('.mw')).trim();
+        definition = rawDef.replace(/\.mw[\s\S]*$/, '');
+
       } else {
         definition = rawDef.trim();
       }
+
     }
 
     let conjugationText = conjugations.group;
@@ -691,8 +704,9 @@ export async function getLatinAttributes(doc, word, book) {
       etym = etym.replace(/\.mw[\s\S]*\}/, '');
     }
     //////console.log(etym);
-    let vocab = { word, definition, snoozed: false, book, pronounciation, language: "la", gender, conjugations, seen: 0, type: "verb", quizResults: ['n', 'n', 'n', 'n'], hasChecked: true, etym: hasEytm ? etym : "" }
+    let vocab = { word, definition, snoozed: false, book, pronounciation, language: "la", gender, conjugations, seen: 0, type: "verb", quizResults: ['n', 'n', 'n', 'n'], hasChecked: true, etym: hasEytm ? etym : "", usage: usage || "" };
     addType(vocab);
+    console.log(vocab.word, vocab.usage);
     vocab.conjugations.type = 'latin';
     return vocab
   }
@@ -747,7 +761,6 @@ export async function getLatinAttributes(doc, word, book) {
         }
         sibling = sibling.nextElementSibling; // Move to the next sibling
       }
-
       const ListItems = sibling.querySelectorAll('li');
       for (let i = 0; i < ListItems.length; i++) {
         if (ListItems[i].textContent.trim() !== "") {
@@ -813,8 +826,13 @@ export async function getLatinAttributes(doc, word, book) {
         etym = nextElem.innerText;
         etym = etym.replace(/\.mw[\s\S]*\}/, '');
       }
-      let vocab = { word, definition, snoozed: false, book, pronounciation, language: "la", gender: autoGender ? autoGender : gender, conjugations, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'], etym: hasEytm ? etym : "" }
-      //////console.log(vocab);
+      if (lastOl.querySelector('div.wiktQuote')) {
+        usage = lastOl.querySelector('div.wiktQuote').innerHTML;
+        usage = usage.replace(/<\/?dl>/g, '');
+      }
+
+      let vocab = { word, definition, snoozed: false, book, pronounciation, language: "la", gender: autoGender ? autoGender : gender, conjugations, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'], etym: hasEytm ? etym : "", usage: usage ? usage : "" }
+      console.log(vocab.word, vocab.usage);
       addType(vocab);
       return vocab
     } else {
@@ -826,23 +844,37 @@ export async function getLatinAttributes(doc, word, book) {
           const spanElement = latinElement.parentElement;
           const spanElement1 = spanElement.parentElement;
           const liElement = spanElement1.parentElement;
-          let definition = ""
+          let currentInflection = ""
           if (liElement) {
-            definition = liElement.textContent.trim()
+            const headerSpan = liElement.querySelector('.form-of-definition.use-with-mention');
+            let headerText = headerSpan.textContent.trim();
+            headerText = headerText.replace(/:$/, '').trim();  // remove trailing colon
+
+            // 2. Extract and join the OL list items
+            let listText = Array.from(liElement.querySelectorAll('ol > li'))
+              .map(li => li.textContent.trim())
+              .join(' OR ');
+            if (listText.length > 1) {
+              listText = "✨" + listText + "✨";
+            } else {
+              headerText = "✨" + headerText + "✨";
+            }
+            // 3. Combine them into final string
+            currentInflection = `${listText}${headerText}`;
           }
-          definition += ","
+          currentInflection.replace("")
           let noramlizedWord = word.normalize('NFD');
           let noDiacritics = noramlizedWord.replace(/[\u0300-\u036f]/g, "");
           let finalStr = noDiacritics.replace(/-/g, "");
           let finallinkText = processWordByLanguage(LANGUAGES.LATIN, linkText)
           if (finalStr.trim() != finallinkText.trim()) {
             var url = `https://en.wiktionary.org/wiki/${finallinkText}`
-            //////console.log(url)
             const res = await fetch(url);
             const html = await res.text();
             const parser = new DOMParser();
             const baseDoc = parser.parseFromString(html, 'text/html');
-            return await getLatinAttributes(baseDoc, linkText, book);
+            let vocabResult = await getLatinAttributes(baseDoc, linkText, book);
+            return { currentInflection, vocabResult };
           } else {
             return "invalid"
           }
@@ -972,8 +1004,13 @@ export async function getEasyAttributes(doc, word, lang, book) {
   if (isWord) {
     const grannyElement = isWord.parentElement.parentElement;
     const closestOl = grannyElement.nextElementSibling;
+    var usage;
     const liElement = closestOl.querySelector("li"); // Get the text content of the <a>
     if (liElement) {
+      if (liElement.querySelector('div.h-usage-example') || liElement.querySelector('span.h-usage-example.collocation')) {
+        usage = liElement.querySelector('div.h-usage-example') || liElement.querySelector('span.h-usage-example.collocation');
+        usage = usage.innerText.replace(/<\/?dl>/g, '');
+      }
       liElement.querySelectorAll('dl,u,span,ul').forEach(el => el.remove());
       definition = liElement.textContent.trim()
       definition = definition.replace(/ *\([^)]*\) */g, "");
@@ -985,7 +1022,6 @@ export async function getEasyAttributes(doc, word, lang, book) {
     if (spanElement) {
       // Get its parent element
       const parentElement = spanElement.parentElement.parentElement.parentElement.parentElement;
-
       if (parentElement) {
         verbInflectionTableNew = parentElement
         if (verbInflectionTableNew.classList.contains("roa-inflection-table")) {
@@ -1001,11 +1037,11 @@ export async function getEasyAttributes(doc, word, lang, book) {
           }
         }
       }
-
     }
     const genderSpan = grannyElement.querySelector("span.gender");
     if (genderSpan) {
       const genderDef = genderSpan.firstChild.textContent;
+      console.log(genderDef)
       //////console.log(genderDef)
       switch (genderDef) {
         case 'f':
@@ -1071,7 +1107,6 @@ export async function getEasyAttributes(doc, word, lang, book) {
         etym = etym.replace('undefined', '');
       }
     }
-
     if (lang === 'ja') {
       let jpPronounciation = doc.querySelector('[title="w:Tokyo dialect"]');
       if (jpPronounciation) {
@@ -1086,9 +1121,10 @@ export async function getEasyAttributes(doc, word, lang, book) {
       }
     }
 
-    let vocab = { word, definition, snoozed: false, book, language: lang, pronounciation: pronounciationText, gender: autoGender ? autoGender : gender, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'], etym: hasEytm ? etym : "" }
+    let vocab = { word, definition, snoozed: false, book, language: lang, pronounciation: pronounciationText, gender: autoGender ? autoGender : gender, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'], etym: hasEytm ? etym : "", usage: usage ? usage : "" }
     addType(vocab);
-    //console.log(vocab)
+    console.log(vocab.word, vocab.usage);
+    console.log(vocab)
     return vocab;
   } else {
     return "invalid"
@@ -1776,6 +1812,37 @@ export function changeBG(palette) {
     // ////console.log.log('Palette saved:', palette);
   });
 }
+function latinForTTS(text) {
+  const map = {
+    // Latin macrons – adjust to taste
+    'ā': 'aa', 'Ā': 'Aa',
+    'ē': 'ee', 'Ē': 'Ee',
+    'ī': 'ii', 'Ī': 'Ii',
+    'ō': 'oo', 'Ō': 'Oo',
+    'ū': 'uu', 'Ū': 'Uu',
+    'ȳ': 'yy', 'Ȳ': 'Yy',
+
+    // Ligatures often seen in Latin
+    'æ': 'ae', 'Æ': 'Ae',
+    'œ': 'oe', 'Œ': 'Oe',
+
+    // Just in case you have these in your data
+    'ȧ': 'a', 'Ȧ': 'A',
+    'ǣ': 'ae', 'Ǣ': 'Ae'
+  };
+
+  // 1) Replace known characters with “spoken” forms
+  let result = text.replace(/./g, ch => map[ch] ?? ch);
+
+  // 2) Strip any remaining diacritics (á, é, ñ, etc.)
+  //    Requires modern JS (Chrome is fine)
+  result = result
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '');
+
+  return result;
+}
+
 export const langMap = {
   de: 'German',
   es: 'Spanish',
@@ -1854,9 +1921,10 @@ export async function speakWord(lang, word, medieval = false) {
   //console.log(language)
   //console.log(word)
   language = convertToAbbr(language);
-  if (language === "la" && !medieval) {
+  if (language === "la") {
+    word = latinForTTS(word);
     // Classical Latin pronunciation: replace 'c' with 'k' (except 'ch')
-    if (typeof word === 'string') {
+    if (typeof word === 'string' && !medieval) {
       word = word.replace(/c(?!h)/gi, (m) => (m === m.toUpperCase() ? 'K' : 'k'));
     }
   }

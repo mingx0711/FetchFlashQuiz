@@ -116,9 +116,12 @@ function initializeConjugations(conjugations) {
 async function getLatinAttributes(doc, word) {
   const book = document.getElementById('bookSelector').value;
   // Call the shared utils function
-  vocab = await utils.getLatinAttributes(doc, word, book);
-  //console.log(vocab)
-
+  let vocabResult = (await utils.getLatinAttributes(doc, word, book));
+  if (vocabResult.currentInflection) {
+    vocab = vocabResult.vocabResult;
+  } else {
+    vocab = vocabResult
+  }
   if (typeof vocab === 'string') {
     document.getElementById("vocabInfoInfInfs").style.display = 'block'
     document.getElementById('addAuto').style.display = 'none'
@@ -128,6 +131,9 @@ async function getLatinAttributes(doc, word) {
   }
   const vocabInfo = document.getElementById('vocabInfo');
   vocabInfo.innerHTML = '';
+  if (vocabResult.currentInflection) {
+    vocabInfo.innerHTML += `<span style="color:#629FD1;">${word} is ${vocabResult.currentInflection}</span><br>\n`;
+  }
   vocabInfo.innerHTML += `word: <span style="font-weight: bold;">${vocab.word}</span>`;
   vocabInfo.innerHTML += `<br>\n definition: <span style="font-weight: bold;">${vocab.definition}</span>`;
   if (vocab.gender) {

@@ -164,7 +164,6 @@ function updateVocabList(vocabList, collection = ["all"]) {
     selectedVocab = vocabList
   }
   var count = 1;
-  console.log(selectedVocab);
   selectedVocab.forEach((entry, index) => {
     if (entry.word && entry.definition) {
       const vocabDiv = document.createElement('div');
@@ -392,6 +391,10 @@ function convertToCSV() {
 document.addEventListener('DOMContentLoaded', function () {
   chrome.storage.local.get('vocabList', function (data) {
     if (data.vocabList) {
+      // for (let vocab of data.vocabList) {
+      //   vocab.hasChecked = false;
+      // }
+      // chrome.storage.local.set({ vocabList: data.vocabList });
       updateVocabList(data.vocabList);
     }
     chrome.storage.local.get({ bookList: [] }, (result) => {

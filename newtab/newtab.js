@@ -451,7 +451,7 @@ document.addEventListener('DOMContentLoaded', function () {
         await fetchInfoFromWik(item);
         missingCount--;
         fetchInfo.textContent = 'fetching...' + missingCount + " words left";
-        await sleep(60000, 300000);
+        await sleep(1500, 5000);
       }
     }
   });
@@ -889,7 +889,9 @@ function showNextVocab(collection = currentCollectionSelection) {
       let pronounDiv = document.getElementById('pronounDiv');
       let genderDiv = document.getElementById('genderDiv');
       let etymDiv = document.getElementById('etymDiv');
+      let usageDiv = document.getElementById('usageDiv');
       let word;
+      usageDiv.innerHTML = "";
       let definition
       if (Math.random() <= 0.5) {
         const wordObject = currentCollection[currentVocabIndex];
@@ -951,7 +953,12 @@ function showNextVocab(collection = currentCollectionSelection) {
       } else {
         etymDiv.textContent = ""
       }
-      //console.log(showTips)
+      if (currentCollection[currentVocabIndex].usage) {
+        usageDiv.style.backgroundColor = '#f0f0f0';
+        usageDiv.innerHTML += currentCollection[currentVocabIndex].usage;
+      } else {
+      }
+      console.log(currentCollection[currentVocabIndex])
       if (showTips) {
         const tips = utils.getLanguageTips(currentCollection[currentVocabIndex]);
         if (tips) {
@@ -965,21 +972,24 @@ function showNextVocab(collection = currentCollectionSelection) {
         tipsDiv.style.display = 'none';
       }
       // Increment the seen count
-      chrome.storage.local.get('vocabList', function (data) {
-        vocabList = data.vocabList;
-        const match = vocabList.find(item => item.word === currentCollection[currentVocabIndex].word);
-        if (match.seen <= 5) {
-          match.seen += 1;
-          chrome.storage.local.set({ vocabList: vocabList }, function () {
-          });
+      if (currentCollection[currentVocabIndex].seen <= 4) {
+        chrome.storage.local.get('vocabList', function (data) {
+          vocabList = data.vocabList;
+          const match = vocabList.find(item => item.word === currentCollection[currentVocabIndex].word);
+          if (match.seen <= 5) {
+            match.seen += 1;
+            chrome.storage.local.set({ vocabList: vocabList }, function () {
+            });
 
-        }
-        // ////console.log.log(`Incremented seen count for "${word}".`);
-      });
+          }
+          // ////console.log.log(`Incremented seen count for "${word}".`);
+        });
+      }
 
       // Show vocab card and hide quiz
       document.getElementById('quizContainer').style.display = 'none';
       vocabFlashcard.style.display = 'block';
+
     }
   }
 }

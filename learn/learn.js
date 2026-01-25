@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     const newWordsData = await getNewWordsData();
     const newWordsCount = newWordsData[utils.nameToAbbr[selector.value.toLowerCase()]] || 0;
-    ////console.log(newWordsData)
+    console.log(newWordsData)
 
     if (newWordsCount > 4) {
       newLastOptionLabel.style.display = '';

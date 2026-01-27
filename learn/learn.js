@@ -532,7 +532,7 @@ function showNextVocab() {
   let etymDiv = document.getElementById('etymDiv');
   let groupDiv = document.getElementById('groupDiv');
   let tipsDiv = document.getElementById('tipsDiv');
-
+  let usageDiv = document.getElementById('usageDiv');
   let word;
   let definition;
   let wordObj = learningQueue[currentStep].word;
@@ -589,6 +589,8 @@ function showNextVocab() {
     tipsDiv.textContent = "";
 
   }
+
+  usageDiv.innerHTML = '';
   if (wordObj.usage) {
     usageDiv.style.backgroundColor = '#f0f0f0';
     usageDiv.innerHTML = wordObj.usage;

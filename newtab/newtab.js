@@ -484,9 +484,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (typeof newVocab === 'string') {
 
         } else {
+          let learnedTimes = vocab.learnedTimes ? vocab.learnedTimes : 0;
           let def = vocab.definition;
           vocab = newVocab;
           vocab.definition = def;
+          vocab.learnedTimes = learnedTimes;
         }
         vocab.hasChecked = true;
         vocabList = vocabList.map(item =>

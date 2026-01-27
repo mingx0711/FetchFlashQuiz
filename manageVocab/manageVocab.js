@@ -515,6 +515,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   const displayBookList = document.getElementById('displayBookList');
   const manageBookButton = document.getElementById('manageBookButton');
+  const deleteCheckedDataButton = document.getElementById('deleteCheckedDataButton');
   const floatingContainer = document.getElementById('floatingContainer');
   const closeButton = document.getElementById('closeButton');
   const bookListContainer = document.getElementById('bookListContainer');
@@ -615,6 +616,25 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
     }
+  });
+
+  deleteCheckedDataButton.addEventListener('click', () => {
+    const proceed = confirm(
+      'With 1.9.7.3 update, FLIZ can fetch usage and quotation data from wiktionary. ' +
+      'By proceeding, FLIZ will add usage and quotation data to your vocab deck one by one. ' +
+      'All other data will not be lost.\n\nProceed?'
+    );
+    if (!proceed) return;
+
+    chrome.storage.local.get('vocabList', function (data) {
+      if (data.vocabList) {
+        for (let vocab of data.vocabList) {
+          vocab.hasChecked = false;
+        }
+        chrome.storage.local.set({ vocabList: data.vocabList });
+        updateVocabList(data.vocabList);
+      }
+    });
   });
 
   // Show floating container on button click

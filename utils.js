@@ -588,8 +588,8 @@ export async function getLatinAttributes(doc, word, book) {
       }
     }
     if (lastOl) {
+      console.log(lastOl);
       const ListItems = lastOl.querySelectorAll('ol > li');
-
       let firstListItem;
       for (let i = 0; i < ListItems.length; i++) {
         if (ListItems[i].textContent.trim() !== "") {
@@ -597,13 +597,15 @@ export async function getLatinAttributes(doc, word, book) {
           break;
         }
       }
+
       if (firstListItem.querySelector('div.wiktQuote') || firstListItem.querySelector('div.h-usage-example') || firstListItem.querySelector('span.h-usage-example')) {
         usage = firstListItem.querySelector('div.wiktQuote') || firstListItem.querySelector('div.h-usage-example') || firstListItem.querySelector('span.h-usage-example');
-        usage = usage.innerHTML.replace(/<\/?dl>/g, '');
+        usage = usage.innerHTML.replace(/<\/?dl>/g, '').replace(/<br>/, '');
+        console.log(usage);
       } else {
         if (lastOl.querySelector('div.wiktQuote') || lastOl.querySelector('div.h-usage-example') || lastOl.querySelector('span.h-usage-example')) {
           usage = lastOl.querySelector('div.wiktQuote') || lastOl.querySelector('div.h-usage-example') || lastOl.querySelector('span.h-usage-example');
-          usage = usage.innerHTML.replace(/<\/?dl>/g, '');
+          usage = usage.innerHTML.replace(/<\/?dl>/g, '').replace(/<br>/, '');
         }
       }
       firstListItem.querySelectorAll('span, dl,ul').forEach(el => el.remove());
@@ -826,9 +828,9 @@ export async function getLatinAttributes(doc, word, book) {
         etym = nextElem.innerText;
         etym = etym.replace(/\.mw[\s\S]*\}/, '');
       }
-      if (lastOl.querySelector('div.wiktQuote')) {
-        usage = lastOl.querySelector('div.wiktQuote').innerHTML;
-        usage = usage.replace(/<\/?dl>/g, '');
+      if (sibling.querySelector('div.wiktQuote')) {
+        usage = sibling.querySelector('div.wiktQuote').innerHTML;
+        usage = usage.replace(/<\/?dl>/g, '').replace(/<br>/, '');
       }
 
       let vocab = { word, definition, snoozed: false, book, pronounciation, language: "la", gender: autoGender ? autoGender : gender, conjugations, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'], etym: hasEytm ? etym : "", usage: usage ? usage : "" }
@@ -1009,8 +1011,8 @@ export async function getEasyAttributes(doc, word, lang, book) {
     if (liElement) {
       if (liElement.querySelector('div.h-usage-example') || liElement.querySelector('span.h-usage-example.collocation')) {
         usage = liElement.querySelector('div.h-usage-example') || liElement.querySelector('span.h-usage-example.collocation');
-        usage = usage.innerHTML.replace(/<\/?dl>/g, '');
-        usage = usage.innerHTML.replace(/<br>/g, '');
+        console.log(usage);
+        usage = usage.innerHTML.replace(/<\/?dl>/g, '').replace(/<br>/, '');
       }
       liElement.querySelectorAll('dl,u,span,ul').forEach(el => el.remove());
       definition = liElement.textContent.trim()

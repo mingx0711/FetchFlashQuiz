@@ -275,10 +275,21 @@ function updateVocabList(vocabList, collection = ["all"]) {
         etymDiv.style.marginTop = '10px';
         etymContainerDiv.appendChild(etymDiv);
       }
+
       vocabDivDiv.style.borderBottom = '1px dashed'
       vocabDivDiv.style.padding = '10px';
       vocabDivDiv.appendChild(vocabDiv);
       vocabDivDiv.appendChild(etymContainerDiv);
+      if (entry.usage != undefined && entry.usage != "") {
+        const usageDiv = document.createElement('div');
+        usageDiv.innerHTML = "-" + entry.usage;
+        usageDiv.style.fontSize = '2vh';
+        usageDiv.style.left = '5%';
+        usageDiv.style.marginTop = '10px';
+        usageDiv.style.backgroundColor = '#f9f9f9';
+        vocabDivDiv.appendChild(usageDiv);
+
+      }
 
       vocabListContainer.appendChild(vocabDivDiv);
     }

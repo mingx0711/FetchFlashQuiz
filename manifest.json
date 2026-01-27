@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "FLIZ - vocab and top most used sites on newtab, vocabulary tool",
-  "version": "1.9.7.2",
+  "version": "1.9.7.3",
   "description": "Looks up words for various languages, Display vocabs & quiz vocabs in new tab, show most used sites in new tab ",
   "permissions": [
     "storage",

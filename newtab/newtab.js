@@ -781,6 +781,8 @@ function changeColor(palette) {
   document.getElementById('testButton').style.backgroundColor = selectedPalette.Snooze;
   document.getElementById('testButton').style.boxShadow = selectedPalette.buttonShadow;
 
+  document.getElementById('usageDiv').style.color = selectedPalette.defDivColor;
+
   document.getElementById('snoozeButton').style.backgroundColor = selectedPalette.Snooze;
   document.getElementById('learnButton').style.backgroundColor = selectedPalette.Snooze;
   document.getElementById('learnButton').style.boxShadow = selectedPalette.buttonShadow;
@@ -948,16 +950,47 @@ function showNextVocab(collection = currentCollectionSelection) {
 
         etymDiv.textContent = etymText.replace(/\.mw[\s\S]*\}/, '');
         etymDiv.textContent = etymDiv.textContent.replace('undefined', '');
-        etymDiv.style.fontSize = (etymSize.toFixed(1)) * 0.7 + 'vw';
+        if (currentCollection[currentVocabIndex].usage != null && currentCollection[currentVocabIndex].usage != "") {
+          etymDiv.style.fontSize = (etymSize.toFixed(1)) * 0.55 + 'vw';
+
+        }
 
       } else {
         etymDiv.textContent = ""
       }
       if (currentCollection[currentVocabIndex].usage) {
+        usageDiv.innerHTML = currentCollection[currentVocabIndex].usage;
         usageDiv.style.backgroundColor = '#f0f0f0';
-        usageDiv.innerHTML += currentCollection[currentVocabIndex].usage;
-      } else {
+
+        const quoteEl =
+          usageDiv.querySelector("span.Latn.e-quotation") ||
+          usageDiv.querySelector("i");
+
+        const text = quoteEl.textContent.trim();
+        if (currentCollection[currentVocabIndex].etym != null && currentCollection[currentVocabIndex].etym != "") {
+          usageDiv.style.fontSize = '0.9vw'
+        }
+        const button = document.createElement("button");
+        button.title = "Listen to usage example";
+        button.style.float = "right";
+        button.style.fontSize = "1vw";
+        button.style.padding = "2px 6px";
+        button.style.marginTop = "4px";
+        button.style.cursor = "pointer";
+        button.style.backgroundColor = "transparent";
+        button.textContent = "🔊";
+        button.classList.add("ui", "button");
+        quoteEl.insertAdjacentElement("afterend", button);
+
+        button.addEventListener("click", async function () {
+          await utils.speakWord(
+            currentCollection[currentVocabIndex].language,
+            text,
+            latinMedieval
+          );
+        });
       }
+
       console.log(currentCollection[currentVocabIndex])
       if (showTips) {
         const tips = utils.getLanguageTips(currentCollection[currentVocabIndex]);

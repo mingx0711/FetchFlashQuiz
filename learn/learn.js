@@ -589,6 +589,10 @@ function showNextVocab() {
     tipsDiv.textContent = "";
 
   }
+  if (wordObj.usage) {
+    usageDiv.style.backgroundColor = '#f0f0f0';
+    usageDiv.innerHTML = wordObj.usage;
+  }
   document.getElementById('quizContainer').style.display = 'none';
   vocabFlashcard.style.display = 'block';
 }

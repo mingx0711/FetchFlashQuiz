@@ -599,11 +599,11 @@ export async function getLatinAttributes(doc, word, book) {
       }
       if (firstListItem.querySelector('div.wiktQuote') || firstListItem.querySelector('div.h-usage-example') || firstListItem.querySelector('span.h-usage-example')) {
         usage = firstListItem.querySelector('div.wiktQuote') || firstListItem.querySelector('div.h-usage-example') || firstListItem.querySelector('span.h-usage-example');
-        usage = usage.innerText.replace(/<\/?dl>/g, '');
+        usage = usage.innerHTML.replace(/<\/?dl>/g, '');
       } else {
         if (lastOl.querySelector('div.wiktQuote') || lastOl.querySelector('div.h-usage-example') || lastOl.querySelector('span.h-usage-example')) {
           usage = lastOl.querySelector('div.wiktQuote') || lastOl.querySelector('div.h-usage-example') || lastOl.querySelector('span.h-usage-example');
-          usage = usage.innerText.replace(/<\/?dl>/g, '');
+          usage = usage.innerHTML.replace(/<\/?dl>/g, '');
         }
       }
       firstListItem.querySelectorAll('span, dl,ul').forEach(el => el.remove());
@@ -706,7 +706,7 @@ export async function getLatinAttributes(doc, word, book) {
     //////console.log(etym);
     let vocab = { word, definition, snoozed: false, book, pronounciation, language: "la", gender, conjugations, seen: 0, type: "verb", quizResults: ['n', 'n', 'n', 'n'], hasChecked: true, etym: hasEytm ? etym : "", usage: usage || "" };
     addType(vocab);
-    console.log(vocab.word, vocab.usage);
+    console.log(vocab, vocab.usage);
     vocab.conjugations.type = 'latin';
     return vocab
   }
@@ -1009,7 +1009,8 @@ export async function getEasyAttributes(doc, word, lang, book) {
     if (liElement) {
       if (liElement.querySelector('div.h-usage-example') || liElement.querySelector('span.h-usage-example.collocation')) {
         usage = liElement.querySelector('div.h-usage-example') || liElement.querySelector('span.h-usage-example.collocation');
-        usage = usage.innerText.replace(/<\/?dl>/g, '');
+        usage = usage.innerHTML.replace(/<\/?dl>/g, '');
+        usage = usage.innerHTML.replace(/<br>/g, '');
       }
       liElement.querySelectorAll('dl,u,span,ul').forEach(el => el.remove());
       definition = liElement.textContent.trim()
@@ -1041,8 +1042,6 @@ export async function getEasyAttributes(doc, word, lang, book) {
     const genderSpan = grannyElement.querySelector("span.gender");
     if (genderSpan) {
       const genderDef = genderSpan.firstChild.textContent;
-      console.log(genderDef)
-      //////console.log(genderDef)
       switch (genderDef) {
         case 'f':
           autoGender = GenderType.FEMININE
@@ -1066,8 +1065,6 @@ export async function getEasyAttributes(doc, word, lang, book) {
     definition = definition.split(";")[0];
     const language = convertFromAbbr(lang);
     var h2 = doc.getElementById(language);
-    //////console.log(h2);
-    //////console.log(definition)
     var h2Parent = h2.parentElement;
     while (true) {
       if (h2Parent && h2Parent.firstChild && h2Parent.firstChild.id && h2Parent.firstChild.id.includes('Etymology')) {
@@ -1123,8 +1120,6 @@ export async function getEasyAttributes(doc, word, lang, book) {
 
     let vocab = { word, definition, snoozed: false, book, language: lang, pronounciation: pronounciationText, gender: autoGender ? autoGender : gender, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'], etym: hasEytm ? etym : "", usage: usage ? usage : "" }
     addType(vocab);
-    console.log(vocab.word, vocab.usage);
-    console.log(vocab)
     return vocab;
   } else {
     return "invalid"

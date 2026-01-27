@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Manage Flashcards</title>
   <link rel="stylesheet" href="../libs/semantic.css">
@@ -10,30 +11,35 @@
       margin: 0;
       padding: 0 0 40px 0;
     }
-     body {
+
+    body {
       font-family: 'Segoe UI', Arial, sans-serif;
       background: #f4f7fa;
       margin: 0;
       padding: 0 0 40px 0;
     }
+
     .ui.message {
       background: #fffdfa;
       border-radius: 12px;
       margin: 30px auto 20px auto;
       padding: 18px 32px;
-      box-shadow: 0 4px 24px rgba(33, 15, 12, 0.2), 0 1.5px 6px rgba(90,79,77,0.10);
+      box-shadow: 0 4px 24px rgba(33, 15, 12, 0.2), 0 1.5px 6px rgba(90, 79, 77, 0.10);
       max-width: 600px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
+
     .ui.header {
       font-size: 2vh;
       margin: 0;
       font-weight: bold;
       color: #5a4f4d;
     }
-    form.ui.segment, .ui.center.aligned.basic.segment {
+
+    form.ui.segment,
+    .ui.center.aligned.basic.segment {
       background: none;
       box-shadow: none;
       border: none;
@@ -41,10 +47,11 @@
       margin: 0 auto;
       max-width: 600px;
     }
+
     #addVocabForm {
       background: #fffdfa;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
       padding: 24px 32px 18px 32px;
       margin: 0 auto 18px auto;
       display: flex;
@@ -52,11 +59,16 @@
       align-items: center;
       gap: 10px;
     }
-    .ui.input, .ui.field {
+
+    .ui.input,
+    .ui.field {
       width: 100%;
       margin-bottom: 8px;
     }
-    .ui.input input, .ui.input select, .ui.field input {
+
+    .ui.input input,
+    .ui.input select,
+    .ui.field input {
       font-size: 1em;
       padding: 8px 10px;
       border-radius: 6px;
@@ -64,6 +76,7 @@
       width: 100%;
       box-sizing: border-box;
     }
+
     select.ui.search.dropdown {
       width: 100%;
       min-width: 120px;
@@ -74,24 +87,29 @@
       font-size: 1em;
       margin-top: 4px;
     }
-    #addVocabForm button.ui.button, #addBookButton {
+
+    #addVocabForm button.ui.button,
+    #addBookButton {
       font-size: 1em;
       font-weight: bold;
       border-radius: 8px;
       background: #fdf4e2;
       border: 2px solid #b8a9a7;
       color: #5a4f4d;
-      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
       transition: background 0.2s, box-shadow 0.2s;
       margin: 0 auto;
       display: block;
       min-width: 120px;
       margin-top: 8px;
     }
-    #addVocabForm button.ui.button:hover, #addBookButton:hover {
+
+    #addVocabForm button.ui.button:hover,
+    #addBookButton:hover {
       background: #ffe9c7;
-      box-shadow: 0 4px 16px rgba(90,79,77,0.10);
+      box-shadow: 0 4px 16px rgba(90, 79, 77, 0.10);
     }
+
     #newBookField {
       display: none;
       margin-top: 5px;
@@ -101,9 +119,11 @@
       padding: 8px;
       width: 100%;
     }
+
     #newBookField input {
       margin-bottom: 5px;
     }
+
     #message {
       margin: 18px auto 0 auto;
       color: #2e7d32;
@@ -114,18 +134,22 @@
       max-width: 600px;
       text-align: center;
     }
-    #vocabInfoInfs, #vocabInfo {
+
+    #vocabInfoInfs,
+    #vocabInfo {
       margin-left: 0;
       margin-bottom: 8px;
       text-align: left;
       font-size: 1em;
       color: #4b5437;
     }
+
     #addAuto {
       display: none;
       margin: 10px auto 0 auto;
       min-width: 120px;
     }
+
     .ui.container {
       border: 1px double #5a4f4d;
       border-radius: 12px;
@@ -135,7 +159,9 @@
       max-width: 600px;
       text-align: left;
     }
-    #tipsBox0, #tipsBox1 {
+
+    #tipsBox0,
+    #tipsBox1 {
       margin-top: 18px;
       background: #fdf4e2;
       color: #4b5437;
@@ -146,23 +172,30 @@
       margin-left: auto;
       margin-right: auto;
     }
-    #tipsBox0 button, #tipsBox1 button {
+
+    #tipsBox0 button,
+    #tipsBox1 button {
       margin: 10px auto 0 auto;
       display: block;
       min-width: 120px;
     }
-    a,#showIntro {
+
+    a,
+    #showIntro {
       font-size: 1em;
       color: #5a4f4d;
       text-decoration: underline;
       transition: color 0.2s;
     }
+
     a:hover {
       color: #b8a9a7;
     }
+
     #showIntro:hover {
       color: #b8a9a7;
     }
+
     #manageButton {
       display: block;
       margin: 10px auto 0 auto;
@@ -172,49 +205,57 @@
       background: #fdf4e2;
       border: 2px solid #b8a9a7;
       color: #5a4f4d;
-      box-shadow: 0 2px 8px rgba(90,79,77,0.06);
+      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
       transition: background 0.2s, box-shadow 0.2s;
       min-width: 180px;
     }
+
     #manageButton:hover {
       background: #ffe9c7;
-      box-shadow: 0 4px 16px rgba(90,79,77,0.10);
+      box-shadow: 0 4px 16px rgba(90, 79, 77, 0.10);
     }
+
     .quickstart-container {
       display: none;
       text-align: center;
       padding: 32px 12px;
       background: #fffdfa;
       border-radius: 18px;
-      box-shadow: 0 4px 24px rgba(90,79,77,0.08), 0 1.5px 6px rgba(90,79,77,0.10);
+      box-shadow: 0 4px 24px rgba(90, 79, 77, 0.08), 0 1.5px 6px rgba(90, 79, 77, 0.10);
       max-width: 700px;
       margin: 2px auto 24px auto;
     }
+
     .quickstart-title {
       font-size: 2vw;
       color: #5a4f4d;
       margin-bottom: 8px;
     }
+
     .quickstart-desc {
       margin-bottom: 10px;
       color: #4b5437;
       font-size: 1.1em;
     }
+
     .quickstart-decks {
       display: flex;
       flex-direction: column;
       gap: 22px;
       align-items: stretch;
     }
+
     .deck-group {
       margin-bottom: 0;
     }
+
     .deck-label {
       font-weight: bold;
       color: #765b56;
       font-size: 1.2em;
       margin-bottom: 8px;
     }
+
     .deck-buttons {
       display: flex;
       flex-wrap: wrap;
@@ -222,107 +263,133 @@
       justify-content: center;
       margin-bottom: 0;
     }
+
     .quickstart-message {
       margin-top: 10px;
       color: #2e7d32;
       font-weight: bold;
       min-height: 24px;
     }
+
     @media (max-width: 700px) {
       .quickstart-container {
         max-width: 98vw;
         padding: 18px 2vw;
       }
-      .quickstart-title { font-size: 5vw; }
-      .deck-label { font-size: 1.1em; }
-      .deck-buttons .ui.button { font-size: 3vw; min-width: 70px; }
+
+      .quickstart-title {
+        font-size: 5vw;
+      }
+
+      .deck-label {
+        font-size: 1.1em;
+      }
+
+      .deck-buttons .ui.button {
+        font-size: 3vw;
+        min-width: 70px;
+      }
     }
+
     @media (max-width: 700px) {
-      .ui.message, .ui.container, #addVocabForm { max-width: 98vw; }
-      .ui.header { font-size: 5vw; }
-      #addVocabForm { padding: 12px 6vw 12px 6vw; }
+
+      .ui.message,
+      .ui.container,
+      #addVocabForm {
+        max-width: 98vw;
+      }
+
+      .ui.header {
+        font-size: 5vw;
+      }
+
+      #addVocabForm {
+        padding: 12px 6vw 12px 6vw;
+      }
     }
   </style>
 </head>
+
 <body>
-       <!-- Beautified Quickstart Section -->
-    <div id="quickstart" class="quickstart-container">
-      <button id = "closeQuickStart"style = "background-color: transparent;right: 5%;display:flex;border: transparent;"> &#10006; </button>
-      <h2 class="quickstart-title">Quick Import Vocab Decks</h2>
-      <p class="quickstart-desc">Click decks to add to your vocabulary list</p>
-            <div id="quickstartMessage" class="quickstart-message"></div>
-      <div class="quickstart-decks">
-        <div class="deck-group">
-          <div class="deck-label">-German-</div>
-          <div class="deck-buttons">
-            <button class="ui button" data-deck="German/A1">A1</button>
-            <button class="ui button" data-deck="German/A2">A2</button>
-            <button class="ui button" data-deck="German/A2_1">A2_1</button>
-            <button class="ui button" data-deck="German/B1">B1</button>
-            <button class="ui button" data-deck="German/B2">B2</button>
-          </div>
+  <!-- Beautified Quickstart Section -->
+  <div id="quickstart" class="quickstart-container">
+    <button id="closeQuickStart" style="background-color: transparent;right: 5%;display:flex;border: transparent;">
+      &#10006; </button>
+    <h2 class="quickstart-title">Quick Import Vocab Decks</h2>
+    <p class="quickstart-desc">Click decks to add to your vocabulary list</p>
+    <div id="quickstartMessage" class="quickstart-message"></div>
+    <div class="quickstart-decks">
+      <div class="deck-group">
+        <div class="deck-label">-German-</div>
+        <div class="deck-buttons">
+          <button class="ui button" data-deck="German/A1">A1</button>
+          <button class="ui button" data-deck="German/A2">A2</button>
+          <button class="ui button" data-deck="German/A2_1">A2_1</button>
+          <button class="ui button" data-deck="German/B1">B1</button>
+          <button class="ui button" data-deck="German/B2">B2</button>
         </div>
-        <div class="deck-group">
-          <div class="deck-label">-Japanese-</div>
-          <div class="deck-buttons">
-            <button class="ui button" data-deck="Japanese/N1">N1</button>
-            <button class="ui button" data-deck="Japanese/N2">N2</button>
-            <button class="ui button" data-deck="Japanese/N3">N3</button>
-            <button class="ui button" data-deck="Japanese/N4">N4</button>
-            <button class="ui button" data-deck="Japanese/N5">N5</button>
-          </div>
+      </div>
+      <div class="deck-group">
+        <div class="deck-label">-Japanese-</div>
+        <div class="deck-buttons">
+          <button class="ui button" data-deck="Japanese/N1">N1</button>
+          <button class="ui button" data-deck="Japanese/N2">N2</button>
+          <button class="ui button" data-deck="Japanese/N3">N3</button>
+          <button class="ui button" data-deck="Japanese/N4">N4</button>
+          <button class="ui button" data-deck="Japanese/N5">N5</button>
         </div>
-        <div class="deck-group">
-          <div class="deck-label">-Chinese-</div>
-          <div class="deck-buttons">
-            <button class="ui button" data-deck="Chinese/hsk1">HSK1</button>
-            <button class="ui button" data-deck="Chinese/hsk2">HSK2</button>
-            <button class="ui button" data-deck="Chinese/hsk3">HSK3</button>
-            <button class="ui button" data-deck="Chinese/hsk4">HSK4</button>
-            <button class="ui button" data-deck="Chinese/hsk5">HSK5</button>
-            <button class="ui button" data-deck="Chinese/hsk6">HSK6</button>
-          </div>
+      </div>
+      <div class="deck-group">
+        <div class="deck-label">-Chinese-</div>
+        <div class="deck-buttons">
+          <button class="ui button" data-deck="Chinese/hsk1">HSK1</button>
+          <button class="ui button" data-deck="Chinese/hsk2">HSK2</button>
+          <button class="ui button" data-deck="Chinese/hsk3">HSK3</button>
+          <button class="ui button" data-deck="Chinese/hsk41">HSK4</button>
+          <button class="ui button" data-deck="Chinese/hsk51">HSK5</button>
+          <button class="ui button" data-deck="Chinese/hsk61">HSK6</button>
         </div>
-        <div class="deck-group">
-          <div class="deck-label">-English(in Chinese)-</div>
-          <div class="deck-buttons">
-            <button class="ui button" data-deck="English/kaoyan">kaoyan</button>
-            <button class="ui button" data-deck="English/CET4">CET4</button>
-            <button class="ui button" data-deck="English/CET6">CET6</button>
-            <button class="ui button" data-deck="English/SAT_CN">SAT</button>
-            <button class="ui button" data-deck="English/GRE_CN">GRE</button>
-            <button class="ui button" data-deck="English/GMAT_CN">GMAT</button>
-            <button class="ui button" data-deck="English/IELTS_CN">IELTS</button>
-            <button class="ui button" data-deck="English/TOEFL_CN">TOEFL</button>
-          </div>
+      </div>
+      <div class="deck-group">
+        <div class="deck-label">-English(in Chinese)-</div>
+        <div class="deck-buttons">
+          <button class="ui button" data-deck="English/kaoyan">kaoyan</button>
+          <button class="ui button" data-deck="English/CET4">CET4</button>
+          <button class="ui button" data-deck="English/CET6">CET6</button>
+          <button class="ui button" data-deck="English/SAT_CN">SAT</button>
+          <button class="ui button" data-deck="English/GRE_CN">GRE</button>
+          <button class="ui button" data-deck="English/GMAT_CN">GMAT</button>
+          <button class="ui button" data-deck="English/IELTS_CN">IELTS</button>
+          <button class="ui button" data-deck="English/TOEFL_CN">TOEFL</button>
         </div>
-        <div class="deck-group">
-          <div class="deck-label">-English-</div>
-          <div class="deck-buttons">
-            <button class="ui button" data-deck="English/TOEFL_en">TOEFL</button>
-          </div>
+      </div>
+      <div class="deck-group">
+        <div class="deck-label">-English-</div>
+        <div class="deck-buttons">
+          <button class="ui button" data-deck="English/TOEFL_en">TOEFL</button>
         </div>
-        <div class="deck-group">
-          <div class="deck-label">-French-</div>
-          <div class="deck-buttons">
-            <button class="ui button" data-deck="French/A1">AQA</button>
-          </div>
+      </div>
+      <div class="deck-group">
+        <div class="deck-label">-French-</div>
+        <div class="deck-buttons">
+          <button class="ui button" data-deck="French/A1">AQA</button>
         </div>
-        <div class="deck-group">
-          <div class="deck-label">-Latin-</div>
-          <div class="deck-buttons">
-            <button class="ui button" data-deck="Latin/Latin">Latin</button>
-          </div>
+      </div>
+      <div class="deck-group">
+        <div class="deck-label">-Latin-</div>
+        <div class="deck-buttons">
+          <button class="ui button" data-deck="Latin/Latin">Latin</button>
         </div>
-        <div class="deck-group">
-          <div class="deck-label">-Italian-</div>
-          <div class="deck-buttons">
-            <button class="ui button" data-deck="Italian/A1">A1</button>
-          </div>
+      </div>
+      <div class="deck-group">
+        <div class="deck-label">-Italian-</div>
+        <div class="deck-buttons">
+          <button class="ui button" data-deck="Italian/A1">A1</button>
         </div>
       </div>
     </div>
-  <div class="ui center aligned basic segment" style = "margin-top: 2px;">
+  </div>
+  <div class="ui center aligned basic segment" style="margin-top: 2px;">
     <div class="ui message">
       <h1 class="ui header">Quick lookup</h1>
     </div>
@@ -333,7 +400,7 @@
       <input type="text" id="word" placeholder="Word" required />
     </div>
     <div class="ui input">
-      <input type="text" id="definition" placeholder="Definition"/>
+      <input type="text" id="definition" placeholder="Definition" />
     </div>
     <div class="ui input">
       <select class="ui search dropdown" id="gender">
@@ -345,7 +412,7 @@
       </select>
     </div>
     <div class="ui input">
-      <input type="text" id="pronounciation" placeholder="Pronounciation (optional)"/>
+      <input type="text" id="pronounciation" placeholder="Pronounciation (optional)" />
     </div>
     <div class="ui input">
       <label style="display: block; margin-bottom: 4px;">Select collection</label>
@@ -370,33 +437,39 @@
       </select>
     </div>
     <button class="ui button primary" type="submit">Add</button>
-   <div id="vocabInfoInfInfs" class="ui container" style = "display: none;">
+    <div id="vocabInfoInfInfs" class="ui container" style="display: none;">
       <div id="vocabInfoInfs"></div>
       <div id="vocabInfo"></div>
       <button class="ui button" id="addAuto" type="button">Add to database</button>
     </div>
-    <button  style=" display:none" class="ui button" id="addAuto" type="button">Add to database</button>
+    <button style=" display:none" class="ui button" id="addAuto" type="button">Add to database</button>
   </form>
   <div id="message"></div>
   <button class="ui button" id="manageButton">Manage Vocabulary List</button>
   <div class="ui container" id="tipsBox0">
-    <p>Tips: You can export your vocabs as json and import them with inflections and your past quiz history. To add a collection, click 'manage vocabulary list' and click 'Manage collection'.</p>
+    <p>Tips: You can export your vocabs as json and import them with inflections and your past quiz history. To add a
+      collection, click 'manage vocabulary list' and click 'Manage collection'.</p>
     <button class="ui button" id="hideTips0">Dismiss</button>
   </div>
   <div class="ui container" id="tipsBox1">
-    <p>Tips: Now supports auto import feature for French! Enter word only and press 'Add to database'. For Latin, it will now also randomly show inflection of an auto-added word that is linked to its base form. You can test your inflections in manage vocabulary too! Or see the entire inflection table when you are querying a word on "To auto add page". Or add a word and a definition with optional gender and pronounciation manually.</p>
+    <p>Tips: Now supports auto import feature for French! Enter word only and press 'Add to database'. For Latin, it
+      will now also randomly show inflection of an auto-added word that is linked to its base form. You can test your
+      inflections in manage vocabulary too! Or see the entire inflection table when you are querying a word on "To auto
+      add page". Or add a word and a definition with optional gender and pronounciation manually.</p>
     <button class="ui button" id="hideTips1">Dismiss</button>
   </div>
   <div style="text-align: center; margin-top: 20px; display: grid;
   grid-template-columns: auto auto;
   gap: 20px;">
-    <button id = "showQuickStart" style = "background-color: transparent; text-decoration: underline;border: transparent;"> easy import decks</button>
+    <button id="showQuickStart" style="background-color: transparent; text-decoration: underline;border: transparent;">
+      easy import decks</button>
     <a href="https://mingx0711.github.io/" target="_blank">
-            about this project   
+      about this project
     </a>
   </div>
-  
+
   <script src="../libs/semantic.css"></script>
   <script type="module" src="popup.js"></script>
 </body>
+
 </html>

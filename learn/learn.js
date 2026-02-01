@@ -8,9 +8,10 @@ let sortedNewWordsByLang = {};
 let currentLanguage;
 let wordToSpeak;
 let latinMedieval = false;
-
+let wordsToRevise;
 let currentQuizDefinition = null;
 let quizType = null;
+let newWordsCount = 0;
 let isPairCorrect = null;
 let filteredVocabList = []
 let currentStep = null;
@@ -170,28 +171,28 @@ document.addEventListener('DOMContentLoaded', async function () {
   const label = document.querySelector(".progress-label");
   async function updateProgress() {
     const book = selector.value || selector
-    ////console.log(book)
 
     const newWordsData = await getNewWordsData();
-    const newWordsCount = newWordsData[utils.nameToAbbr[selector.value.toLowerCase()]] || 0;
-    console.log(newWordsData)
+    newWordsCount = newWordsData[utils.nameToAbbr[selector.value.toLowerCase()]] || 0;
 
     if (newWordsCount > 4) {
+      console.log(newWordsCount)
+      document.getElementById('newLastCard').style.display = '';
       newLastOptionLabel.style.display = '';
       document.getElementById('newLastOption').style.display = '';
-      document.getElementById('or').style.display = '';
       newLastOption.checked = true;
       document.getElementById('newFirstOption').checked = false;
       document.getElementById('newLastLabel').innerHTML = `You have added <strong>${newWordsCount}</strong> new vocabs to this deck since you last learned, learn them`
     } else {
+      document.getElementById('newLastCard').style.display = 'none';
       newLastOptionLabel.style.display = 'none';
       document.getElementById('newLastOption').style.display = 'none';
-      document.getElementById('or').style.display = 'none';
       newLastOption.checked = false;
       document.getElementById('newFirstOption').checked = true;
+      updateWordsToLearnVisibility()
     }
-    ////console.log(book)
-
+    updateWordsToLearnVisibility();
+    updateTotalWords()
     if (book) {
       chrome.storage.local.get('vocabList', function (data) {
         if (data.vocabList) {
@@ -257,6 +258,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   selector.addEventListener("change", updateProgress);
+  selector.addEventListener("change", updateWordsToLearnVisibility);
 
   chrome.storage.local.get('vocabList', function (data) {
     if (data.vocabList) {
@@ -266,11 +268,16 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
 
   updateProgress()
+  updateWordsToLearnVisibility();
 
   document.getElementById('start').addEventListener('click', () => {
     learnCount = Math.max(document.getElementById('vocabCount').value, 4);
     focusOption = document.querySelector('input[name="focusOption"]:checked').value;
-    const selectedCollection = document.getElementById('bookSelector').value;
+    let selectedCollection = document.getElementById('bookSelector').value;
+    wordsToRevise = document.getElementById('learnedVocabCount').value;
+
+    console.log("Words to revise: " + wordsToRevise);
+
     // Call the function to display vocab
     generateLearningQueue(selectedCollection);
   });
@@ -318,38 +325,91 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.getElementById('falseButton').addEventListener('click', function () {
     checkTrueFalse(false);
   });
+
+  document.getElementById('learnedVocabCount').addEventListener('change', function () {
+    updateTotalWords();
+  });
+
+  document.getElementById('wordsToLearn').addEventListener('change', function () {
+    updateTotalWords();
+  });
+
+  function updateWordsToLearnVisibility() {
+    const selected = document.querySelector('input[name="focusOption"]:checked')?.value;
+    console.log("Focus option selected: " + selected);
+    const wordsToLearn = document.getElementById('wordsToLearn');
+    if (selected === 'newLast') {
+      wordsToLearn.style.display = 'none';
+    } else {
+      wordsToLearn.style.display = '';
+    }
+  }
+
+  function updateTotalWords() {
+    let toLearn = parseInt(document.getElementById('vocabCount')?.value || 0) + parseInt(document.getElementById('learnedVocabCount').value || 0);
+    const selected = document.querySelector('input[name="focusOption"]:checked')?.value;
+    if (selected === 'newLast') {
+      toLearn = newWordsCount + parseInt(document.getElementById('learnedVocabCount').value || 0);
+    }
+    document.getElementById('totalWords').innerHTML = "<b>" + toLearn + "</b>";
+  }
+
+  updateWordsToLearnVisibility();
+  updateTotalWords();
+
+  // update whenever user changes focus option
+  document.querySelectorAll('input[name="focusOption"]').forEach(radio => {
+    radio.addEventListener('change', updateWordsToLearnVisibility);
+  });
 }
 );
 let currentFocus;
 function getLeastLearnedAmount(arr) {
-  const maxEntry = arr.reduce((max, entry) =>
+  let leastLearned = Math.min(...filteredVocabList.map(item => item.learnedTime ?? 0));
+  let res;
+  console.log("Focus option selected: " + focusOption);
+  const maxEntry = arr.slice().reduce((max, entry) =>
     (entry.learnedTime > (max?.learnedTime ?? -Infinity)) ? entry : max
     , null);
+  if (wordsToRevise > 0) {
+    res = getLearnedWords(arr, wordsToRevise);
+  }
   if (focusOption === "random") {
     shuffleArray(arr);
-    return arr
+    res = res.concat(arr
       .slice() // make a copy
       .sort((a, b) => {
         const aTime = a.learnedTime ?? -Infinity;
         const bTime = b.learnedTime ?? -Infinity;
         return aTime - bTime;
       })
-      .slice(0, learnCount);
+      .slice(0, learnCount));
   } else if (focusOption === "newLast") {
     const reversedList = arr.slice().reverse();
     const firstLearnedIdx = reversedList.findIndex(vocab => vocab.hasOwnProperty('learnedTime'));
     ////console.log(firstLearnedIdx)
-    return reversedList.slice(0, firstLearnedIdx);
+    res = res.concat(reversedList.slice(0, firstLearnedIdx));
   } else if (focusOption === "revise") {
-    let leastLearned = Math.min(...filteredVocabList.map(item => item.learnedTime ?? 0));
-    let learnedWords = arr.filter(item => item.learnedTime === leastLearned + 1);
-    shuffleArray(learnedWords);
-    return learnedWords.slice(0, learnCount);
-  } else { //newest
-    return arr.slice().reverse()
-      .filter(item => !('learnedTime' in item)) // keep only items without learnedTime
-      .slice(0, learnCount)
+    if (wordsToRevise > 0) {
+      learnCount += parseInt(wordsToRevise);
+    }
+    return getLearnedWords(arr, learnCount);
+  } else {
+    console.log("Newest")
+    res = res.concat(arr.slice().reverse()
+      .filter(item => !('learnedTime' in item) || item.learnedTime === leastLearned)
+      .slice(0, learnCount))
   }
+  shuffleArray(res);
+  return res;
+}
+
+function getLearnedWords(arr, learnCount) {
+  let leastLearned = Math.min(...filteredVocabList.map(item => item.learnedTime ?? 0));
+  let learnedWords = arr.slice().filter(item => item.learnedTime === leastLearned + 1);
+  shuffleArray(learnedWords);
+  console.log(learnedWords.slice(0, learnCount))
+  return learnedWords.slice(0, learnCount);
 }
 
 
@@ -365,7 +425,7 @@ async function generateLearningQueue(bookSelected) {
       filteredVocabList = vocabList.filter(vocab => vocab.book === bookSelected);
       totalVocabList = filteredVocabList;
       filteredVocabList = getLeastLearnedAmount(filteredVocabList);
-      ////console.log(filteredVocabList)
+      console.log(filteredVocabList)
       document.getElementById('start').style.display = 'none';
       document.getElementById('nextButton').style.display = '';
       document.getElementById('stepCounter').style.display = '';
@@ -941,10 +1001,9 @@ function checkAnswer(button) {
 
 function showCorrectAnswer() {
   //////console.log(quizType)
-  const quizContainer = document.querySelector('.quiz-container');
-  quizContainer.style.display = "none";
+  document.getElementById('quizContainer').style.display = "none";
   const tfContainer = document.querySelector('.true-false-container');
-  tfContainer.style.display = "none";
+  document.getElementById('trueFalseContainer').style.display = "none";
   const vocabFlashcard = document.getElementById('correctDefinition');
   vocabFlashcard.style.display = 'block';
   const nextButton = document.getElementById('nextAfterIncorrectButton');

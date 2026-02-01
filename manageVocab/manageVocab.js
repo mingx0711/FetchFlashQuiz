@@ -151,8 +151,9 @@ document.getElementById('editVocabForm').addEventListener('submit', function (e)
     vocabList[idx].gender = newGender;
     vocabList[idx].etym = newEtym;
     vocabList[idx].hasChecked = newChecked;
-
+    console.log(vocabList[idx]);
   });
+  //chrome.storage.local.set({ vocabList: vocabList });
 });
 let selectedVocab;
 function updateVocabList(vocabList, collection = ["all"]) {

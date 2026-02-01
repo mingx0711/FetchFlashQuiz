@@ -1,4 +1,3 @@
-// Example: QuizType Enum
 const QuizType = Object.freeze({
   DEFINITION: 'definition',
   WORD: 'word',
@@ -145,7 +144,7 @@ export function addType(word) {
       }
       break;
     case 'zh':
-      word.wordType = word.pronounciation ? (word.pronounciation.split(" ").length) : wordTypes.TBD;
+      word.wordType = Math.max(1, (word.pronounciation.match(/[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/g) || []).length, (word.pronounciation.match(/\s/g) || []).length + 1)
       break;
     default:
       if (word.gender) { word.wordType = wordTypes.NOUN; break; }
@@ -308,7 +307,7 @@ export const latinVerbGroups = {
 
 export function getLatinLanguageTips(word, inflection = "") {
   if (word.wordType == wordTypes.NOUN) {
-    //console.log(inflection)
+    ////console.log(inflection)
     const group = word.conjugations.group?.toLowerCase();
     const gender = word.gender?.toLowerCase();
     const baseForm = word.conjugations.inflections.singular_nominative?.[0] || "";
@@ -316,7 +315,7 @@ export function getLatinLanguageTips(word, inflection = "") {
 
     const decl = latinDeclensions[`${group}Declension`];
     if (!decl) return "";
-    //console.log()
+    ////console.log()
     // Pick possible gender tables
     let candidates = [];
     if (decl.masculine_feminine) {
@@ -328,7 +327,7 @@ export function getLatinLanguageTips(word, inflection = "") {
     } else {
       candidates.push(decl);
     }
-    //console.log(candidates);
+    ////console.log(candidates);
     for (const table of candidates) {
       const rule = table.singular_nominative;
       if (!rule) continue;
@@ -367,7 +366,7 @@ export function getGermanLanguageTips(word) {
   for (const { ending, gender: expected } of germanNounRules) {
     if (lowerWord.endsWith(ending)) {
       if (gender === expected) {
-        //console.log("matched")
+        ////console.log("matched")
         return ` ${word.word} ends with "${ending}", a common ${expected} ending.`;
 
       } else {
@@ -378,7 +377,7 @@ export function getGermanLanguageTips(word) {
   }
   for (const { starting, gender: expected } of germanNounRules) {
     if (lowerWord.startsWith(starting)) {
-      //console.log(gender, expected);
+      ////console.log(gender, expected);
       if (gender === expected) {
         return ` ${word.word} starts with "${starting}", a common ${expected} starting.`;
       } else {
@@ -549,13 +548,13 @@ export async function getLatinAttributes(doc, word, book) {
   let gender;
   let usage;
   const spanElement = doc.querySelector('span.Latn.form-of.lang-la[lang="la"]');
-  ////////console.log(word);
+  //////////console.log(word);
   if (spanElement) {
     // Get its parent element
     const parentElement = spanElement.parentElement.parentElement.parentElement.parentElement;
 
     if (parentElement) {
-      ////////console.log(parentElement)
+      //////////console.log(parentElement)
       verbInflectionTableNew = parentElement
       if (verbInflectionTableNew.classList.contains("roa-inflection-table")) {
         isVerb = true
@@ -588,7 +587,7 @@ export async function getLatinAttributes(doc, word, book) {
       }
     }
     if (lastOl) {
-      console.log(lastOl);
+      //console.log(lastOl);
       const ListItems = lastOl.querySelectorAll('ol > li');
       let firstListItem;
       for (let i = 0; i < ListItems.length; i++) {
@@ -601,13 +600,15 @@ export async function getLatinAttributes(doc, word, book) {
       if (firstListItem.querySelector('div.wiktQuote') || firstListItem.querySelector('div.h-usage-example') || firstListItem.querySelector('span.h-usage-example')) {
         usage = firstListItem.querySelector('div.wiktQuote') || firstListItem.querySelector('div.h-usage-example') || firstListItem.querySelector('span.h-usage-example');
         usage = usage.innerHTML.replace(/<\/?dl>/g, '').replace(/<br>/, '');
-        console.log(usage);
       } else {
         if (lastOl.querySelector('div.wiktQuote') || lastOl.querySelector('div.h-usage-example') || lastOl.querySelector('span.h-usage-example')) {
           usage = lastOl.querySelector('div.wiktQuote') || lastOl.querySelector('div.h-usage-example') || lastOl.querySelector('span.h-usage-example');
           usage = usage.innerHTML.replace(/<\/?dl>/g, '').replace(/<br>/, '');
         }
       }
+      usage = usage.replace(/<dd>.*?<small>[\s\S]*?<\/small>.*?<\/dd>/g, '');
+      usage = usage.replace(/<dd>.*?<small>[\s\S]*?<\/small>.*?<\/dd>/g, '');
+
       firstListItem.querySelectorAll('span, dl,ul').forEach(el => el.remove());
       var rawDef = firstListItem.textContent.trim();
       if (rawDef.includes('.mw')) {
@@ -705,10 +706,10 @@ export async function getLatinAttributes(doc, word, book) {
       etym = nextElem.innerText;
       etym = etym.replace(/\.mw[\s\S]*\}/, '');
     }
-    //////console.log(etym);
+    ////////console.log(etym);
     let vocab = { word, definition, snoozed: false, book, pronounciation, language: "la", gender, conjugations, seen: 0, type: "verb", quizResults: ['n', 'n', 'n', 'n'], hasChecked: true, etym: hasEytm ? etym : "", usage: usage || "" };
     addType(vocab);
-    console.log(vocab, vocab.usage);
+    //console.log(vocab, vocab.usage);
     vocab.conjugations.type = 'latin';
     return vocab
   }
@@ -834,7 +835,7 @@ export async function getLatinAttributes(doc, word, book) {
       }
 
       let vocab = { word, definition, snoozed: false, book, pronounciation, language: "la", gender: autoGender ? autoGender : gender, conjugations, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'], etym: hasEytm ? etym : "", usage: usage ? usage : "" }
-      console.log(vocab.word, vocab.usage);
+      //console.log(vocab.word, vocab.usage);
       addType(vocab);
       return vocab
     } else {
@@ -886,7 +887,7 @@ export async function getLatinAttributes(doc, word, book) {
         if (isLatinWord) {
           return getEasyAttributes(doc, word, "la", book)
         } else {
-          //////console.log("No latin word found")
+          ////////console.log("No latin word found")
           return "invalid"
         }
       }
@@ -903,7 +904,10 @@ export async function getLinkedAttributes(doc, word, lang, book) {
   let isWord = doc.querySelector(queryWord);
   let title = null;
   if (word.length === 1) {
-    return getEasyAttributes(doc, word, lang)
+    let res = await getEasyAttributes(doc, word, lang, book)
+    if (typeof res !== "string" || res !== "invalid") {
+      return res;
+    }
   }
   if (mention === 'Jpan') {
     title = getJapaneseBaseText(doc);
@@ -913,8 +917,7 @@ export async function getLinkedAttributes(doc, word, lang, book) {
   if (hasBaseForm) {
     const anchorTag = hasBaseForm.querySelector('a');
     if (anchorTag) {
-      const linkText = anchorTag.textContent; // Get the text content of the <a>
-      ////console.log(linkText, word);
+      const linkText = anchorTag.textContent;
       const spanElement = hasBaseForm.parentElement;
       const spanElement1 = spanElement.parentElement;
       const liElement = spanElement1.parentElement;
@@ -928,7 +931,7 @@ export async function getLinkedAttributes(doc, word, lang, book) {
           definition = liElement.textContent.trim()
         }
       }
-      ////console.log(linkText, definition);
+      //////console.log(linkText, definition);
       let noramlizedWord = word.normalize('NFD');
       let noDiacritics = noramlizedWord.replace(/[\u0300-\u036f]/g, "");
       let finalStr = noDiacritics.replace(/-/g, "");
@@ -939,51 +942,65 @@ export async function getLinkedAttributes(doc, word, lang, book) {
         try {
           await fetch(url)
           var url = `https://en.wiktionary.org/wiki/${finallinkText}`
-          //////console.log(url)
+          ////////console.log(url)
           const res = await fetch(url);
           const html = await res.text();
           const parser = new DOMParser();
           const baseDoc = parser.parseFromString(html, 'text/html');
+          //console.log(book)
           return await getEasyAttributes(baseDoc, linkText, lang, book);
         }
         catch (error) {
+          if (lang === 'de' && word.length > 0) {
+            const firstChar = word.charAt(0);
+            if (firstChar === firstChar.toLowerCase()) {
+              word = firstChar.toUpperCase() + word.slice(1);
+              return await getLinkedAttributes(baseDoc, word, lang, book);
+            }
+          } else {
+            if (title) {
+              var url = `https://en.wiktionary.org/wiki/${title}`;
+              console.log(title)
+              try {
+                await fetch(url)
+                const res = await fetch(url);
+                const html = await res.text();
+                const parser = new DOMParser();
+                const baseDoc = parser.parseFromString(html, 'text/html');
+                return await getEasyAttributes(baseDoc, title, lang, book);
+              } catch (error) {
+                return "invalid";
+              }
+            }
+          }
           return "invalid";
         }
       }
 
-    } else if (title) {
-      //////console.log(title, word);
+    }
+    //definition = document.getElementById("vocabInfo").textContent+","+definition
+    //vocab = {word,definition,snoozed: false,book,pronounciation,gender,hasChecked:true,seen:0,quizResults: ['n','n','n','n']}
+  } else {
+    if (title) {
       var url = `https://en.wiktionary.org/wiki/${title}`;
       try {
         await fetch(url)
-        var url = `https://en.wiktionary.org/wiki/${finallinkText}`
-        //////console.log(url)
         const res = await fetch(url);
         const html = await res.text();
         const parser = new DOMParser();
         const baseDoc = parser.parseFromString(html, 'text/html');
-        return await getEasyAttributes(baseDoc, linkText, lang, book);
+        return await getEasyAttributes(baseDoc, title, lang, book);
       } catch (error) {
-        if (lang === 'de' && word.length > 0) {
-          const firstChar = word.charAt(0);
-          if (firstChar === firstChar.toLowerCase()) {
-            word = firstChar.toUpperCase() + word.slice(1);
-            return await getLinkedAttributes(baseDoc, word, lang, book);
-          }
-        }
         return "invalid";
       }
     }
-
-    //definition = document.getElementById("vocabInfo").textContent+","+definition
-    //vocab = {word,definition,snoozed: false,book,pronounciation,gender,hasChecked:true,seen:0,quizResults: ['n','n','n','n']}
-  } else {
     return getEasyAttributes(doc, word, lang, book)
   }
 }
 export const invalidWord = "Word can not be found in wiktionary. This could be because this is a combined word, the word does not exist in your selected language, mispelling, or capitalization issues."
 
 export async function getEasyAttributes(doc, word, lang, book) {
+  //console.log(book)
   let mention = getLanguageCharSetMapping(lang)
   let pronounciationText = null
   let autoGender = ''
@@ -993,32 +1010,46 @@ export async function getEasyAttributes(doc, word, lang, book) {
 
   const queryWord = 'strong.' + mention + '.headword[lang="' + lang + '"]'
   let isWord = doc.querySelector(queryWord);
-  //////console.log(isWord)
+
   if (lang === "zh" && !isWord) {
     isWord = doc.querySelector('strong.Hant.headword[lang="zh"]')
     if (!isWord) {
       isWord = doc.querySelector('strong.Hans.headword[lang="zh"]');
-      mention = "Hans"
+      if (!isWord) {
+        isWord = doc.querySelector('strong.Hani.headword[lang="zh"]');
+        mention = "Hani"
+      } else {
+        mention = "Hans"
+      }
     } else {
       mention = "Hant"
     }
   }
+  //console.log(word)
   if (isWord) {
     const grannyElement = isWord.parentElement.parentElement;
     const closestOl = grannyElement.nextElementSibling;
     var usage;
-    const liElement = closestOl.querySelector("li"); // Get the text content of the <a>
+    const liElement = closestOl.querySelector("li");
+    let liElementCopy = liElement.cloneNode(true);
+    //console.log(liElement);
     if (liElement) {
       if (liElement.querySelector('div.h-usage-example') || liElement.querySelector('span.h-usage-example.collocation')) {
-        usage = liElement.querySelector('div.h-usage-example') || liElement.querySelector('span.h-usage-example.collocation');
-        console.log(usage);
+        usage = liElementCopy.querySelector('div.h-usage-example') || liElementCopy.querySelector('span.h-usage-example.collocation');
         usage = usage.innerHTML.replace(/<\/?dl>/g, '').replace(/<br>/, '');
+      } else {
+        if (mention === "Hans" || mention === "Jpan" || mention === "Hant" || mention === "Hani") {
+          usage = extractFirstDdTextFromLi(liElementCopy);
+        }
       }
-      liElement.querySelectorAll('dl,u,span,ul').forEach(el => el.remove());
-      definition = liElement.textContent.trim()
-      definition = definition.replace(/ *\([^)]*\) */g, "");
+      if (usage) {
+        usage = usage.replace(/(<dd>\s*<small>\s*\([^<]*?\)\s*<\/small>\s*<\/dd>)(?![\s\S]*<dd>)/, '');
+        usage = usage.replace(/<dd>.*?<small>[\s\S]*?<\/small>.*?<\/dd>/g, '');
+      }
     }
-    //////console.log(definition)
+    liElement.querySelectorAll('dl,u,span,ul').forEach(el => el.remove());
+    definition = liElement.textContent.trim()
+    definition = definition.replace(/ *\([^)]*\) */g, "");
     const spanElement = doc.querySelector('span.' + mention + '.form-of.lang-' + lang + '[lang="' + lang + '"]');
     let isVerb = false;
     let verbInflectionTableNew;
@@ -1117,10 +1148,11 @@ export async function getEasyAttributes(doc, word, lang, book) {
       if (zhPronounciation) {
         let zhPronounciationParent = zhPronounciation.parentElement.parentElement
         pronounciationText = zhPronounciationParent.nextElementSibling.innerText;
+        pronounciationText = pronounciationText.split(',')[0].split('（')[0];
       }
     }
-
     let vocab = { word, definition, snoozed: false, book, language: lang, pronounciation: pronounciationText, gender: autoGender ? autoGender : gender, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'], etym: hasEytm ? etym : "", usage: usage ? usage : "" }
+    console.log(vocab.word, vocab.usage);
     addType(vocab);
     return vocab;
   } else {
@@ -1193,6 +1225,12 @@ export function getChineseBaseText(doc) {
       }
     }
   }
+
+  const seeAlsoDiv = doc.querySelector('.disambig-see-also');
+  const result = seeAlsoDiv ? seeAlsoDiv.querySelector('a')?.textContent.trim() : null;
+  if (result) {
+    return result;
+  }
 }
 export function getJapaneseBaseText(doc) {
   const table = doc.querySelectorAll('span[class*="Jpan"]');
@@ -1206,6 +1244,68 @@ export function getJapaneseBaseText(doc) {
 export function getRandomElement(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
+
+function extractFirstDdTextFromLi(li) {
+  if (!li) return null;
+  const nymsSpan = li.querySelector('span.nyms');
+  if (nymsSpan) {
+    const dd = nymsSpan.closest('dd');
+    if (dd) {
+      dd.remove();
+    }
+    nymsSpan.remove();
+  }
+  li.querySelectorAll('a[href*="/wiki"]').forEach(a => {
+    a.replaceWith(document.createTextNode(a.textContent));
+  });
+
+  const inQuote = li.querySelector("ul");
+  const firstDd = li.querySelector("dd");
+  if (inQuote) {
+    const quoteDl = li.querySelector("dd") || li.querySelector("dl");
+    console.log(quoteDl);
+    if (quoteDl) return extractFromZhusexDl(quoteDl);
+  }
+  if (!firstDd) {
+    if (inQuote) {
+      const quoteDl = li.querySelector("dl");
+      if (quoteDl) return extractFromZhusexDl(quoteDl);
+    } else {
+      return null
+    }
+  };
+  const scope = firstDd.querySelector("dl.zhusex") || firstDd;
+  return extractFromZhusexDl(scope);
+}
+
+function extractFromZhusexDl(zhusexDl) {
+  const scope = zhusexDl.cloneNode(true);
+  scope.querySelectorAll('span[style*="forestgreen"]').forEach(span => {
+    const t = span.textContent;
+    if (t.includes("MSC") || t.includes("Classical Chinese")) span.remove();
+  });
+
+  const hant = scope.querySelector('span.Hant');
+  const hans = scope.querySelector('span.Hans');
+
+  if (hant && hans) {
+    // remove the Hani separator (／) between them, if present
+    const hani = hant.nextElementSibling;
+    if (hani && hani.matches('span.Hani')) hani.remove();
+
+    // remove Hant itself
+    hant.remove();
+
+    // if there is leftover whitespace-only text before Hans, clean it
+    const prev = hans.previousSibling;
+    if (prev && prev.nodeType === Node.TEXT_NODE && !prev.textContent.trim()) prev.remove();
+  }
+  return scope.innerHTML
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function getRandomNumber(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -1312,7 +1412,7 @@ export function prepareOptionsForQuiz6(correctVocab) {
       quizType = 'groupTest';
       questionText = "what is the group of " + correctVocab.word
       correctAnswer = conjugations.group;
-      // ////////console.log.log(correctAnswer)
+      // //////////console.log.log(correctAnswer)
       options = [correctAnswer];
       currentQuizWord = correctVocab.word;
       if (Array.isArray(correctAnswer)) {
@@ -1325,7 +1425,7 @@ export function prepareOptionsForQuiz6(correctVocab) {
         wrongAnswers = ["first", "second", "third", "fourth", "fifth", "irregular"]
       }
       for (let i = 0; i < 3; i++) {
-        ////console.log(options)
+        //////console.log(options)
         const index = getRandomNumber(0, wrongAnswers.length - 1)
         if (!options.includes(wrongAnswers[index])) {
           options.push(wrongAnswers[index]);
@@ -1351,12 +1451,12 @@ export function prepareOptionsForQuiz6(correctVocab) {
         selectedField = verbFields3
       }
     } else {
-      // ////////console.log.log("not a verb")
+      // //////////console.log.log("not a verb")
       if (conjugations.inflections) {
         numberOfFields = 1;
         selectedField = ['inflections'];
       } else {
-        // ////////console.log.log(correctVocab.word + "data format outdatted ")
+        // //////////console.log.log(correctVocab.word + "data format outdatted ")
         showNextItem();
       }
     }
@@ -1365,17 +1465,17 @@ export function prepareOptionsForQuiz6(correctVocab) {
     let conjugationLists = [];
     selectedKeys.forEach(field => {
       const subfield = getRandomSubfield(conjugations[field]);
-      // ////////console.log.log(subfield)
+      // //////////console.log.log(subfield)
       conjToTest.push(subfield);
       conjugationLists.push(conjugations[field][subfield]);
     });
     const commonWordsList = findCommonWordAcrossLists(conjugationLists);
     const commonWord = commonWordsList[getRandomNumber(0, commonWordsList.length)];
     if (!commonWord) {
-      // ////////console.log.log("No common word found, retrying...");
+      // //////////console.log.log("No common word found, retrying...");
       return prepareOptionsForQuiz6(correctVocab); // Restart quiz if no common word is found
     }
-    //////console.log("Common word found:", commonWord);
+    ////////console.log("Common word found:", commonWord);
     correctAnswer = commonWord;
     let wrongAnswers = [];
     while (wrongAnswers.length < 3) {
@@ -1384,12 +1484,12 @@ export function prepareOptionsForQuiz6(correctVocab) {
         wrongAnswers.push(wrongWord);
       }
     }
-    // ////////console.log.log(wrongAnswers)
+    // //////////console.log.log(wrongAnswers)
     currentQuizWord = correctVocab.word;
     currentQuizDefinition = correctAnswer;
     quizType = '6';
     options = [correctAnswer];
-    // ////////console.log.log(options);
+    // //////////console.log.log(options);
     for (let i = 0; i < 3; i++) {
       if (!options.includes(wrongAnswers)) {
         options.push(wrongAnswers[i]);
@@ -1405,7 +1505,7 @@ export function prepareOptionsForQuiz6(correctVocab) {
     questionText = `What is one ${names} form of the word "${correctVocab.word}"?`
   }
 
-  //////console.log(correctAnswer)
+  ////////console.log(correctAnswer)
   return [options, correctAnswer, conjToTest, currentQuizWord, quizType, questionText];
 }
 function makeStringReadable(names) {
@@ -1471,13 +1571,13 @@ export function getRandomWordFromConjugations(conjugations, commonWordsList = []
   let randomSubfield = subfields[Math.floor(Math.random() * subfields.length)];
   const words = conjugations[randomField][randomSubfield];
   const randomWord = words[Math.floor(Math.random() * words.length)];
-  // ////////console.log.log(randomField+":"+randomSubfield+":"+randomWord)
+  // //////////console.log.log(randomField+":"+randomSubfield+":"+randomWord)
   if (randomWord == undefined) {
     return getRandomWordFromConjugations(conjugations, commonWordsList);
   }
   const isInAllSubfields = commonWordsList.includes(randomWord)
   if (randomWord.length <= 1 || randomWord == null || isInAllSubfields) {
-    // ////////console.log.log(randomWord+" is not not a wrong answer")
+    // //////////console.log.log(randomWord+" is not not a wrong answer")
     return getRandomWordFromConjugations(conjugations, commonWordsList);
   } else {
     return randomWord;
@@ -1515,7 +1615,7 @@ export function generateDefOptions(correctVocab, filteredVocabList) {
   if (eligibleOptions.length < 4) {
     eligibleOptions = filteredVocabList;
   }
-  ////console.log(eligibleOptions)
+  //////console.log(eligibleOptions)
   for (let i = 0; i < 3; i++) {
     let randomIndex = Math.floor(Math.random() * eligibleOptions.length);
     let candidate = eligibleOptions[randomIndex];
@@ -1541,7 +1641,7 @@ export function generateWordOptions(correctVocab, filteredVocabList) {
   if (eligibleOptions.length < 4) {
     eligibleOptions = filteredVocabList;
   }
-  ////console.log(eligibleOptions)
+  //////console.log(eligibleOptions)
   for (let i = 0; i < 3; i++) {
     let randomIndex = Math.floor(Math.random() * eligibleOptions.length);
     let candidate = eligibleOptions[randomIndex];
@@ -1589,14 +1689,14 @@ export function prepareOptionsForQuizStyle7(correctVocab) {
   let wordToTest = getRandomWordFromConjugations(conjugations)
   const subFields = findSubfieldsForWord(wordToTest, conjugations)
   let conjToTest = Object.values(subFields);
-  // ////////console.log.log(conjToTest)
+  // //////////console.log.log(conjToTest)
   correctAnswer = conjToTest.toString();
   correctAnswer = makeStringReadable(correctAnswer);
 
   let wrongAnswers = [];
   while (wrongAnswers.length < 3) {
     const wrongWord = getRandomWordFromConjugations(conjugations);
-    // ////////console.log.log(wrongWord)
+    // //////////console.log.log(wrongWord)
     const wrongConj = makeStringReadable(Object.values(findSubfieldsForWord(wrongWord, conjugations)).toString());
     if (!wrongAnswers.includes(wrongConj) && !(wrongConj == correctAnswer)) {
       wrongAnswers.push(wrongConj);
@@ -1671,7 +1771,7 @@ export function setupWordQuiz(correctVocab, eligibleVocab) {
 export function setupDefQuiz(correctVocab, eligibleVocab) {
   const options = generateDefOptions(correctVocab, eligibleVocab);
   shuffleArray(options);
-  ////console.log(options)
+  //////console.log(options)
   prepareDefQuizQuestions(correctVocab);
   prepareQuiz(options);
 }
@@ -1779,7 +1879,7 @@ export function prepareQuiz(options) {
 }
 
 export function shuffleArray(array) {
-  ////console.log(array)
+  //////console.log(array)
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
@@ -1806,7 +1906,7 @@ export function changeBG(palette) {
   };
   document.body.style.background = BG[palette] || BG['default'];
   chrome.storage.local.set({ selectedBG: palette }, function () {
-    // ////console.log.log('Palette saved:', palette);
+    // //////console.log.log('Palette saved:', palette);
   });
 }
 function latinForTTS(text) {
@@ -1915,8 +2015,8 @@ export async function speakWord(lang, word, medieval = false) {
   speechSynthesis.cancel();
   var language = lang;
 
-  //console.log(language)
-  //console.log(word)
+  ////console.log(language)
+  ////console.log(word)
   language = convertToAbbr(language);
   if (language === "la") {
     word = latinForTTS(word);
@@ -1944,7 +2044,7 @@ export function getNRandomElements(arr, n) {
   return shuffled.slice(0, n);
 }
 function showCorrectAnswer(currentQuizWord) {
-  // ////////console.log.log(quizType)
+  // //////////console.log.log(quizType)
   const quizContainer = document.querySelector('.quiz-container');
   quizContainer.style.display = "none";
   const tfContainer = document.querySelector('.true-false-container');
@@ -1993,4 +2093,47 @@ function showCorrectAnswer(currentQuizWord) {
     vocabFlashcard.style.display = 'block';
   }
 }
+export function showUsage(word, latinMedieval = false) {
+  console.log("showing usage for:", word);
+  if (word.usage) {
+    let text;
+    usageDiv.innerHTML = word.usage;
+    usageDiv.style.backgroundColor = '#f0f0f0';
 
+    let quoteEl =
+      usageDiv.querySelector("span.Latn.e-quotation") ||
+      usageDiv.querySelector("i");
+    if (word.language === 'zh' && quoteEl) {
+      quoteEl = usageDiv.querySelector("span")
+    }
+    text = quoteEl ? quoteEl.textContent : usageDiv.textContent.split('―')[0];
+    console.log("usage text:", text);
+    if (word.etym != null && word.etym != "") {
+      usageDiv.style.fontSize = '0.9vw'
+    }
+    const button = document.createElement("button");
+    button.title = "Listen to usage example";
+    button.style.float = "right";
+    button.style.fontSize = "1vw";
+    button.style.padding = "2px 6px";
+    button.style.marginTop = "4px";
+    button.style.cursor = "pointer";
+    button.style.backgroundColor = "transparent";
+    button.textContent = "🔊";
+    button.classList.add("ui", "button");
+    if (quoteEl) {
+      quoteEl.insertAdjacentElement("afterend", button);
+    } else {
+      usageDiv.insertAdjacentElement("afterend", button);
+    }
+    console.log(text, word.language);
+    button.addEventListener("click", async function () {
+      await speakWord(
+        word.language,
+        text,
+        latinMedieval
+      );
+    });
+  }
+
+}

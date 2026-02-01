@@ -1,5 +1,6 @@
 let vocab = {}
 let def;
+let wordSearched;
 import { GenderType, LANGUAGES } from '../utils.js';
 import * as utils from '../utils.js';
 chrome.runtime.onInstalled.addListener(function () {
@@ -155,6 +156,7 @@ async function getLatinAttributes(doc, word) {
 async function getLinkedAttributes(doc, word, lang) {
   const book = document.getElementById('bookSelector').value;
   // Call the shared utils function
+  const wordSearched = word;
   vocab = await utils.getLinkedAttributes(doc, word, lang, book)
   //console.log(vocab)
   if (typeof vocab === 'string') {
@@ -163,6 +165,9 @@ async function getLinkedAttributes(doc, word, lang) {
     document.getElementById('vocabInfo').style.display = 'block'
     document.getElementById('vocabInfo').innerHTML = utils.invalidWord;
     return;
+  }
+  if (lang === 'zh') {
+    vocab.word = wordSearched;
   }
   //console.log(vocab)
   vocabInfo.innerHTML = '';

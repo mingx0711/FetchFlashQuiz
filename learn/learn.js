@@ -243,6 +243,11 @@ document.addEventListener('DOMContentLoaded', async function () {
           const minTime = Math.min(...filteredVocabList.map(item => item.learnedTime ?? 0));
 
           let learnedCount = filteredVocabList.filter(vocab => vocab.learnedTime > minTime).length;
+          if (learnedCount <= 6) {
+            document.getElementById("wordsToRevise").style.display = 'none';
+            document.getElementById("learnedVocabCount").value = 0;
+            updateTotalWords();
+          }
           const percentage = learnedCount / filteredVocabList.length * 100;
           const count = learnedCount + " / " + filteredVocabList.length;
           document.getElementById("progressLabel").textContent = count + " ";

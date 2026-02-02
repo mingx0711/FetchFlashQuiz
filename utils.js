@@ -2097,6 +2097,7 @@ export function showUsage(word, latinMedieval = false) {
   console.log("showing usage for:", word);
   if (word.usage) {
     let text;
+    usageDiv = ""
     usageDiv.innerHTML = word.usage;
     usageDiv.style.backgroundColor = '#f0f0f0';
 

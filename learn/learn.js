@@ -247,6 +247,10 @@ document.addEventListener('DOMContentLoaded', async function () {
             document.getElementById("wordsToRevise").style.display = 'none';
             document.getElementById("learnedVocabCount").value = 0;
             updateTotalWords();
+          } else {
+            document.getElementById("wordsToRevise").style.display = '';
+            document.getElementById("learnedVocabCount").value = 6;
+            updateTotalWords();
           }
           const percentage = learnedCount / filteredVocabList.length * 100;
           const count = learnedCount + " / " + filteredVocabList.length;
@@ -341,7 +345,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   function updateWordsToLearnVisibility() {
     const selected = document.querySelector('input[name="focusOption"]:checked')?.value;
-    console.log("Focus option selected: " + selected);
     const wordsToLearn = document.getElementById('wordsToLearn');
     if (selected === 'newLast') {
       wordsToLearn.style.display = 'none';
@@ -371,7 +374,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 let currentFocus;
 function getLeastLearnedAmount(arr) {
   let leastLearned = Math.min(...filteredVocabList.map(item => item.learnedTime ?? 0));
-  let res;
+  let res = [];
   console.log("Focus option selected: " + focusOption);
   const maxEntry = arr.slice().reduce((max, entry) =>
     (entry.learnedTime > (max?.learnedTime ?? -Infinity)) ? entry : max
@@ -711,6 +714,7 @@ async function populateBookSelector() {
 }
 
 function showNextItem() {
+  console.log("Current quiz no: " + currentQuizNo + " / " + filteredVocabList.length)
   if (currentQuizNo >= filteredVocabList.length) {
     document.getElementById("donzo").style.display = 'block';
     document.getElementById("quizContainer").style.display = 'none';
@@ -1111,23 +1115,6 @@ function endTest() {
   } else {
     document.getElementById("redo").style.display = 'None';
   }
-  let congrats = document.getElementById("congratsMessage");
-  if (!congrats) {
-    congrats = document.createElement("div");
-    congrats.id = "congratsMessage";
-    congrats.style.fontSize = "2vw";
-    congrats.style.color = "#2e7d32";
-    congrats.style.fontWeight = "bold";
-    congrats.style.margin = "32px auto";
-    congrats.style.background = "#e6f7e6";
-    congrats.style.borderRadius = "12px";
-    congrats.style.padding = "24px";
-    congrats.style.maxWidth = "600px";
-    congrats.style.textAlign = "center";
-    congrats.innerHTML = "Congratulations! You have finished this round of learning! Refresh to start another round.";
-    document.body.appendChild(congrats);
-  } else {
-    congrats.style.display = "block";
-  }
+  document.getElementById("donzo").style.display = 'block';
 }
 

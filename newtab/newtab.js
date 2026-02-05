@@ -967,10 +967,47 @@ function showNextVocab(collection = currentCollectionSelection) {
         etymDiv.textContent = ""
       }
       if (currentCollection[currentVocabIndex].usage) {
-        utils.showUsage(currentCollection[currentVocabIndex], latinMedieval);
+        let text;
+        let usageDiv = document.getElementById('usageDiv');
+        usageDiv.innerHTML = currentCollection[currentVocabIndex].usage;
+        usageDiv.style.backgroundColor = '#f0f0f0';
+
+        let quoteEl =
+          usageDiv.querySelector("span.Latn.e-quotation") ||
+          usageDiv.querySelector("i");
+        if (currentCollection[currentVocabIndex].language === 'zh' && quoteEl) {
+          quoteEl = usageDiv.querySelector("span")
+        }
+        text = quoteEl ? quoteEl.textContent : usageDiv.textContent.split('―')[0];
+        console.log("usage text:", text);
+        if (currentCollection[currentVocabIndex].etym != null && currentCollection[currentVocabIndex].etym != "") {
+          usageDiv.style.fontSize = '0.9vw'
+        }
+        const button = document.createElement("button");
+        button.title = "Listen to usage example";
+        button.style.float = "right";
+        button.style.fontSize = "1vw";
+        button.style.padding = "2px 6px";
+        button.style.marginTop = "4px";
+        button.style.cursor = "pointer";
+        button.style.backgroundColor = "transparent";
+        button.textContent = "🔊";
+        button.classList.add("ui", "button");
+        if (quoteEl) {
+          quoteEl.insertAdjacentElement("afterend", button);
+        } else {
+          usageDiv.insertAdjacentElement("afterend", button);
+        }
+        console.log(text, word.language);
+        button.addEventListener("click", async function () {
+          await utils.speakWord(
+            currentCollection[currentVocabIndex].language,
+            text,
+            latinMedieval
+          );
+        });
       }
 
-      console.log(currentCollection[currentVocabIndex])
       if (showTips) {
         const tips = utils.getLanguageTips(currentCollection[currentVocabIndex]);
         if (tips) {

@@ -335,6 +335,20 @@ document.addEventListener('DOMContentLoaded', async function () {
     checkTrueFalse(false);
   });
 
+  const checkButton = document.getElementById('checkButton');
+  const answerInput = document.getElementById('answer');
+  if (checkButton && answerInput) {
+    checkButton.addEventListener('click', function () {
+      utils.checkSpelling();
+    });
+    answerInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        checkSpelling();
+      }
+    });
+  }
+
   document.getElementById('learnedVocabCount').addEventListener('change', function () {
     updateTotalWords();
   });
@@ -469,29 +483,29 @@ async function generateLearningQueue(bookSelected) {
         // 1. Flashcard
         addToQueue('flashcard', wordObj);
         learnedWords.push(wordObj);
+        addToQueue('quiz9', wordObj);
+        // // 2. True/False quiz (quizStyle3), with wrong definition from totalVocabList
 
-        // 2. True/False quiz (quizStyle3), with wrong definition from totalVocabList
+        // // 3. Randomly quizStyle1 or quizStyle2
+        // const quizType = Math.random() < 0.5 ? 'quiz1' : 'quiz2';
+        // addToQueue(quizType, wordObj);
 
-        // 3. Randomly quizStyle1 or quizStyle2
-        const quizType = Math.random() < 0.5 ? 'quiz1' : 'quiz2';
-        addToQueue(quizType, wordObj);
+        // const randomQuizWord = (learnedWords.length > 1) ? utils.getNRandomElements(learnedWords, 1)[0] : wordObj;
 
-        const randomQuizWord = (learnedWords.length > 1) ? utils.getNRandomElements(learnedWords, 1)[0] : wordObj;
-
-        if (hasGender(randomQuizWord)) {
-          addToQueue('quiz5', randomQuizWord);
-        }
-        if (hasPronounciation(randomQuizWord)) {
-          addToQueue('quiz4', randomQuizWord);
-        }
-        if (Math.random() < 0.5) {
-          addToQueue('quiz8', randomQuizWord);
-        } else {
-          addToQueue('quiz3', randomQuizWord);
-        }
+        // if (hasGender(randomQuizWord)) {
+        //   addToQueue('quiz5', randomQuizWord);
+        // }
+        // if (hasPronounciation(randomQuizWord)) {
+        //   addToQueue('quiz4', randomQuizWord);
+        // }
+        // if (Math.random() < 0.5) {
+        //   addToQueue('quiz8', randomQuizWord);
+        // } else {
+        //   addToQueue('quiz3', randomQuizWord);
+        // }
       });
     }
-    let quizTypes = ['quiz1', 'quiz2', 'quiz3', 'quiz4', 'quiz5', 'quiz8'];
+    let quizTypes = ['quiz1', 'quiz2', 'quiz3', 'quiz4', 'quiz5', 'quiz8', 'quiz9'];
     let randomWords = filteredVocabList.slice();
     shuffleArray(randomWords);
     randomWords.slice(0, 8).forEach(wordObj => {
@@ -536,6 +550,8 @@ function showNextLearningStep() {
   updateStepCounter();
   document.getElementById('nextButton').style.display = 'none';
   document.getElementById('speakQuiz').style.display = 'none'
+  document.getElementById('SpellingContainer').style.display = 'none'
+
   // If queue is empty, finish
   //////console.log("CurrentStep is" + currentStep)
   if (currentStep >= learningQueue.length) {
@@ -572,6 +588,9 @@ function showNextLearningStep() {
       break;
     case "quiz8":
       quizStyle8()
+      break;
+    case "quiz9":
+      quizStyle9()
       break;
     case "flashcard":
       showNextVocab()
@@ -853,6 +872,15 @@ function quizStyle5() {
   }
   utils.setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition)
 }
+
+function quizStyle9() {
+  shouldSpeak = true;
+  const correctVocab = learningQueue[currentStep].word;
+  currentQuizWord = correctVocab.word;
+  wordToSpeak = correctVocab.word;
+  utils.setupSpellingQuiz(correctVocab)
+  currentTest = { quizStyle: "Ask for spelling", vocab: correctVocab.word, book: correctVocab.book };
+}
 function getRandomKeys(obj, count) {
   let keys = Object.keys(obj);
   let selectedKeys = [];
@@ -1078,6 +1106,7 @@ function checkTrueFalse(isTrue) {
   }
   document.getElementById('trueFalseContainer').style.display = 'none';
 }
+
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));

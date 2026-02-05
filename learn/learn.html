@@ -353,6 +353,61 @@
       </div>
     </div>
 
+    <!-- Spelling CONTAINER -->
+    <div class="init-container" id="SpellingContainer" style="
+    display: none; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    background-color: #ffffff; 
+    border-radius: 24px; 
+    padding: 40px; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+    max-width: 600px; 
+    margin: 40px auto; 
+    border: 1px solid #f0f0f0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;">
+
+      <p id="spellingQuestion" class="text-2xl font-bold text-center mb-8 leading-relaxed" style="
+        font-size: 2.2rem; 
+        color: #1a1a1a; 
+        margin-bottom: 32px; 
+        font-weight: 800; 
+        letter-spacing: -0.02em;">
+      </p>
+
+      <div class="grid grid-cols-2 gap-4" style="
+        display: flex; 
+        flex-direction: column; 
+        width: 100%; 
+        gap: 16px;">
+
+        <input class="ui huge input" type="text" id="answer" placeholder="Type your answer..." style="
+            width: 100%; 
+            padding: 18px 24px; 
+            font-size: 1.2rem; 
+            border: 2px solid #e0e0e0; 
+            border-radius: 16px; 
+            outline: none; 
+            transition: border-color 0.2s ease;
+            background-color: #fcfcfc;" />
+
+        <button class="ui button" id="checkButton" style="
+            background: #4d564e; 
+            color: #ffffff; 
+            border-radius: 16px; 
+            padding: 18px; 
+            font-size: 1.1rem; 
+            font-weight: 600; 
+            border: none; 
+            cursor: pointer; 
+            transition: transform 0.1s ease, background-color 0.2s ease;
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);">
+          Check Answer
+        </button>
+      </div>
+    </div>
+
     <!-- FEEDBACK UI -->
     <div id="correctMessage" class="ui positive message text-center" style="display: none;">Great job! Correct!</div>
     <div id="incorrectMessage" class="ui negative message text-center" style="display: none;">

@@ -1744,6 +1744,7 @@ export function getEligibleVocabs(vocabList, func = () => false, needSeen = fals
     const seenCondition = needSeen ? entry.seen > 3 : true;
     return (seenCondition || func(entry)) && entry.word.length > 0 && entry.definition.length > 0;
   });
+  console.log(eligibleVocab);
   return eligibleVocab;
 }
 export function setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition) {
@@ -1789,9 +1790,9 @@ export function setUpPronounciationQuiz(correctVocab, eligibleOptions) {
   prepareQuiz(options);
 }
 export function generatePronounciationOptions(correctVocab, eligibleOptions) {
-  let syllables = correctVocab.wordType;
+  let syllables = correctVocab.word.length;
   const options = [correctVocab.pronounciation];
-  let sameLengthWords = eligibleOptions.filter(item => item.wordType === syllables);
+  let sameLengthWords = eligibleOptions.filter(item => item.word.length === syllables);
   if (sameLengthWords.length < 4) {
     sameLengthWords = eligibleOptions;
   }
@@ -1824,7 +1825,7 @@ export function detectLanguage(filteredVocabList) {
   }
 
   // Otherwise fallback
-  return nameToAbbr[filteredVocabList[0].book];
+  return utils.nameToAbbr[filteredVocabList[0].book];
 }
 export function setUp8Quiz(correctVocab, eligibleVocab, medievalLatin = false) {
   // Add to the .quiz-container
@@ -2125,25 +2126,12 @@ export function setupSpellingQuiz(correctVocab) {
 
   if (!spellingContainer) return;
 
-  const questionEl = spellingContainer.querySelector('#trueFalseQuestion');
+  const questionEl = spellingContainer.querySelector('#spellingQuestion');
   if (questionEl) {
-    questionEl.textContent = `Spell the word for \r\n "${correctVocab.definition}"?`;
-  }
-
-  const testTips = document.getElementById('testTips');
-  const lang = correctVocab.language || convertToAbbr(correctVocab.book || "");
-  if (testTips) {
-    if (lang === "de") {
-      testTips.textContent = 'Tip: You can use ü or ue, ä or ae, ö or oe, and ss or ß.';
-    } else if (lang === "la") {
-      testTips.textContent = "Tip: You don't have to add diacritics.";
-    } else {
-      testTips.textContent = '';
-    }
+    questionEl.innerHTML = `Spell the word for \r\n "${correctVocab.definition}"?`;
   }
 
   spellingContainer.dataset.correctAnswer = correctVocab.word;
-  spellingContainer.dataset.language = lang || "";
   spellingContainer.style.display = 'block';
 
   if (answerInput) {
@@ -2154,49 +2142,14 @@ export function setupSpellingQuiz(correctVocab) {
   }
 }
 
-export function normalizeSpelling(value, language = "") {
-  let text = (value || "").trim().toLowerCase();
-  text = text.replace(/[\s\-]+/g, ' '); // collapse spaces/hyphens
-
-  if (language === "de") {
-    text = text
-      .replace(/ae/g, "�")
-      .replace(/oe/g, "�")
-      .replace(/ue/g, "�")
-      .replace(/ss/g, "�");
-    return text;
+export function normalizeSpelling(value, language = null) {
+  switch (language) {
+    case LANGUAGES.GERMAN:
+      value = value.replaceAll("ss", "ß");
+      value = value.replaceAll("oe", "ö");
+      value = value.replaceAll("ae", "ä");
+      value = value.replaceAll("ue", "ü");
+      return value.trim().toLowerCase();
   }
-
-  if (language === "la") {
-    return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  }
-
-  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return (value || "").trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
-export function checkSpelling() {
-  const spellingContainer = document.getElementById('SpellingContainer');
-  const answerInput = document.getElementById('answer');
-  const correctMessage = document.getElementById('correctMessage');
-  const incorrectMessage = document.getElementById('incorrectMessage');
-
-  const rawCorrect = spellingContainer?.dataset.correctAnswer || currentQuizWord || "";
-  const userAnswer = normalizeSpelling(answerInput?.value || "", currentLanguage);
-  const isCorrect = normalizeSpelling(rawCorrect, currentLanguage) === userAnswer;
-
-  if (isCorrect) {
-    speakWord(currentLanguage, currentQuizWord, latinMedieval);
-    currentStep += 1;
-    correctMessage.style.display = 'block';
-    setTimeout(() => {
-      correctMessage.style.display = 'none';
-      showNextLearningStep();
-    }, 500);
-  } else {
-    incorrectMessage.style.display = 'block';
-    if (spellingContainer) spellingContainer.style.display = 'none';
-    showCorrectAnswer();
-    wrongVocabs.push(currentQuizWord);
-    document.getElementById('nextAfterIncorrectButton').style.display = 'block';
-  }
-}
-

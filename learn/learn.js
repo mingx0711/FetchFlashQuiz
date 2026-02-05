@@ -339,7 +339,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   const answerInput = document.getElementById('answer');
   if (checkButton && answerInput) {
     checkButton.addEventListener('click', function () {
-      utils.checkSpelling();
+      checkSpelling();
     });
     answerInput.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') {
@@ -430,7 +430,6 @@ function getLearnedWords(arr, learnCount) {
   let leastLearned = Math.min(...filteredVocabList.map(item => item.learnedTime ?? 0));
   let learnedWords = arr.slice().filter(item => item.learnedTime === leastLearned + 1);
   shuffleArray(learnedWords);
-  console.log(learnedWords.slice(0, learnCount))
   return learnedWords.slice(0, learnCount);
 }
 
@@ -447,7 +446,7 @@ async function generateLearningQueue(bookSelected) {
       filteredVocabList = vocabList.filter(vocab => vocab.book === bookSelected);
       totalVocabList = filteredVocabList;
       filteredVocabList = getLeastLearnedAmount(filteredVocabList);
-      console.log(filteredVocabList)
+      //console.log(filteredVocabList)
       document.getElementById('start').style.display = 'none';
       document.getElementById('nextButton').style.display = '';
       document.getElementById('stepCounter').style.display = '';
@@ -483,26 +482,33 @@ async function generateLearningQueue(bookSelected) {
         // 1. Flashcard
         addToQueue('flashcard', wordObj);
         learnedWords.push(wordObj);
-        addToQueue('quiz9', wordObj);
-        // // 2. True/False quiz (quizStyle3), with wrong definition from totalVocabList
+        const quizTypeCheck1 = Math.random();
+        switch (quizTypeCheck1) {
+          case quizTypeCheck1 < 0.25:
+            addToQueue('quiz1', wordObj);
+            break;
+          case quizTypeCheck1 < 0.5:
+            addToQueue('quiz2', wordObj);
+            break;
+          case quizTypeCheck1 < 0.75:
+            addToQueue('quiz3', wordObj);
+            break;
+          default:
+            addToQueue('quiz4', wordObj);
+        }
+        const randomQuizWord = (learnedWords.length > 1) ? utils.getNRandomElements(learnedWords, 1)[0] : wordObj;
 
-        // // 3. Randomly quizStyle1 or quizStyle2
-        // const quizType = Math.random() < 0.5 ? 'quiz1' : 'quiz2';
-        // addToQueue(quizType, wordObj);
-
-        // const randomQuizWord = (learnedWords.length > 1) ? utils.getNRandomElements(learnedWords, 1)[0] : wordObj;
-
-        // if (hasGender(randomQuizWord)) {
-        //   addToQueue('quiz5', randomQuizWord);
-        // }
-        // if (hasPronounciation(randomQuizWord)) {
-        //   addToQueue('quiz4', randomQuizWord);
-        // }
-        // if (Math.random() < 0.5) {
-        //   addToQueue('quiz8', randomQuizWord);
-        // } else {
-        //   addToQueue('quiz3', randomQuizWord);
-        // }
+        if (hasGender(randomQuizWord)) {
+          addToQueue('quiz5', randomQuizWord);
+        }
+        if (hasPronounciation(randomQuizWord)) {
+          addToQueue('quiz4', randomQuizWord);
+        }
+        if (Math.random() < 0.5) {
+          addToQueue('quiz8', randomQuizWord);
+        } else {
+          addToQueue('quiz9', randomQuizWord);
+        }
       });
     }
     let quizTypes = ['quiz1', 'quiz2', 'quiz3', 'quiz4', 'quiz5', 'quiz8', 'quiz9'];
@@ -528,12 +534,14 @@ async function generateLearningQueue(bookSelected) {
     randomWords.slice(0, 8).forEach(wordObj => {
       var randomIndex = Math.random()
       ////console.log(randomIndex < 0.25 ? 8 : randomIndex < 0.5 ? 1 : randomIndex < 0.75 ? 2 : 3)
-      if (randomIndex < 0.25) {
+      if (randomIndex < 0.2) {
         learningQueue.push({ type: 'quiz8', word: wordObj });
-      } else if (randomIndex < 0.5) {
+      } else if (randomIndex < 0.4) {
         learningQueue.push({ type: 'quiz1', word: wordObj });
-      } else if (randomIndex < 0.75) {
+      } else if (randomIndex < 0.6) {
         learningQueue.push({ type: 'quiz2', word: wordObj });
+      } else if (randomIndex < 0.8) {
+        learningQueue.push({ type: 'quiz9', word: wordObj });
       } else {
         learningQueue.push({ type: 'quiz3', word: wordObj });
       }
@@ -541,7 +549,7 @@ async function generateLearningQueue(bookSelected) {
         learningQueue.push({ type: 'quiz4', word: wordObj });
       }
     });
-    //console.log(learningQueue)
+    console.log(learningQueue)
     currentStep = 0;
     showNextLearningStep();
   });
@@ -746,9 +754,9 @@ function showNextItem() {
       gender: [quizStyle5],
       pronounciation: [quizStyle4],
       inflection: [quizStyle6, quizStyle7],
-      definition: [quizStyle1, quizStyle2, quizStyle3, quizStyle8]
+      definition: [quizStyle1, quizStyle2, quizStyle3, quizStyle8, quizStyle9]
     };
-    const allQuizStyles = [quizStyle1, quizStyle2, quizStyle3, quizStyle4, quizStyle5, quizStyle6, quizStyle7, quizStyle8];
+    const allQuizStyles = [quizStyle1, quizStyle2, quizStyle3, quizStyle4, quizStyle5, quizStyle6, quizStyle7, quizStyle8, quizStyle9];
     if (focusQuizMap[currentFocus]) {
       const quizStyles = focusQuizMap[currentFocus];
       // Pick one at random if multiple styles
@@ -813,9 +821,6 @@ function quizStyle4() {
     currentVocabIndex--;
     return showNextItem();
   }
-  ////console.log("quizStyle4 called for " + correctVocab.word);
-
-
   currentQuizWord = correctVocab.word;
   wordToSpeak = correctVocab.word;
 
@@ -1147,3 +1152,29 @@ function endTest() {
   document.getElementById("donzo").style.display = 'block';
 }
 
+function checkSpelling() {
+  const spellingContainer = document.getElementById('SpellingContainer');
+  const answerInput = document.getElementById('answer');
+  const correctMessage = document.getElementById('correctMessage');
+  const incorrectMessage = document.getElementById('incorrectMessage');
+
+  const rawCorrect = spellingContainer?.dataset.correctAnswer || currentQuizWord || "";
+  const userAnswer = utils.normalizeSpelling(answerInput?.value || "", currentLanguage);
+  const isCorrect = utils.normalizeSpelling(rawCorrect, currentLanguage) === userAnswer;
+
+  if (isCorrect) {
+    utils.speakWord(currentLanguage, currentQuizWord, latinMedieval);
+    currentStep += 1;
+    correctMessage.style.display = 'block';
+    setTimeout(() => {
+      correctMessage.style.display = 'none';
+      showNextLearningStep();
+    }, 500);
+  } else {
+    incorrectMessage.style.display = 'block';
+    if (spellingContainer) spellingContainer.style.display = 'none';
+    showCorrectAnswer();
+    wrongVocabs.push(currentQuizWord);
+    document.getElementById('nextAfterIncorrectButton').style.display = 'block';
+  }
+}

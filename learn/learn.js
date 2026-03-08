@@ -30,6 +30,8 @@ let totalVocabList = []
 let wrongVocabs = [];
 let learningQueue = [];
 let learnedWords = []
+const FOCUS_EMPTY = '&#9734';
+const FOCUS_FILLED = '&#11088';
 const langMap = {
   de: 'German',
   es: 'Spanish',
@@ -133,7 +135,7 @@ function getNewWordsData() {
           sortedResult[lang] = sortedNewWordsByLang[lang];
         });
 
-        ////console.log(sortedResult);
+        //////console.log(sortedResult);
         resolve(sortedResult);
       } else {
         resolve({});
@@ -176,7 +178,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     newWordsCount = newWordsData[utils.nameToAbbr[selector.value.toLowerCase()]] || 0;
 
     if (newWordsCount > 4) {
-      console.log(newWordsCount)
+      //console.log(newWordsCount)
       document.getElementById('newLastCard').style.display = '';
       newLastOptionLabel.style.display = '';
       document.getElementById('newLastOption').style.display = '';
@@ -241,7 +243,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             container.appendChild(bar);
           }
           const minTime = Math.min(...filteredVocabList.map(item => item.learnedTime ?? 0));
-
           let learnedCount = filteredVocabList.filter(vocab => vocab.learnedTime > minTime).length;
           if (learnedCount <= 6) {
             document.getElementById("wordsToRevise").style.display = 'none';
@@ -252,8 +253,13 @@ document.addEventListener('DOMContentLoaded', async function () {
             document.getElementById("learnedVocabCount").value = 6;
             updateTotalWords();
           }
+          //console.log(counts)
+          let revisedCount = 0;
+          for (let i = 2; i <= 8; i++) {
+            revisedCount += parseInt(counts[i]) || 0;
+          }
           const percentage = learnedCount / filteredVocabList.length * 100;
-          const count = learnedCount + " / " + filteredVocabList.length;
+          const count = "learned & revised: " + revisedCount + " / learned: " + learnedCount + " / total: " + filteredVocabList.length;
           document.getElementById("progressLabel").textContent = count + " ";
           for (let i = 0; i < minTime; i++) {
             document.getElementById("progressLabel").textContent += '⭐';
@@ -285,7 +291,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     let selectedCollection = document.getElementById('bookSelector').value;
     wordsToRevise = document.getElementById('learnedVocabCount').value;
 
-    console.log("Words to revise: " + wordsToRevise);
+    //console.log("Words to revise: " + wordsToRevise);
 
     // Call the function to display vocab
     generateLearningQueue(selectedCollection);
@@ -302,7 +308,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('showTestResult').style.display = "None"
 
     filteredVocabList = filteredVocabList.filter(item => wrongVocabs.includes(item.word));
-    //////console.log(filteredVocabList)
+    ////////console.log(filteredVocabList)
     currentQuizNo = 0;
     wordToTest = "";
     recordHistory = [];
@@ -319,6 +325,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('correctDefinition').style.display = 'none';
     document.getElementById('nextAfterIncorrectButton').style.display = 'none';
     showNextLearningStep();
+  });
+
+  document.getElementById('focusButton').addEventListener('click', function () {
+    toggleCurrentWordFocus();
   });
 
   document.querySelectorAll('.quiz-option').forEach(button => {
@@ -373,7 +383,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (selected === 'newLast') {
       toLearn = newWordsCount + parseInt(document.getElementById('learnedVocabCount').value || 0);
     }
-    document.getElementById('totalWords').innerHTML = "<b>" + toLearn + "</b>";
+    document.getElementById('totalWords').innerHTML = "<b style='font-size:2.5vh; color: #41625f;'>" + toLearn + "</b>";
   }
 
   updateWordsToLearnVisibility();
@@ -382,14 +392,62 @@ document.addEventListener('DOMContentLoaded', async function () {
   // update whenever user changes focus option
   document.querySelectorAll('input[name="focusOption"]').forEach(radio => {
     radio.addEventListener('change', updateWordsToLearnVisibility);
+    radio.addEventListener('change', updateTotalWords);
   });
 }
 );
 let currentFocus;
+
+function getWordMatchIndex(arr, wordObj) {
+  if (!Array.isArray(arr) || !wordObj) return -1;
+  let index = arr.findIndex(item =>
+    item.word === wordObj.word &&
+    item.book === wordObj.book &&
+    item.definition === wordObj.definition
+  );
+  if (index === -1) {
+    index = arr.findIndex(item =>
+      item.word === wordObj.word &&
+      item.book === wordObj.book
+    );
+  }
+  return index;
+}
+
+function updateFocusButtonForWord(wordObj) {
+  const focusButton = document.getElementById('focusButton');
+  if (!focusButton) return;
+  focusButton.innerHTML = wordObj?.focus === true ? FOCUS_FILLED : FOCUS_EMPTY;
+}
+
+function toggleCurrentWordFocus() {
+  const currentWordObj = learningQueue[currentStep]?.word;
+  if (!currentWordObj) return;
+
+  const nextFocusValue = (currentWordObj.focus != null) ? (!currentWordObj.focus) : true;
+  console.log("Toggling focus for word:", currentWordObj.word, "New focus value:", nextFocusValue);
+  currentWordObj.focus = nextFocusValue;
+  updateFocusButtonForWord(currentWordObj);
+
+  const inMemoryIndex = getWordMatchIndex(vocabList, currentWordObj);
+  if (inMemoryIndex !== -1) {
+    vocabList[inMemoryIndex].focus = nextFocusValue;
+  }
+
+  chrome.storage.local.get('vocabList', function (data) {
+    if (!data.vocabList) return;
+    let storedList = data.vocabList;
+    const storedIndex = getWordMatchIndex(storedList, currentWordObj);
+    if (storedIndex === -1) return;
+    storedList[storedIndex].focus = nextFocusValue;
+    chrome.storage.local.set({ vocabList: storedList }, function () { });
+  });
+}
+
 function getLeastLearnedAmount(arr) {
   let leastLearned = Math.min(...filteredVocabList.map(item => item.learnedTime ?? 0));
   let res = [];
-  console.log("Focus option selected: " + focusOption);
+  //console.log("Focus option selected: " + focusOption);
   const maxEntry = arr.slice().reduce((max, entry) =>
     (entry.learnedTime > (max?.learnedTime ?? -Infinity)) ? entry : max
     , null);
@@ -409,7 +467,7 @@ function getLeastLearnedAmount(arr) {
   } else if (focusOption === "newLast") {
     const reversedList = arr.slice().reverse();
     const firstLearnedIdx = reversedList.findIndex(vocab => vocab.hasOwnProperty('learnedTime'));
-    ////console.log(firstLearnedIdx)
+    //////console.log(firstLearnedIdx)
     res = res.concat(reversedList.slice(0, firstLearnedIdx));
   } else if (focusOption === "revise") {
     if (wordsToRevise > 0) {
@@ -417,7 +475,7 @@ function getLeastLearnedAmount(arr) {
     }
     return getLearnedWords(arr, learnCount);
   } else {
-    console.log("Newest")
+    //console.log("Newest")
     res = res.concat(arr.slice().reverse()
       .filter(item => !('learnedTime' in item) || item.learnedTime === leastLearned)
       .slice(0, learnCount))
@@ -432,9 +490,17 @@ function getLearnedWords(arr, learnCount) {
   shuffleArray(learnedWords);
   return learnedWords.slice(0, learnCount);
 }
-
-
 async function generateLearningQueue(bookSelected) {
+  let wordAppearances = {};
+
+  function addToQueue(type, wordObj) {
+    const word = wordObj.word;
+    const maxAppearances = 5;
+    if (wordAppearances[word] < maxAppearances) {
+      learningQueue.push({ type, word: wordObj });
+      wordAppearances[word]++;
+    }
+  }
   await chrome.storage.local.get('vocabList', function (data) {
     if (data.vocabList) {
       vocabList = data.vocabList;
@@ -443,10 +509,11 @@ async function generateLearningQueue(bookSelected) {
         document.getElementById('vocabFlashcard').textContent = "Come back after there's more vocabs";
         return;
       }
+
       filteredVocabList = vocabList.filter(vocab => vocab.book === bookSelected);
       totalVocabList = filteredVocabList;
       filteredVocabList = getLeastLearnedAmount(filteredVocabList);
-      //console.log(filteredVocabList)
+      ////console.log(filteredVocabList)
       document.getElementById('start').style.display = 'none';
       document.getElementById('nextButton').style.display = '';
       document.getElementById('stepCounter').style.display = '';
@@ -460,7 +527,6 @@ async function generateLearningQueue(bookSelected) {
         document.getElementById('nextButton').style.display = 'none';
         return;
       }
-      const wordAppearances = {};
       currentLanguage = utils.detectLanguage(filteredVocabList);
 
       filteredVocabList.forEach(wordObj => {
@@ -469,14 +535,7 @@ async function generateLearningQueue(bookSelected) {
       });
 
       // Helper to add to queue only if under max
-      function addToQueue(type, wordObj) {
-        const word = wordObj.word;
-        const maxAppearances = 6; // set your max here
-        if (wordAppearances[word] < maxAppearances) {
-          learningQueue.push({ type, word: wordObj });
-          wordAppearances[word]++;
-        }
-      }
+
 
       filteredVocabList.forEach(wordObj => {
         // 1. Flashcard
@@ -516,7 +575,7 @@ async function generateLearningQueue(bookSelected) {
     shuffleArray(randomWords);
     randomWords.slice(0, 8).forEach(wordObj => {
       var randomIndex = Math.random()
-      ////console.log(randomIndex < 0.25 ? 8 : randomIndex < 0.5 ? 1 : randomIndex < 0.75 ? 2 : 3)
+      //////console.log(randomIndex < 0.25 ? 8 : randomIndex < 0.5 ? 1 : randomIndex < 0.75 ? 2 : 3)
       if (randomIndex < 0.25) {
         learningQueue.push({ type: 'quiz8', word: wordObj });
       } else if (randomIndex < 0.5) {
@@ -533,23 +592,23 @@ async function generateLearningQueue(bookSelected) {
     shuffleArray(randomWords);
     randomWords.slice(0, 8).forEach(wordObj => {
       var randomIndex = Math.random()
-      ////console.log(randomIndex < 0.25 ? 8 : randomIndex < 0.5 ? 1 : randomIndex < 0.75 ? 2 : 3)
+      //////console.log(randomIndex < 0.25 ? 8 : randomIndex < 0.5 ? 1 : randomIndex < 0.75 ? 2 : 3)
       if (randomIndex < 0.2) {
-        learningQueue.push({ type: 'quiz8', word: wordObj });
+        addToQueue('quiz8', wordObj);
       } else if (randomIndex < 0.4) {
-        learningQueue.push({ type: 'quiz1', word: wordObj });
+        addToQueue('quiz1', wordObj);
       } else if (randomIndex < 0.6) {
-        learningQueue.push({ type: 'quiz2', word: wordObj });
+        addToQueue('quiz2', wordObj);
       } else if (randomIndex < 0.8) {
-        learningQueue.push({ type: 'quiz9', word: wordObj });
+        addToQueue('quiz9', wordObj);
       } else {
-        learningQueue.push({ type: 'quiz3', word: wordObj });
+        addToQueue('quiz3', wordObj);
       }
       if (hasPronounciation(wordObj) && Math.random() < 0.5) {
-        learningQueue.push({ type: 'quiz4', word: wordObj });
+        addToQueue('quiz4', wordObj);
       }
+
     });
-    console.log(learningQueue)
     currentStep = 0;
     showNextLearningStep();
   });
@@ -561,7 +620,7 @@ function showNextLearningStep() {
   document.getElementById('SpellingContainer').style.display = 'none'
 
   // If queue is empty, finish
-  //////console.log("CurrentStep is" + currentStep)
+  ////////console.log("CurrentStep is" + currentStep)
   if (currentStep >= learningQueue.length) {
     endTest();
     return;
@@ -606,7 +665,7 @@ function showNextLearningStep() {
 
     default:
       // handle unknown step type
-      ////console.warn("Unknown step type:", step.type);
+      //////console.warn("Unknown step type:", step.type);
       break;
   }
 }
@@ -631,7 +690,8 @@ function showNextVocab() {
   let word;
   let definition;
   let wordObj = learningQueue[currentStep].word;
-  //////console.log(wordObj)
+  updateFocusButtonForWord(wordObj);
+  ////////console.log(wordObj)
   document.getElementById('speak').addEventListener('click', async function () {
     utils.speakWord(currentLanguage, wordObj.word, latinMedieval);
   });
@@ -741,7 +801,6 @@ async function populateBookSelector() {
 }
 
 function showNextItem() {
-  console.log("Current quiz no: " + currentQuizNo + " / " + filteredVocabList.length)
   if (currentQuizNo >= filteredVocabList.length) {
     document.getElementById("donzo").style.display = 'block';
     document.getElementById("quizContainer").style.display = 'none';
@@ -812,7 +871,7 @@ function quizStyle3() {
   utils.setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition)
 }
 function quizStyle4() {
-  //////console.log("4, ask for pronounciation")
+  ////////console.log("4, ask for pronounciation")
   quizType = "pronounciation"
 
   const correctVocab = learningQueue[currentStep].word;
@@ -847,7 +906,7 @@ function quizStyle4() {
 }
 function quizStyle5() {
   quizType = "gender"
-  //////console.log("5, ask for gender")
+  ////////console.log("5, ask for gender")
   const correctVocab = learningQueue[currentStep].word;
   shouldSpeak = false;
   if (!utils.checkEligible(correctVocab, utils.hasGender, false)) {
@@ -869,10 +928,10 @@ function quizStyle5() {
   currentQuizDefinition = correctVocab.gender;
   quizType = 'truefalse';
   isPairCorrect = Math.random() < 0.5;
-
+  console.log(utils.LanguageGenderMap[correctVocab.language || correctVocab.book])
   if (!isPairCorrect) {
     var incorrectVocab = utils.LanguageGenderMap[correctVocab.language || correctVocab.book].filter(item => item !== currentQuizDefinition);
-    ////console.log(incorrectVocab)
+    //////console.log(incorrectVocab)
     currentQuizDefinition = utils.getRandomElement(incorrectVocab);
   }
   utils.setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition)
@@ -929,13 +988,13 @@ function getRandomWordFromConjugations(conjugations, commonWordsList = []) {
   let randomSubfield = subfields[Math.floor(Math.random() * subfields.length)];
   const words = conjugations[randomField][randomSubfield];
   const randomWord = words[Math.floor(Math.random() * words.length)];
-  //////console.log(randomField + ":" + randomSubfield + ":" + randomWord)
+  ////////console.log(randomField + ":" + randomSubfield + ":" + randomWord)
   if (randomWord == undefined) {
     return getRandomWordFromConjugations(conjugations, commonWordsList);
   }
   const isInAllSubfields = commonWordsList.includes(randomWord)
   if (randomWord.length <= 1 || randomWord == null || isInAllSubfields) {
-    //////console.log(randomWord + " is not not a wrong answer")
+    ////////console.log(randomWord + " is not not a wrong answer")
     return getRandomWordFromConjugations(conjugations, commonWordsList);
   } else {
     return randomWord;
@@ -1030,7 +1089,7 @@ function checkAnswer(button) {
     setTimeout(() => {
       button.classList.remove('correct');
       correctMessage.style.display = 'none';
-      //////console.log("correct")
+      ////////console.log("correct")
       showNextLearningStep();
     }, 500);
   } else {
@@ -1042,7 +1101,7 @@ function checkAnswer(button) {
 }
 
 function showCorrectAnswer() {
-  //////console.log(quizType)
+  ////////console.log(quizType)
   document.getElementById('quizContainer').style.display = "none";
   const tfContainer = document.querySelector('.true-false-container');
   document.getElementById('trueFalseContainer').style.display = "none";
@@ -1139,7 +1198,7 @@ function endTest() {
       });
       // Save updated vocabList back to storage
       chrome.storage.local.set({ vocabList: data.vocabList }, function () {
-        //////console.log("Updated vocabList saved to storage.");
+        ////////console.log("Updated vocabList saved to storage.");
       });
     }
   });

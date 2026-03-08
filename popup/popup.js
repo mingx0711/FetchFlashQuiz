@@ -158,7 +158,6 @@ async function getLinkedAttributes(doc, word, lang) {
   // Call the shared utils function
   const wordSearched = word;
   vocab = await utils.getLinkedAttributes(doc, word, lang, book)
-  //console.log(vocab)
   if (typeof vocab === 'string') {
     document.getElementById("vocabInfoInfInfs").style.display = 'block'
     document.getElementById('addAuto').style.display = 'none'
@@ -169,26 +168,33 @@ async function getLinkedAttributes(doc, word, lang) {
   if (lang === 'zh') {
     vocab.word = wordSearched;
   }
-  //console.log(vocab)
-  vocabInfo.innerHTML = '';
-  vocabInfo.innerHTML += `word: <span style="font-weight: bold;">${vocab.word}</span>`;
-  vocabInfo.innerHTML += `<br>\n definition: <span style="font-weight: bold;">${vocab.definition}</span>`;
-  if (vocab.gender) {
-    let genderColor = "";
-    if (vocab.gender === GenderType.FEMININE) genderColor = "#BD4028";
-    else if (vocab.gender === GenderType.MASCULINE) genderColor = "#629FD1";
-    else if (vocab.gender === GenderType.NEUTER) genderColor = "#5E965A";
-    else if (vocab.gender === GenderType.COMMON) genderColor = "#8A6D3B";
-    vocabInfo.innerHTML += `<br>\n gender: <span style="color:${genderColor};font-weight:bold;">${vocab.gender}</span>`;
-  }
-  vocabInfo.innerHTML += `<br>\n collection: ${vocab.book}`;
-  if (vocab.pronounciation) {
-    vocabInfo.innerHTML += `<br>\n pronounciation: ${vocab.pronounciation}`;
-  }
-  vocabInfo.innerHTML += `<br>\n eytmology: ${vocab.etym || ""}`;
+  if (vocab.word != "" && vocab.definition !== "") {
+    vocabInfo.innerHTML = '';
+    vocabInfo.innerHTML += `word: <span style="font-weight: bold;">${vocab.word}</span>`;
+    vocabInfo.innerHTML += `<br>\n definition: <span style="font-weight: bold;">${vocab.definition}</span>`;
+    if (vocab.gender) {
+      let genderColor = "";
+      if (vocab.gender === GenderType.FEMININE) genderColor = "#BD4028";
+      else if (vocab.gender === GenderType.MASCULINE) genderColor = "#629FD1";
+      else if (vocab.gender === GenderType.NEUTER) genderColor = "#5E965A";
+      else if (vocab.gender === GenderType.COMMON) genderColor = "#8A6D3B";
+      vocabInfo.innerHTML += `<br>\n gender: <span style="color:${genderColor};font-weight:bold;">${vocab.gender}</span>`;
+    }
+    vocabInfo.innerHTML += `<br>\n collection: ${vocab.book}`;
+    if (vocab.pronounciation) {
+      vocabInfo.innerHTML += `<br>\n pronounciation: ${vocab.pronounciation}`;
+    }
+    vocabInfo.innerHTML += `<br>\n eytmology: ${vocab.etym || ""}`;
 
-  document.getElementById("vocabInfoInfInfs").style.display = 'block';
-  document.getElementById("addAuto").style.display = 'block';
+    document.getElementById("vocabInfoInfInfs").style.display = 'block';
+    document.getElementById("addAuto").style.display = 'block';
+  } else {
+    document.getElementById("vocabInfoInfInfs").style.display = 'block'
+    document.getElementById('addAuto').style.display = 'none'
+    document.getElementById('vocabInfo').style.display = 'block'
+    document.getElementById('vocabInfo').innerHTML = utils.invalidWord;
+    return;
+  }
 }
 async function getEasyAttributes(doc, word, lang) {
   // Get book, pronounciation, gender from the form

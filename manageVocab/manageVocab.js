@@ -52,10 +52,34 @@ document.getElementById('clearButton').addEventListener('click', function () {
 });
 document.getElementById('searchEditVocabBtn').addEventListener('click', function () {
   const container = document.getElementById('searchEditVocabContainer');
-  container.style.display = container.style.display === 'none' ? 'block' : 'none';
-  document.getElementById('editVocabForm').style.display = 'none';
+  container.style.display = 'block';
   document.getElementById('searchEditVocabMsg').textContent = '';
-  document.getElementById('searchVocabInput').value = '';
+});
+function closeSearchEditContainer() {
+  const container = document.getElementById('searchEditVocabContainer');
+  if (container) {
+    container.style.setProperty('display', 'none', 'important');
+  }
+  const editForm = document.getElementById('editVocabForm');
+  if (editForm) {
+    editForm.style.display = 'none';
+  }
+  const msg = document.getElementById('searchEditVocabMsg');
+  if (msg) {
+    msg.textContent = '';
+  }
+}
+document.getElementById('closeSearchEditVocab').addEventListener('click', function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+  closeSearchEditContainer();
+});
+document.addEventListener('click', function (e) {
+  if (e.target && e.target.id === 'closeSearchEditVocab') {
+    e.preventDefault();
+    e.stopPropagation();
+    closeSearchEditContainer();
+  }
 });
 const searchBox = document.getElementById("searchVocabInput");
 const searchOptions = document.getElementById("searchOptions");
@@ -100,7 +124,6 @@ document.getElementById('doSearchVocabBtn').addEventListener('click', function (
     const vocab = vocabList.find(item => item.word === searchWord);
     if (!vocab) {
       msgDiv.textContent = 'Word not found.';
-      document.getElementById('editVocabForm').style.display = 'none';
       return;
     }
     // Populate form
@@ -109,11 +132,13 @@ document.getElementById('doSearchVocabBtn').addEventListener('click', function (
     console.log(vocab.book)
     chrome.storage.local.get({ bookList: [] }, (result) => {
       const bookList = result.bookList || [];
+      const editCollection = document.getElementById('editCollection');
+      editCollection.innerHTML = '';
       bookList.forEach(book => {
         const option = document.createElement("option");
         option.value = book;
         option.textContent = book;
-        document.getElementById('editCollection').appendChild(option);
+        editCollection.appendChild(option);
       });
       document.getElementById('editCollection').value = vocab.book || '';
     });
@@ -134,10 +159,11 @@ document.getElementById('editVocabForm').addEventListener('submit', function (e)
   const originalWord = e.target.dataset.originalWord;
   const newDefinition = document.getElementById('editDefinition').value.trim();
   const newBook = document.getElementById('editCollection').value.trim();
-  const newPronounciation = document.getElementById('editGender').value.trim();
-  const newGender = document.getElementById('editPronounciation').value.trim();
+  const newPronounciation = document.getElementById('editPronounciation').value.trim();
+  const newGender = document.getElementById('editGender').value.trim();
   const newEtym = document.getElementById('editEtym').value.trim();
   const newChecked = document.getElementById('editHasChecked').checked;
+  const newFocus = document.getElementById('editFocus').checked;
   chrome.storage.local.get('vocabList', function (data) {
     let vocabList = data.vocabList || [];
     const idx = vocabList.findIndex(item => item.word === originalWord);
@@ -151,9 +177,12 @@ document.getElementById('editVocabForm').addEventListener('submit', function (e)
     vocabList[idx].gender = newGender;
     vocabList[idx].etym = newEtym;
     vocabList[idx].hasChecked = newChecked;
-    console.log(vocabList[idx]);
+    vocabList[idx].focus = newFocus;
+    chrome.storage.local.set({ vocabList: vocabList }, function () {
+      document.getElementById('searchEditVocabMsg').textContent = 'Changes saved.';
+      updateVocabList(vocabList, getCheckedBooks());
+    });
   });
-  //chrome.storage.local.set({ vocabList: vocabList });
 });
 let selectedVocab;
 function updateVocabList(vocabList, collection = ["all"]) {
@@ -713,15 +742,4 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-});
-document.addEventListener('click', function (event) {
-  const form = document.getElementById('searchEditVocabContainer');
-  const searchBtn = document.getElementById('searchEditVocabBtn');
-  const searchContainer = document.getElementById('searchEditVocabContainer');
-  const searchOptions = document.getElementById('searchOptions');
-  if (!form || form.style.display === 'none') return;
-  // If the click is outside the form and not on the search button or inside the search container
-  if (!form.contains(event.target) && !searchOptions.contains(event.target) && !searchBtn.contains(event.target) && !searchContainer.contains(event.target)) {
-    form.style.display = 'none';
-  }
 });

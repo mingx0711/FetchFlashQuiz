@@ -2,9 +2,12 @@
 <html>
 
 <head>
+
   <meta charset="utf-8">
   <title>Manage Vocabulary List</title>
+
   <link rel="stylesheet" href="../libs/semantic.css">
+
   <script lang="javascript" src="../libs/sheetsJS.js"></script>
   <style>
     body {
@@ -142,8 +145,10 @@
         <h1 class="ui header" style="font-size: 2.5vw; display: inline-flex;">Manage Vocabulary List</h1>
       </div>
       <div class="six wide column right aligned">
-        <button class="ui button" style="background-color:#ebdfe9" id="manageBookButton">Manage Collection</button>
-        <button class="ui button" style="background-color:#ebdfe9" id="deleteCheckedDataButton">Delete checked data
+        <button class="ui button" style="background-color:#ebdfe9" id="manageBookButton">Manage
+          Collection</button>
+        <button class="ui button" style="background-color:#ebdfe9" id="deleteCheckedDataButton">Delete checked
+          data
           (debug
           use)</button>
       </div>
@@ -159,10 +164,12 @@
           </select>
         </div>
         <div class="field">
-          <button class="ui button" style="background-color:#d3d7bf" id="exportToJson">Export vocabs as Json</button>
+          <button class="ui button" style="background-color:#d3d7bf" id="exportToJson">Export vocabs as
+            Json</button>
         </div>
         <div class="field">
-          <button class="ui button" style="background-color:#b8758b" id="importFromJson">Import vocabs from Json
+          <button class="ui button" style="background-color:#b8758b" id="importFromJson">Import vocabs from
+            Json
             files</button>
         </div>
         <div class="field">
@@ -170,8 +177,8 @@
             Vocab</button>
         </div>
         <!-- <div class="field">
-          <button id="autoBackupBtn" class="ui button" style="background-color: #e2fdf4;">Autobackup is Off</button>
-        </div> -->
+     <button id="autoBackupBtn" class="ui button" style="background-color: #e2fdf4;">Autobackup is Off</button>
+    </div> -->
       </div>
     </div>
     <div id="fileInputContainer" class="ui form" style="margin-top: 1em;">
@@ -180,7 +187,9 @@
   </div>
 
   <div id="searchEditVocabContainer"
-    style="display:none; margin-top: 20px; margin-left: 3%; padding: 15px; background-color: #f9f9f9; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 10px;">
+    style="display:none; margin-top: 20px; margin-left: 3%; padding: 15px; background-color: #f9f9f9; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 10px; position: relative;">
+    <button type="button" id="closeSearchEditVocab"
+      style="position: absolute; top: 8px; right: 10px; border: none; background: transparent; font-size: 1.2em; cursor: pointer;">❌</button>
     <div class="ui form">
       <div class="fields">
         <div class="field">
@@ -193,7 +202,8 @@
       <select id="searchOptions" size="5" style="display:none;"></select>
       <form id="editVocabForm" style="display:none; margin-top: 10px;">
         <div class="ui message warning" style="margin-bottom: 1em;">
-          <p style="color: #fa578e;">It is recommended to edit vocabs when the app is not fetching words in the newtab
+          <p style="color: #fa578e;">It is recommended to edit vocabs when the app is not fetching words in
+            the newtab
           </p>
         </div>
         <div class="field">
@@ -235,11 +245,12 @@
             <input type="checkbox" id="editFocus" />
           </div>
         </div>
-        <button type="submit" class="ui button primary">Save Changes</button>
+        <button type="submit" class="ui button primary" id="submitChanges">Save Changes</button>
       </form>
       <div id="searchEditVocabMsg" style="color: red; margin-top: 10px;"></div>
     </div>
   </div>
+
   <pre id="output"></pre>
 
   <div id="popup-overlay"></div>
@@ -269,7 +280,8 @@
         <div class="three wide column"><b>Definition</b></div>
         <div class="two wide column"><b>Collection</b></div>
         <div class="four wide column"><b>Last 4 quiz results</b></div>
-        <div class="four wide column" style="font-size: 1em;">Focused words will show up 10x as frequently; Snoozed
+        <div class="four wide column" style="font-size: 1em;">Focused words will show up 10x as frequently;
+          Snoozed
           words will not show in flashcards.</div>
       </div>
     </div>
@@ -287,8 +299,10 @@
       <button class="ui button primary" id="addBookInContainerButton">Add Book</button>
     </div>
   </div>
+
   <script src="../libs/papaparse.js"></script>
+
   <script type="module" src="manageVocab.js"></script>
 </body>
 
-</html>
+</html> Can you design and beautify this html, no js code is required just html

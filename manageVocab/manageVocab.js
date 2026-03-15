@@ -47,6 +47,8 @@ document.getElementById('clearButton').addEventListener('click', function () {
   }
   chrome.storage.local.clear(function () {
     console.log('Chrome storage local data cleared');
+    clearDisplayFilters();
+    renderBookFilters([]);
     updateVocabList([]);  // Clear the displayed list
   });
 });
@@ -180,19 +182,189 @@ document.getElementById('editVocabForm').addEventListener('submit', function (e)
     vocabList[idx].focus = newFocus;
     chrome.storage.local.set({ vocabList: vocabList }, function () {
       document.getElementById('searchEditVocabMsg').textContent = 'Changes saved.';
-      updateVocabList(vocabList, getCheckedBooks());
+      refreshVocabList(vocabList);
     });
   });
 });
 let selectedVocab;
-function updateVocabList(vocabList, collection = ["all"]) {
+let currentSortOption = '';
+const filterState = {
+  books: new Set(),
+  statuses: new Set()
+};
+const STATUS_FILTERS = [
+  { id: 'lastWrong', label: 'Last attempt wrong' },
+  { id: 'moreThan2Wrong', label: 'More than 2 wrong' },
+  { id: 'focused', label: 'Focused' },
+  { id: 'snoozed', label: 'Snoozed' },
+  { id: 'learned', label: 'Learned' },
+  { id: 'notLearned', label: 'Not learned' },
+  { id: 'revised', label: 'Revised (learned > 2)' },
+  { id: 'allCorrect', label: 'All quiz results correct' }
+];
+const STATUS_CONFLICTS = {
+  learned: ['notLearned'],
+  revised: ['notLearned'],
+  notLearned: ['learned', 'revised'],
+  allCorrect: ['lastWrong', 'moreThan2Wrong'],
+  lastWrong: ['allCorrect'],
+  moreThan2Wrong: ['allCorrect']
+};
+
+function getQuizResults(entry) {
+  return Array.isArray(entry.quizResults) ? entry.quizResults : [];
+}
+
+function matchesStatusFilter(entry, statusId) {
+  const results = getQuizResults(entry);
+  switch (statusId) {
+    case 'lastWrong':
+      return results[0] === 'f';
+    case 'moreThan2Wrong':
+      return results.filter(result => result === 'f').length > 2;
+    case 'focused':
+      return entry.focus === true;
+    case 'snoozed':
+      return entry.snoozed === true;
+    case 'learned':
+      return (entry.learnedTime || 0) > 0;
+    case 'notLearned':
+      return (entry.learnedTime || 0) <= 0;
+    case 'revised':
+      return (entry.learnedTime || 0) > 2;
+    case 'allCorrect':
+      return results.length === 4 && results.every(result => result === 't');
+    default:
+      return false;
+  }
+}
+
+function getDisabledStatusFilters() {
+  const disabled = new Set();
+  filterState.statuses.forEach(statusId => {
+    (STATUS_CONFLICTS[statusId] || []).forEach(conflictId => {
+      if (!filterState.statuses.has(conflictId)) {
+        disabled.add(conflictId);
+      }
+    });
+  });
+  return disabled;
+}
+
+function matchesActiveFilters(entry) {
+  const bookMatch = filterState.books.size === 0 || filterState.books.has(entry.book);
+  const statusMatch = filterState.statuses.size === 0 ||
+    Array.from(filterState.statuses).every(statusId => matchesStatusFilter(entry, statusId));
+  return bookMatch && statusMatch;
+}
+
+function getFilteredVocabList(vocabList) {
+  return vocabList.filter(matchesActiveFilters);
+}
+
+function getVisibleVocabList(vocabList) {
+  return sortVocabList(getFilteredVocabList(vocabList), currentSortOption);
+}
+
+function refreshVocabList(vocabList) {
+  updateVocabList(getVisibleVocabList(vocabList));
+}
+
+function updateFilterButtonStyles(containerSelector, activeSet) {
+  document.querySelectorAll(containerSelector).forEach(button => {
+    const isActive = activeSet.has(button.dataset.filterValue);
+    button.classList.toggle('is-active', isActive);
+  });
+}
+
+function updateStatusFilterButtonStyles() {
+  const disabledStatuses = getDisabledStatusFilters();
+  document.querySelectorAll('#statusFilterList .filter-chip').forEach(button => {
+    const filterId = button.dataset.filterValue;
+    const isActive = filterState.statuses.has(filterId);
+    const isDisabled = disabledStatuses.has(filterId);
+    button.classList.toggle('is-active', isActive);
+    button.classList.toggle('is-muted', isDisabled);
+    button.disabled = isDisabled;
+    button.setAttribute('aria-disabled', isDisabled ? 'true' : 'false');
+  });
+}
+
+function renderBookFilters(bookList = []) {
+  const displayBookList = document.getElementById('displayBookList');
+  if (!displayBookList) {
+    return;
+  }
+  displayBookList.innerHTML = '';
+
+  bookList.filter(Boolean).forEach(book => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'filter-chip';
+    button.dataset.filterValue = book;
+    button.textContent = book;
+    if (filterState.books.has(book)) {
+      button.classList.add('is-active');
+    }
+    button.addEventListener('click', () => {
+      if (filterState.books.has(book)) {
+        filterState.books.delete(book);
+      } else {
+        filterState.books.add(book);
+      }
+      updateFilterButtonStyles('#displayBookList .filter-chip', filterState.books);
+      chrome.storage.local.get('vocabList', function (data) {
+        refreshVocabList(data.vocabList || []);
+      });
+    });
+    displayBookList.appendChild(button);
+  });
+}
+
+function renderStatusFilters() {
+  const statusFilterList = document.getElementById('statusFilterList');
+  if (!statusFilterList) {
+    return;
+  }
+  statusFilterList.innerHTML = '';
+
+  STATUS_FILTERS.forEach(filter => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'filter-chip';
+    button.dataset.filterValue = filter.id;
+    button.textContent = filter.label;
+    button.addEventListener('click', () => {
+      if (button.disabled) {
+        return;
+      }
+      if (filterState.statuses.has(filter.id)) {
+        filterState.statuses.delete(filter.id);
+      } else {
+        filterState.statuses.add(filter.id);
+      }
+      updateStatusFilterButtonStyles();
+      chrome.storage.local.get('vocabList', function (data) {
+        refreshVocabList(data.vocabList || []);
+      });
+    });
+    statusFilterList.appendChild(button);
+  });
+
+  updateStatusFilterButtonStyles();
+}
+
+function clearDisplayFilters() {
+  filterState.books.clear();
+  filterState.statuses.clear();
+  updateFilterButtonStyles('#displayBookList .filter-chip', filterState.books);
+  updateStatusFilterButtonStyles();
+}
+
+function updateVocabList(vocabList) {
   const vocabListContainer = document.getElementById('vocabList');
   vocabListContainer.innerHTML = '';
-  if (collection[0] != "all") {
-    selectedVocab = vocabList.filter(item => collection.includes(item.book));
-  } else {
-    selectedVocab = vocabList
-  }
+  selectedVocab = vocabList;
   var count = 1;
   selectedVocab.forEach((entry, index) => {
     if (entry.word && entry.definition) {
@@ -254,9 +426,11 @@ function updateVocabList(vocabList, collection = ["all"]) {
       deleteButton.textContent = 'Delete';
       deleteButton.addEventListener('click', function () {
         console.log(entry.word)
-        vocabList = vocabList.filter(item => item.word !== entry.word);
-        chrome.storage.local.set({ vocabList: vocabList }, function () {
-          updateVocabList(vocabList, collection);  // Update the displayed list
+        chrome.storage.local.get('vocabList', function (data) {
+          const fullVocabList = (data.vocabList || []).filter(item => item.word !== entry.word);
+          chrome.storage.local.set({ vocabList: fullVocabList }, function () {
+            refreshVocabList(fullVocabList);
+          });
         });
       });
 
@@ -265,11 +439,17 @@ function updateVocabList(vocabList, collection = ["all"]) {
       snoozeButton.style.width = '100px'
       snoozeButton.textContent = entry.snoozed ? 'Unsnooze' : 'Snooze';
       snoozeButton.addEventListener('click', function () {
-        const match = vocabList.find(item => item.word === vocabList[index].word)
-        match.snoozed = !match.snoozed;
+        chrome.storage.local.get('vocabList', function (data) {
+          const fullVocabList = data.vocabList || [];
+          const match = fullVocabList.find(item => item.word === entry.word);
+          if (!match) {
+            return;
+          }
+          match.snoozed = !match.snoozed;
 
-        chrome.storage.local.set({ vocabList: vocabList }, function () {
-          updateVocabList(vocabList);  // Update the displayed list
+          chrome.storage.local.set({ vocabList: fullVocabList }, function () {
+            refreshVocabList(fullVocabList);
+          });
         });
       });
 
@@ -278,10 +458,16 @@ function updateVocabList(vocabList, collection = ["all"]) {
       importantButton.style.width = '100px'
       importantButton.textContent = entry.focus ? 'Unfocus' : 'Focus';
       importantButton.addEventListener('click', function () {
-        const match = vocabList.find(item => item.word === vocabList[index].word)
-        match.focus = match.focus ? false : true;
-        chrome.storage.local.set({ vocabList: vocabList }, function () {
-          updateVocabList(vocabList);  // Update the displayed list
+        chrome.storage.local.get('vocabList', function (data) {
+          const fullVocabList = data.vocabList || [];
+          const match = fullVocabList.find(item => item.word === entry.word);
+          if (!match) {
+            return;
+          }
+          match.focus = match.focus ? false : true;
+          chrome.storage.local.set({ vocabList: fullVocabList }, function () {
+            refreshVocabList(fullVocabList);
+          });
         });
       });
       snoozeButton.style.fontSize = '2vh';
@@ -324,22 +510,6 @@ function updateVocabList(vocabList, collection = ["all"]) {
       vocabListContainer.appendChild(vocabDivDiv);
     }
   });
-}
-function getCheckedBooks() {
-  let checkedBooks = [];
-  document.querySelectorAll('#displayBookList input[type="checkbox"]').forEach(checkbox => {
-    if (checkbox.checked) {
-      checkedBooks.push(checkbox.id);
-    }
-  });
-  return checkedBooks;
-}
-function updateCheckedBooks() {
-
-  chrome.storage.local.get('vocabList', function (data) {
-    let vocabList = data.vocabList || [];
-    updateVocabList(vocabList, getCheckedBooks());
-  })
 }
 function sortVocabList(vocabList, sortBy) {
   if (sortBy === '') {
@@ -430,40 +600,28 @@ function convertToCSV() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+  const clearDisplayFiltersButton = document.getElementById('clearDisplayFiltersButton');
+
   chrome.storage.local.get('vocabList', function (data) {
     if (data.vocabList) {
-      // for (let vocab of data.vocabList) {
-      //   vocab.hasChecked = false;
-      // }
-      // chrome.storage.local.set({ vocabList: data.vocabList });
-      updateVocabList(data.vocabList);
+      refreshVocabList(data.vocabList);
     }
     chrome.storage.local.get({ bookList: [] }, (result) => {
       const bookList = result.bookList;
       console.log(bookList)
-      displayBookList.innerHTML = '';
-      bookList.forEach(book => {
-        let checkboxContainer = document.createElement('div');
-        checkboxContainer.className = 'checkbox-container';
-        let checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = book;
-        checkbox.checked = true; // All books are checked by default
-        checkbox.addEventListener('change', updateCheckedBooks);
-        let label = document.createElement('label');
-        label.htmlFor = book;
-        label.textContent = book;
-        checkboxContainer.appendChild(checkbox);
-        checkboxContainer.appendChild(label);
-        checkboxContainer.classList.add("ui", "checkbox")
-        displayBookList.appendChild(checkboxContainer);
+      renderBookFilters(bookList);
+      renderStatusFilters();
+    });
+  });
+
+  if (clearDisplayFiltersButton) {
+    clearDisplayFiltersButton.addEventListener('click', function () {
+      clearDisplayFilters();
+      chrome.storage.local.get('vocabList', function (data) {
+        refreshVocabList(data.vocabList || []);
       });
     });
-
-
-    // Function to handle the display toggle
-
-  });
+  }
   // chrome.storage.local.get('autoBackup', function (data) {
   //   const autoBackupBtn = document.getElementById('autoBackupBtn');
   //   let isOn = data.autoBackup === true;
@@ -536,14 +694,11 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('sortOptions').addEventListener('change', function () {
     chrome.storage.local.get('vocabList', function (data) {
       if (data.vocabList) {
-        const vocabList = data.vocabList
-        const sortBy = document.getElementById('sortOptions').value;
-        const sortedVocabList = sortVocabList(vocabList, sortBy);
-        updateVocabList(sortedVocabList, getCheckedBooks());
+        currentSortOption = document.getElementById('sortOptions').value;
+        refreshVocabList(data.vocabList);
       }
     });
   });
-  const displayBookList = document.getElementById('displayBookList');
   const manageBookButton = document.getElementById('manageBookButton');
   const deleteCheckedDataButton = document.getElementById('deleteCheckedDataButton');
   const floatingContainer = document.getElementById('floatingContainer');
@@ -551,10 +706,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const bookListContainer = document.getElementById('bookListContainer');
   const newBookInContainer = document.getElementById('newBookInContainer');
   const addBookInContainerButton = document.getElementById('addBookInContainerButton');
-  const bookSelector = document.getElementById('bookSelector');
-  const newBookField = document.getElementById('newBookField');
-  //const addBookButton = document.getElementById('addBookButton');
-  const newBookInput = document.getElementById('newBook');
   // bookSelector.addEventListener('change', () => {
   //   if (bookSelector.value === 'add New Vocab collection') {
   //     newBookField.style.display = 'block';
@@ -611,10 +762,13 @@ document.addEventListener('DOMContentLoaded', function () {
               vocabList = vocabList.filter(item => item.book !== collectionToBeDeleted);
               console.log(console.length)
               chrome.storage.local.set({ vocabList: vocabList }, function () {
-                updateVocabList(vocabList);  // Update the displayed list
+                filterState.books.delete(collectionToBeDeleted);
+                refreshVocabList(vocabList);
               });
               bookList.splice(index, 1);
               chrome.storage.local.set({ bookList }, () => {
+                renderBookFilters(bookList);
+                populateBookSelector2();
                 showFloatingContainer(); // Refresh the list
               });
             });
@@ -638,8 +792,9 @@ document.addEventListener('DOMContentLoaded', function () {
           chrome.storage.local.set({ bookList }, () => {
             alert(`"${newBook}" has been added to the book list.`);
             newBookInContainer.value = '';
+            renderBookFilters(bookList);
+            populateBookSelector2();
             showFloatingContainer(); // Refresh the list
-            populateBookSelector(); // Update the book selector
           });
         } else {
           alert(`"${newBook}" is already in the book list.`);
@@ -662,7 +817,7 @@ document.addEventListener('DOMContentLoaded', function () {
           vocab.hasChecked = false;
         }
         chrome.storage.local.set({ vocabList: data.vocabList });
-        updateVocabList(data.vocabList);
+        refreshVocabList(data.vocabList);
       }
     });
   });
@@ -699,11 +854,12 @@ document.addEventListener('DOMContentLoaded', function () {
               chrome.storage.local.get('vocabList', function (data) {
                 let currentData = data.vocabList || [];
                 currentData = [...currentData, ...jsonData.vocabList]
-                chrome.storage.local.set({ vocabList: currentData }, () => {
+              chrome.storage.local.set({ vocabList: currentData }, () => {
                   if (chrome.runtime.lastError) {
                     console.error("Error saving merged data:", chrome.runtime.lastError);
                   } else {
                     console.log("Merged data saved to chrome.storage.local");
+                    refreshVocabList(currentData);
                   }
                 });
               })
@@ -726,6 +882,8 @@ document.addEventListener('DOMContentLoaded', function () {
                   console.error("Error saving bookList:", chrome.runtime.lastError);
                 } else {
                   console.log("bookList saved:", bookList);
+                  renderBookFilters(bookList);
+                  populateBookSelector2();
                 }
               });
             });

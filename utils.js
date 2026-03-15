@@ -1744,7 +1744,6 @@ export function getEligibleVocabs(vocabList, func = () => false, needSeen = fals
     const seenCondition = needSeen ? entry.seen > 3 : true;
     return (seenCondition || func(entry)) && entry.word.length > 0 && entry.definition.length > 0;
   });
-  console.log(eligibleVocab);
   return eligibleVocab;
 }
 export function setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition) {

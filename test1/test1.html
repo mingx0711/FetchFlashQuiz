@@ -1,195 +1,420 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Test Flashcards</title>
+  <link rel="stylesheet" href="../libs/semantic.css">
   <style>
-    .init-container {
-      margin: 24px auto;
-      padding: 32px 24px 24px;
-      width: 50vw;
-      max-width: 90vw;
-      height: 80vh;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lexend:wght@400;500;600&display=swap');
 
-      background: #fffdfa;
-      border: 2px dashed #b8a9a7;
-      border-radius: 16px;
-
-      /* Add subtle shadow and transition */
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      transition: box-shadow 0.3s ease, transform 0.2s ease;
-
-      /* Layout */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-
-      /* For inner content spacing */
-      position: relative;
+    :root {
+      --bg-main: #fcfaf7;
+      --accent-sage: #607059;
+      --soft-red: #ffaba7;
+      --text-dark: #272623;
+      --text-soft: #7a786f;
+      --card-bg: #ffffff;
+      --option-hover: #f1ede8;
+      --border-soft: #f0ede8;
+      --success-bg: #e7f5e9;
+      --success-text: #1b5e20;
+      --error-bg: #fff1f1;
+      --error-text: #c62828;
     }
 
-    .init-container b {
-      font-size: 1.5vw;
-      margin-bottom: 15px;
-      display: block;
-      color: #5a4f4d;
-    }
-
-    #bookSelector {
-      margin-bottom: 32px;
-      font-size: 1.1vw;
-      width: 80%;
-      min-width: 180px;
-      max-width: 320px;
-      padding: 8px 12px;
-      border-radius: 6px;
-      border: 1px solid #b8a9a7;
+    * {
+      box-sizing: border-box;
     }
 
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-dark);
+      margin: 0;
       padding: 20px;
+    }
+
+    h1,
+    h2,
+    h3,
+    b,
+    .brand,
+    #wordDiv,
+    #quizQuestion,
+    #trueFalseQuestion {
+      font-family: 'Lexend', sans-serif;
+    }
+
+    .page-shell {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .step-pill {
+      background: white;
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent-sage);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border-soft);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .init-container,
+    .flashcard,
+    .quiz-container,
+    .true-false-container,
+    #correctDefinition,
+    #showTestResult,
+    #donzo.ui.message,
+    #wrongCountDiv.ui.segment {
+      background: var(--card-bg);
+      border-radius: 24px;
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    .init-container {
+      margin: 28px auto;
+      max-width: 760px;
+      padding: 40px;
+      min-height: auto;
+      height: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      position: relative;
+      top: 0 !important;
+    }
+
+    .setup-header {
+      text-align: center;
+    }
+
+    .setup-header h1 {
+      margin: 10px 0 8px;
+      font-size: clamp(2rem, 4vw, 3rem);
+      letter-spacing: -0.04em;
+    }
+
+    .setup-copy {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .section-label,
+    .area-label {
+      font-size: 0.78rem !important;
+      font-weight: 700;
+      color: #9a958d;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    #bookSelector {
+      appearance: auto;
+      -webkit-appearance: menulist;
+      width: 100%;
+      height: 52px;
+      padding: 14px 16px;
+      padding-right: 42px;
+      border-radius: 14px;
+      border: 1px solid var(--border-soft);
+      font-size: 1rem;
+      line-height: 1.2;
+      background: #fff;
+      color: var(--text-dark);
+      min-width: 0;
+      max-width: none;
+      margin: 0 !important;
+      display: block;
+      overflow: visible;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    input[type="radio"],
+    input[type="checkbox"] {
+      accent-color: var(--accent-sage);
+      width: 1.1rem;
+      height: 1.1rem;
+      cursor: pointer;
+    }
+
+    #focusSelectorGroup,
+    .checkbox-group {
+      display: flex !important;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 0 !important;
+      font-size: 0.95rem !important;
+    }
+
+    #focusSelectorGroup label,
+    .checkbox-group label {
+      background: #fdfcfb;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border-soft);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-dark);
+      font-weight: 600;
+      min-height: 44px;
+      width: auto;
+      white-space: nowrap;
+    }
+
+    #focusSelectorGroup label:hover,
+    .checkbox-group label:hover {
+      border-color: var(--accent-sage);
+      background: var(--option-hover);
+    }
+
+    #focusSelectorGroup label:has(input:checked),
+    .checkbox-group label:has(input:checked) {
+      border-color: var(--accent-sage);
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(96, 112, 89, 0.1);
+    }
+
+    #focusSelectorGroup label input,
+    .checkbox-group label input {
+      flex: 0 0 auto;
+    }
+
+    #testCollectionBtn {
+      background: var(--accent-sage) !important;
+      color: #fff !important;
+      border-radius: 16px !important;
+      padding: 18px 20px !important;
+      font-size: 1rem !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.02em;
+      margin-top: 8px !important;
+      align-self: stretch;
+    }
+
+    #wrongCountDiv.ui.segment {
+      margin: 0 auto 18px;
+      max-width: 720px;
+      padding: 18px 22px;
+      text-align: center;
+      font-weight: 700;
+      color: var(--accent-sage);
+      font-size: 0.95rem;
+    }
+
+    #donzo.ui.message {
+      display: none;
+      max-width: 720px;
+      margin: 0 auto 20px;
+      padding: 24px 28px;
+      color: var(--success-text);
+      background: #eef8ef;
+      font-size: 1rem;
+      font-weight: 600;
       text-align: center;
     }
 
     .flashcard {
-      margin: 10px 0;
-      padding: 20px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      display: inline-block;
-    }
-
-    .quiz-container,
-    .true-false-container {
-      display: none;
-    }
-
-    .quiz-option {
-      margin-top: 10px;
+      margin: 20px auto;
+      padding: 34px 32px;
       display: block;
-      width: 100%;
+      max-width: 720px;
+      text-align: center;
+      background-color: #fff !important;
     }
 
-    #correctMessage,
-    #incorrectMessage {
-      display: none;
-      font-weight: bold;
+    #wordDiv {
+      font-weight: 600;
+      color: var(--text-dark);
+      letter-spacing: -0.03em;
+      font-size: clamp(2.4rem, 5.6vw, 4.6rem) !important;
+      line-height: 1;
     }
 
-    #correctMessage {
-      color: green;
+    .ui.horizontal.divider {
+      width: 82%;
+      margin: 1.25rem auto !important;
+      color: #d6d1ca !important;
+      height: auto !important;
     }
 
-    #incorrectMessage {
-      color: red;
-    }
-
-    #nextAfterIncorrectButton {
-      display: none;
-      margin-top: 10px;
+    #defDiv {
+      color: var(--accent-sage);
+      font-size: clamp(1.45rem, 3.4vw, 2.35rem) !important;
+      line-height: 1.35;
+      margin-top: 0.75rem;
     }
 
     .quiz-container,
     .true-false-container {
       display: none;
-      margin: 0 auto 18px auto;
-      max-width: 80vw;
-      background: #fffdfa;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
-      padding: 24px 0 18px 0;
+      margin: 0 auto 18px;
+      max-width: 720px;
+      padding: 32px;
     }
 
     .quiz-container p,
     .true-false-container p {
-      font-size: 2.5vw;
-      margin-bottom: 18px;
-      color: #5a4f4d;
-      font-weight: bold;
+      font-size: clamp(1.6rem, 4vw, 2.5rem) !important;
+      margin: 0 0 18px;
+      color: var(--text-dark);
+      font-weight: 600;
+      line-height: 1.25;
+      letter-spacing: -0.03em;
     }
 
     .quiz-option,
     .true-false-container .ui.button {
-      font-size: 1.5vw;
-      margin: 10px 12px 0 12px;
-      padding: 12px 24px;
-      border-radius: 8px;
-      border: 2px solid #b8a9a7;
-      background: #fdf4e2;
-      color: #4b5437;
-      font-weight: bold;
-      transition: background 0.2s, box-shadow 0.2s;
-      min-width: 120px;
-      box-shadow: 0 2px 8px rgba(90, 79, 77, 0.06);
-      display: inline-block;
+      width: 100% !important;
+      margin: 10px 0 0 !important;
+      padding: 18px !important;
+      border-radius: 14px !important;
+      background: #ffffff !important;
+      border: 2px solid var(--border-soft) !important;
+      font-size: 1.05rem !important;
+      font-weight: 600 !important;
+      color: var(--text-dark) !important;
+      transition: all 0.2s ease !important;
+      text-align: left !important;
+      box-shadow: none !important;
     }
 
     .quiz-option:hover,
-    .true-false-container .ui.button:hover {
-      background: #ffe9c7;
-      box-shadow: 0 4px 16px rgba(90, 79, 77, 0.10);
+    .true-false-container .ui.button:hover,
+    #testCollectionBtn:hover,
+    #redo:hover,
+    #nextAfterIncorrectButton:hover,
+    #end:hover {
+      border-color: var(--accent-sage) !important;
+      background: var(--option-hover) !important;
+      color: var(--text-dark) !important;
+      box-shadow: 0 4px 12px rgba(96, 112, 89, 0.12) !important;
     }
 
-    #counter {
-      font-size: 2vw;
-      color: #5a4f4d;
-      margin: 18px 0 10px 0;
-      font-weight: bold;
-      text-align: center;
+    .true-false-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    .true-false-actions .ui.button {
+      margin: 0 !important;
+      text-align: center !important;
+      font-size: 1.1rem !important;
+    }
+
+    #correctCountDiv {
+      position: fixed !important;
+      bottom: 24px !important;
+      right: 24px !important;
+      font-size: 0.8rem !important;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--text-soft);
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--border-soft);
+      border-radius: 999px;
+      padding: 10px 14px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    #end {
+      position: fixed !important;
+      bottom: 74px !important;
+      right: 24px !important;
+      background: #272623 !important;
+      color: #fff !important;
+      border-radius: 14px !important;
+      padding: 14px 18px !important;
+      font-size: 0.95rem !important;
+      font-weight: 700 !important;
     }
 
     #correctMessage,
     #incorrectMessage {
       display: none;
-      font-weight: bold;
-      margin: 18px auto 0 auto;
-      width: 320px;
-      font-size: 2vw;
+      font-weight: 600;
+      margin: 0 auto 14px;
+      width: min(540px, 100%);
+      font-size: 1rem !important;
       text-align: center;
-      border-radius: 8px;
-      padding: 10px 0;
+      border-radius: 16px;
+      padding: 18px 20px !important;
+      border: none !important;
+      box-shadow: none !important;
     }
 
     #correctMessage {
-      color: #2e7d32;
-      background: #e6f7e6;
-    }
-
-    #testCollectionBtn:hover {
-      background: #ffe9c7;
-      box-shadow: 0 4px 16px rgba(90, 79, 77, 0.10);
-    }
-
-    .ui.segment#wrongCountDiv {
-      margin: 30px auto 10px auto;
-      max-width: 600px;
-      background: #fffdfa;
-      border-radius: 12px;
-      box-shadow: 0 4px 24px rgba(90, 79, 77, 0.08), 0 1.5px 6px rgba(90, 79, 77, 0.10);
-      font-size: 1.2em;
-      font-weight: bold;
-      color: #5a4f4d;
-      text-align: center;
+      color: var(--success-text);
+      background: #eef8ef;
     }
 
     #incorrectMessage {
-      color: #c62828;
-      background: #ffeaea;
+      color: var(--error-text);
+      background: #fff0f0;
     }
 
     #correctDefinition {
-      background-color: #ebebe9;
-      height: 120px;
-      font-size: 1.5vw;
-      margin: 18px auto 0 auto;
-      border-radius: 10px;
-      padding: 18px 0;
-      max-width: 90vw;
+      background-color: #fff !important;
+      min-height: 150px;
+      height: auto;
+      font-size: 1.1rem !important;
+      margin: 0 auto 18px;
+      padding: 24px 28px;
+      max-width: 720px;
       display: flex;
       align-items: center;
       justify-content: center;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    #nextButton {
+      display: none;
+    }
+
+    #nextAfterIncorrectButton {
+      display: none;
+      margin: 0 auto 18px !important;
+      border-radius: 16px !important;
+      background: var(--accent-sage) !important;
+      color: #fff !important;
+      padding: 18px 28px !important;
+      font-size: 1rem !important;
+      font-weight: 700 !important;
+      position: static !important;
+      left: auto !important;
+    }
+
+    #showTestResult {
+      max-width: 760px;
+      margin: 20px auto;
+      padding: 32px;
+      text-align: center;
+    }
+
+    #showTestResult h2 {
+      margin: 0 0 18px;
+      font-size: clamp(1.8rem, 4vw, 2.8rem) !important;
+      color: var(--text-dark) !important;
+      letter-spacing: -0.03em;
     }
 
     #quizChart1,
@@ -198,100 +423,154 @@
       max-height: 300px;
       width: 100%;
       height: auto;
-      margin: 0 auto;
+      margin: 0 auto 18px;
       display: block;
     }
+
+    #redo {
+      border-radius: 16px !important;
+      padding: 16px 22px !important;
+      background: #f1ede8 !important;
+      color: var(--text-dark) !important;
+      font-weight: 700 !important;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        padding: 14px 12px 90px;
+      }
+
+      .init-container,
+      .flashcard,
+      .quiz-container,
+      .true-false-container,
+      #correctDefinition,
+      #showTestResult,
+      #donzo.ui.message,
+      #wrongCountDiv.ui.segment {
+        border-radius: 20px;
+      }
+
+      .init-container,
+      .quiz-container,
+      .true-false-container,
+      #showTestResult {
+        padding: 20px 18px;
+      }
+
+      .true-false-actions {
+        grid-template-columns: 1fr;
+      }
+
+      #focusSelectorGroup label,
+      .checkbox-group label {
+        white-space: normal;
+      }
+
+      #correctCountDiv,
+      #end {
+        position: static !important;
+        display: block;
+        margin: 12px auto 0;
+        width: fit-content;
+      }
+
+      #end {
+        display: none !important;
+      }
+    }
   </style>
-  <link rel="stylesheet" href="../libs/semantic.css">
 </head>
 
 <body>
-  <div class="init-container" style="top: 10px;
-    margin: auto ;border: 3px;
-    position: relative;
-    " id="initContainer">
-    <b style="font-size: 1.5vw;">Select the collection that you want to test. You can close this tab anytime you want,
-      the result of a test will be updated in /manageVocabs</b>
-    <select class="ui search dropdown" id="bookSelector" style="margin:auto; 
-    margin-bottom: 20px;
-    display: block;
-    font-size: 1vwpx;
-    "></select>
-    <b style="font-size: 1.5vw;">Anything you want to focus on today?</b>
-    <div id="focusSelectorGroup"
-      style="font-size: 1vw; display: flex; flex-wrap: wrap; gap: 1vw; align-items: center; margin-bottom: 20px;">
-      <label><input type="radio" name="focusOption" value="none" checked> No, just test</label>
-      <label><input type="radio" name="focusOption" value="gender"> Gender</label>
-      <label><input type="radio" name="focusOption" value="pronunciation"> Pronunciation</label>
-      <label><input type="radio" name="focusOption" value="definition"> Definition</label>
-      <label><input type="radio" name="focusOption" value="inflection"> Inflection</label>
-      <label><input type="radio" name="focusOption" value="listening"> Transcribing</label>
-      <label><input type="radio" name="focusOption" value="listeningMCQ"> Listening MCQ</label>
+  <div class="page-shell">
+    <div class="init-container" id="initContainer">
+      <div class="setup-header">
+        <h1>Test Flashcards</h1>
+      </div>
+
+      <div>
+        <label class="section-label" for="bookSelector">Your Collection</label>
+        <select class="ui search dropdown" id="bookSelector"></select>
+      </div>
+
+      <div>
+        <label class="section-label">Anything you want to focus on today?</label>
+        <div id="focusSelectorGroup">
+          <label><input type="radio" name="focusOption" value="none" checked> No, just test</label>
+          <label><input type="radio" name="focusOption" value="gender"> Gender</label>
+          <label><input type="radio" name="focusOption" value="pronunciation"> Pronunciation</label>
+          <label><input type="radio" name="focusOption" value="definition"> Definition</label>
+          <label><input type="radio" name="focusOption" value="inflection"> Inflection</label>
+          <label><input type="radio" name="focusOption" value="listening"> Transcribing</label>
+          <label><input type="radio" name="focusOption" value="listeningMCQ"> Listening MCQ</label>
+        </div>
+      </div>
+
+      <div>
+        <label class="section-label area-label">Select coverage</label>
+        <div class="checkbox-group">
+          <label><input type="checkbox" name="coverage" value="all" checked> All</label>
+          <label><input type="checkbox" name="coverage" value="learned"> Learned words</label>
+          <label><input type="checkbox" name="coverage" value="focus"> Focused words</label>
+          <label><input type="checkbox" name="coverage" value="freq"> Mistaken words</label>
+        </div>
+      </div>
+
+      <button class="ui button" id="testCollectionBtn">Test Collection</button>
     </div>
-    <label style="font-size: 1.5vw;" class="area-label">Select coverage</label>
-    <div style="margin-bottom: 5px;font-size: 1vw;" class="checkbox-group">
-      <label><input type="checkbox" name="coverage" value="all" checked> All</label>
-      <label><input type="checkbox" name="coverage" value="learned"> Learned words</label>
-      <label><input type="checkbox" name="coverage" value="focus"> Focused words</label>
-      <label><input type="checkbox" name="coverage" value="freq"> Mistaken words</label>
+
+    <div class="ui segment" id="wrongCountDiv"></div>
+
+    <div id="donzo" class="ui message">
+      Congrats, you have gone through all your vocabs
     </div>
-    <button style="font-size: 1vw;display: inline-flex;" class="ui button" id="testCollectionBtn">Test
-      Collection</button>
-  </div>
+
+    <div id="vocabFlashcard" class="flashcard">
+      <div id="wordDiv"></div>
+      <div class="ui horizontal divider"></div>
+      <div id="defDiv"></div>
+    </div>
+
+    <div class="quiz-container" id="quizContainer">
+      <p id="quizQuestion"></p>
+      <button class="ui circular icon button mx-auto mb-6" id="speakQuiz"
+        style="display: none; width: 50px; height: 50px;">
+        &#128266;
+      </button>
+      <button class="ui quiz-option" id="option1"></button>
+      <button class="ui quiz-option" id="option2"></button>
+      <button class="ui quiz-option" id="option3"></button>
+      <button class="ui quiz-option" id="option4"></button>
+    </div>
+
+    <div class="true-false-container" id="trueFalseContainer">
+      <p id="trueFalseQuestion"></p>
+      <div class="true-false-actions">
+        <button class="ui button" id="trueButton">True</button>
+        <button class="ui button" id="falseButton">False</button>
+      </div>
+    </div>
+
+    <p id="correctCountDiv"></p>
+    <button class="ui button" id="end">End Test</button>
+
+    <p class="ui message" id="correctMessage">Correct!</p>
+    <p class="ui message" id="incorrectMessage">Incorrect! The correct definition is:</p>
+    <div id="correctDefinition" class="ui flashcard"></div>
+    <div id="nextButton"></div>
+    <button class="ui button" id="nextAfterIncorrectButton">Next</button>
+
+    <div class="container" id="showTestResult" style="display: none;">
+      <h2>Test Results</h2>
+      <canvas id="quizChart1" width="600" height="300"></canvas>
+      <canvas id="trendChart" width="600" height="300"></canvas>
+      <button class="ui button" id="redo">Redo wrong vocabs</button>
+    </div>
   </div>
 
-  <div class="ui segment" id="wrongCountDiv"></div>
-  <div style="display: none; font-size: 2.5vw;" id="donzo" class="ui message">
-    Congrats, you have gone through all your vocabs
-  </div>
-  <div id="vocabFlashcard" class="flashcard" style="background-color:#ebebe9;margin: auto ;">
-    <div style="font-size: 2vw;color:#272623;" id="wordDiv"></div>
-    <div class="ui horizontal divider" style="color:#545150; height: 5px"></div>
-    <div style="font-size: 2vw; color:#494845;" id="defDiv"></div>
-  </div>
-  <div class="quiz-container" style="top: 2%;margin: auto ;" id="quizContainer">
-    <p style="font-size: 3.5vw;" id="quizQuestion"></p>
-    <button class="ui button" id="speakQuiz"
-      style="background-color: transparent;display: none;border: none; outline: none;font-size: 4vh;">&#128266;</button>
-    <br>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 10px; border: 10px; border-color: #607059;"
-      class="ui quiz-option" id="option1"></button>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 10px;border: 10px; border-color: #607059;"
-      class="ui quiz-option" id="option2"></button>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 10px;border: 10px; border-color: #607059;"
-      class="ui quiz-option" id="option3"></button>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 10px;border: 10px; border-color: #607059;"
-      class="ui quiz-option" id="option4"></button>
-  </div>
-  <div class="true-false-container" style="top: 2%;margin: auto ;" id="trueFalseContainer">
-    <p style="font-size: 3.5vw;" id="trueFalseQuestion"></p>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;" class="ui button"
-      id="trueButton">True</button>
-    <button style="font-size: 2vw;margin: auto ;margin-top: 30px;border: 10px; border-color: #607059;" class="ui button"
-      id="falseButton">False</button>
-  </div>
-  <p style="font-size: 2vh; position: fixed; bottom: 5%; right: 10%;" id="correctCountDiv"></p>
-  <button style="font-size: 2.5vh;position: fixed; bottom: 10%; right: 10%;display : none" class="ui button"
-    id="end">End Test</button>
-  <p class="ui message" id="correctMessage"
-    style="margin: auto ;width: 300px; margin-top: 10px ; font-size:2vw; text-align: center;">Correct!</p>
-  <p class="ui message" id="incorrectMessage" style=" text-align: center;">Incorrect! The correct definition is:</p>
-  <div id="correctDefinition" class="ui flashcard"
-    style="background-color:#ebebe9;height:200px; font-size: 2vw ;margin: auto ;"></div>
-  <div id="nextButton" style="display: none;"></div>
-  <button class="ui button" id="nextAfterIncorrectButton"
-    style="position: relative ; left:50% ; margin-top: 50px">Next</button>
-  <div class="container" style="top: 2%;margin: auto ; display: none;" id="showTestResult">
-    <h2 style="font-size: 3vw; color: #5a4f4d;">Test Results</h2>
-    <canvas id="quizChart1" width="600" height="300"></canvas>
-    <canvas id="trendChart" width="600" height="300"></canvas>
-    <button class="ui button" id="redo">Redo wrong vocabs</button>
-
-  </div>
   <script src="chart.js"></script>
   <script type="module" src="test1.js"></script>
-  </div>
-
 </body>
 
 </html>

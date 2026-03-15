@@ -158,6 +158,7 @@ async function getLinkedAttributes(doc, word, lang) {
   // Call the shared utils function
   const wordSearched = word;
   vocab = await utils.getLinkedAttributes(doc, word, lang, book)
+  console.log(vocab)
   if (typeof vocab === 'string') {
     document.getElementById("vocabInfoInfInfs").style.display = 'block'
     document.getElementById('addAuto').style.display = 'none'
@@ -168,7 +169,7 @@ async function getLinkedAttributes(doc, word, lang) {
   if (lang === 'zh') {
     vocab.word = wordSearched;
   }
-  if (vocab.word != "" && vocab.definition !== "") {
+  if (vocab && vocab.word != "" && vocab.definition !== "") {
     vocabInfo.innerHTML = '';
     vocabInfo.innerHTML += `word: <span style="font-weight: bold;">${vocab.word}</span>`;
     vocabInfo.innerHTML += `<br>\n definition: <span style="font-weight: bold;">${vocab.definition}</span>`;

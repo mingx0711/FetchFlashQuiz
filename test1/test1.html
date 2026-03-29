@@ -497,11 +497,14 @@
       <div>
         <label class="section-label">Anything you want to focus on today?</label>
         <div id="focusSelectorGroup">
-          <label><input type="radio" name="focusOption" value="none" checked> No, just test</label>
+          <label><input type="radio" name="focusOption" value="none" checked> Everything </label>
           <label><input type="radio" name="focusOption" value="gender"> Gender</label>
           <label><input type="radio" name="focusOption" value="pronunciation"> Pronunciation</label>
           <label><input type="radio" name="focusOption" value="definition"> Definition</label>
-          <label><input type="radio" name="focusOption" value="inflection"> Inflection</label>
+          <label id="inflectionFocusOption"><input type="radio" name="focusOption" value="inflection"> Latin
+            Inflection</label>
+          <label id="germanPerfektFocusOption"><input type="radio" name="focusOption" value="germanPerfekt"> German
+            Perfekt Tense</label>
           <label><input type="radio" name="focusOption" value="listening"> Transcribing</label>
           <label><input type="radio" name="focusOption" value="listeningMCQ"> Listening MCQ</label>
         </div>
@@ -550,6 +553,16 @@
         <button class="ui button" id="trueButton">True</button>
         <button class="ui button" id="falseButton">False</button>
       </div>
+    </div>
+
+    <div class="init-container" id="SpellingContainer" style="display: none; max-width: 600px;">
+      <p id="spellingQuestion" style="font-size: 4.5vh;"></p>
+      <input class="ui input" type="text" id="answer" placeholder="Type your answer..."
+        style="width: 100%; padding: 18px 24px; font-size: 1.1rem; border: 2px solid var(--border-soft); border-radius: 16px; margin-top: 10px;">
+      <button class="ui button" id="checkButton"
+        style="margin-top: 14px; border-radius: 16px; background: var(--accent-sage); color: #fff; padding: 16px 22px; font-size: 1rem; font-weight: 700;">
+        Check Answer
+      </button>
     </div>
 
     <p id="correctCountDiv"></p>

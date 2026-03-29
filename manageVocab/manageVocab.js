@@ -42,14 +42,21 @@ chrome.storage.local.getBytesInUse(null, function (bytesInUse) {
 //   chrome.tabs.create({ url: 'inflections/inflections.html' });
 // });
 document.getElementById('clearButton').addEventListener('click', function () {
-  if (!confirm('Are you sure you want to clear all vocabulary data? This action cannot be undone.')) {
+  if (!confirm('Are you sure you want to clear all vocabulary data? A backup JSON of vocabList will be downloaded first.')) {
     return;
   }
-  chrome.storage.local.clear(function () {
-    console.log('Chrome storage local data cleared');
-    clearDisplayFilters();
-    renderBookFilters([]);
-    updateVocabList([]);  // Clear the displayed list
+
+  chrome.storage.local.get('vocabList', function (data) {
+    const vocabBackup = { vocabList: data.vocabList || [] };
+
+    utils.exportToJson(vocabBackup, function () {
+      chrome.storage.local.remove('vocabList', function () {
+        console.log('Chrome storage local vocabList cleared');
+        clearDisplayFilters();
+        renderBookFilters([]);
+        updateVocabList([]);
+      });
+    }, 'vocabList-backup-');
   });
 });
 document.getElementById('searchEditVocabBtn').addEventListener('click', function () {
@@ -131,7 +138,6 @@ document.getElementById('doSearchVocabBtn').addEventListener('click', function (
     // Populate form
     document.getElementById('editWord').innerHTML = "Word: " + vocab.word || '';
     document.getElementById('editDefinition').value = vocab.definition || '';
-    console.log(vocab.book)
     chrome.storage.local.get({ bookList: [] }, (result) => {
       const bookList = result.bookList || [];
       const editCollection = document.getElementById('editCollection');
@@ -188,6 +194,7 @@ document.getElementById('editVocabForm').addEventListener('submit', function (e)
 });
 let selectedVocab;
 let currentSortOption = '';
+let isTestModeEnabled = false;
 const filterState = {
   books: new Set(),
   statuses: new Set()
@@ -199,7 +206,7 @@ const STATUS_FILTERS = [
   { id: 'snoozed', label: 'Snoozed' },
   { id: 'learned', label: 'Learned' },
   { id: 'notLearned', label: 'Not learned' },
-  { id: 'revised', label: 'Revised (learned > 2)' },
+  { id: 'revised', label: 'Revised (learned >= 2)' },
   { id: 'allCorrect', label: 'All quiz results correct' }
 ];
 const STATUS_CONFLICTS = {
@@ -231,7 +238,7 @@ function matchesStatusFilter(entry, statusId) {
     case 'notLearned':
       return (entry.learnedTime || 0) <= 0;
     case 'revised':
-      return (entry.learnedTime || 0) > 2;
+      return (entry.learnedTime || 0) > 1;
     case 'allCorrect':
       return results.length === 4 && results.every(result => result === 't');
     default:
@@ -268,6 +275,21 @@ function getVisibleVocabList(vocabList) {
 
 function refreshVocabList(vocabList) {
   updateVocabList(getVisibleVocabList(vocabList));
+}
+
+function updateTestModeUI() {
+  const toggleTestModeButton = document.getElementById('toggleTestModeButton');
+  const removeDuplicateWordsButton = document.getElementById('removeDuplicateWordsButton');
+  const deleteCheckedDataButton = document.getElementById('deleteCheckedDataButton');
+  if (toggleTestModeButton) {
+    toggleTestModeButton.textContent = isTestModeEnabled ? 'Dev Mode: On' : 'Dev Mode: Off';
+  }
+  if (removeDuplicateWordsButton) {
+    removeDuplicateWordsButton.style.display = isTestModeEnabled ? 'inline' : 'none';
+  }
+  if (deleteCheckedDataButton) {
+    deleteCheckedDataButton.style.display = isTestModeEnabled ? 'inline' : 'none';
+  }
 }
 
 function updateFilterButtonStyles(containerSelector, activeSet) {
@@ -606,6 +628,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (data.vocabList) {
       refreshVocabList(data.vocabList);
     }
+    console.log(data.vocabList)
+
     chrome.storage.local.get({ bookList: [] }, (result) => {
       const bookList = result.bookList;
       console.log(bookList)
@@ -700,12 +724,22 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
   const manageBookButton = document.getElementById('manageBookButton');
+  const removeDuplicateWordsButton = document.getElementById('removeDuplicateWordsButton');
+  const toggleTestModeButton = document.getElementById('toggleTestModeButton');
   const deleteCheckedDataButton = document.getElementById('deleteCheckedDataButton');
   const floatingContainer = document.getElementById('floatingContainer');
   const closeButton = document.getElementById('closeButton');
+  const resetCheckedCollectionContainer = document.getElementById('resetCheckedCollectionContainer');
+  const closeResetCheckedContainer = document.getElementById('closeResetCheckedContainer');
+  const resetCheckedCollectionList = document.getElementById('resetCheckedCollectionList');
   const bookListContainer = document.getElementById('bookListContainer');
   const newBookInContainer = document.getElementById('newBookInContainer');
   const addBookInContainerButton = document.getElementById('addBookInContainerButton');
+
+  chrome.storage.local.get({ isTestModeEnabled: false }, (result) => {
+    isTestModeEnabled = result.isTestModeEnabled === true;
+    updateTestModeUI();
+  });
   // bookSelector.addEventListener('change', () => {
   //   if (bookSelector.value === 'add New Vocab collection') {
   //     newBookField.style.display = 'block';
@@ -781,6 +815,130 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  function hideResetCheckedCollectionContainer() {
+    resetCheckedCollectionContainer.style.display = 'none';
+  }
+
+  function normalizeWordTypeLabel(wordType) {
+    if (typeof wordType !== 'string' || wordType.trim() === '') {
+      return null;
+    }
+    return wordType.trim().toLowerCase();
+  }
+
+  function formatWordTypeLabel(wordType) {
+    return wordType
+      .split(/[\s_-]+/)
+      .filter(Boolean)
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  }
+
+  function resetCheckedDataForCollection(collectionName, wordTypeFilter, buttonLabel) {
+    const proceed = confirm(
+      'With 1.9.7.3 update, FLIZ can fetch usage and quotation data from wiktionary. ' +
+      `By proceeding, FLIZ will add usage and quotation data to ${buttonLabel.toLowerCase()} vocab entries in "${collectionName}" one by one. ` +
+      'All other data will not be lost.\n\nProceed?'
+    );
+    if (!proceed) {
+      return;
+    }
+
+    chrome.storage.local.get('vocabList', function (data) {
+      const vocabList = data.vocabList || [];
+      vocabList.forEach(vocab => {
+        const normalizedWordType = normalizeWordTypeLabel(vocab.wordType);
+        const matchesWordType = wordTypeFilter === '__OTHER_TYPES__'
+          ? normalizedWordType === null || normalizedWordType === 'other' || normalizedWordType === 'tbd'
+          : normalizedWordType === wordTypeFilter;
+        if (vocab.book === collectionName && matchesWordType) {
+          vocab.hasChecked = false;
+        }
+      });
+      chrome.storage.local.set({ vocabList }, function () {
+        refreshVocabList(vocabList);
+        hideResetCheckedCollectionContainer();
+      });
+    });
+  }
+
+  function showResetCheckedCollectionContainer() {
+    chrome.storage.local.get({ bookList: [], vocabList: [] }, (result) => {
+      const bookList = (result.bookList || []).filter(Boolean);
+      const vocabList = result.vocabList || [];
+      resetCheckedCollectionList.innerHTML = '';
+
+      if (bookList.length === 0) {
+        const emptyState = document.createElement('div');
+        emptyState.textContent = 'No collections available.';
+        resetCheckedCollectionList.appendChild(emptyState);
+      } else {
+        bookList.forEach(book => {
+          const collectionEntries = vocabList.filter(vocab => vocab.book === book);
+          if (collectionEntries.length === 0) {
+            return;
+          }
+
+          const selectionGroup = document.createElement('div');
+          selectionGroup.className = 'selection-group';
+
+          const title = document.createElement('h4');
+          title.className = 'selection-group-title';
+          title.textContent = book;
+          selectionGroup.appendChild(title);
+
+          const buttonsContainer = document.createElement('div');
+          buttonsContainer.className = 'selection-group-buttons';
+
+          const distinctWordTypes = Array.from(new Set(
+            collectionEntries
+              .map(vocab => normalizeWordTypeLabel(vocab.wordType))
+              .filter(wordType => wordType && wordType !== 'other' && wordType !== 'tbd')
+          ));
+
+          distinctWordTypes.forEach(wordType => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'ui button';
+            const label = formatWordTypeLabel(wordType);
+            button.textContent = label;
+            button.addEventListener('click', () => {
+              resetCheckedDataForCollection(book, wordType, label);
+            });
+            buttonsContainer.appendChild(button);
+          });
+
+          const hasOtherTypes = collectionEntries.some(vocab => {
+            const normalizedWordType = normalizeWordTypeLabel(vocab.wordType);
+            return normalizedWordType === null || normalizedWordType === 'other' || normalizedWordType === 'tbd';
+          });
+
+          if (hasOtherTypes) {
+            const otherTypesButton = document.createElement('button');
+            otherTypesButton.type = 'button';
+            otherTypesButton.className = 'ui button';
+            otherTypesButton.textContent = 'All Other Types';
+            otherTypesButton.addEventListener('click', () => {
+              resetCheckedDataForCollection(book, '__OTHER_TYPES__', 'all other types');
+            });
+            buttonsContainer.appendChild(otherTypesButton);
+          }
+
+          selectionGroup.appendChild(buttonsContainer);
+          resetCheckedCollectionList.appendChild(selectionGroup);
+        });
+
+        if (!resetCheckedCollectionList.hasChildNodes()) {
+          const emptyState = document.createElement('div');
+          emptyState.textContent = 'No collections with vocabulary entries available.';
+          resetCheckedCollectionList.appendChild(emptyState);
+        }
+      }
+
+      resetCheckedCollectionContainer.style.display = 'block';
+    });
+  }
+
   // Add new book to the bookList from floating container
   addBookInContainerButton.addEventListener('click', () => {
     const newBook = newBookInContainer.value.trim();
@@ -803,23 +961,59 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  deleteCheckedDataButton.addEventListener('click', () => {
-    const proceed = confirm(
-      'With 1.9.7.3 update, FLIZ can fetch usage and quotation data from wiktionary. ' +
-      'By proceeding, FLIZ will add usage and quotation data to your vocab deck one by one. ' +
-      'All other data will not be lost.\n\nProceed?'
-    );
-    if (!proceed) return;
-
+  removeDuplicateWordsButton.addEventListener('click', () => {
     chrome.storage.local.get('vocabList', function (data) {
-      if (data.vocabList) {
-        for (let vocab of data.vocabList) {
-          vocab.hasChecked = false;
+      const vocabList = data.vocabList || [];
+      const seenWords = new Set();
+      const duplicateWords = new Set();
+      const dedupedVocabList = [];
+
+      vocabList.forEach(vocab => {
+        const normalizedWord = (vocab.word || '').trim();
+        if (!normalizedWord) {
+          dedupedVocabList.push(vocab);
+          return;
         }
-        chrome.storage.local.set({ vocabList: data.vocabList });
-        refreshVocabList(data.vocabList);
+        if (seenWords.has(normalizedWord)) {
+          duplicateWords.add(vocab.word);
+          return;
+        }
+        seenWords.add(normalizedWord);
+        dedupedVocabList.push(vocab);
+      });
+
+      if (duplicateWords.size === 0) {
+        console.log('No duplicate words found in vocabList.');
+        alert('No duplicate words found.');
+        return;
       }
+
+      const duplicateWordList = Array.from(duplicateWords);
+      console.log('Duplicate words found:', duplicateWordList);
+
+      const proceed = confirm(
+        `Found ${duplicateWordList.length} duplicate word(s): ${duplicateWordList.join(', ')}.\n\n` +
+        'Proceed to remove repeated entries and keep the first occurrence of each word?'
+      );
+      if (!proceed) {
+        return;
+      }
+
+      chrome.storage.local.set({ vocabList: dedupedVocabList }, function () {
+        refreshVocabList(dedupedVocabList);
+        alert(`Removed duplicate entries for: ${duplicateWordList.join(', ')}`);
+      });
     });
+  });
+
+  deleteCheckedDataButton.addEventListener('click', () => {
+    showResetCheckedCollectionContainer();
+  });
+
+  toggleTestModeButton.addEventListener('click', () => {
+    isTestModeEnabled = !isTestModeEnabled;
+    updateTestModeUI();
+
   });
 
   // Show floating container on button click
@@ -830,6 +1024,10 @@ document.addEventListener('DOMContentLoaded', function () {
   // Close floating container
   closeButton.addEventListener('click', () => {
     floatingContainer.style.display = 'none';
+  });
+
+  closeResetCheckedContainer.addEventListener('click', () => {
+    hideResetCheckedCollectionContainer();
   });
 
   document.getElementById('exportToJson').addEventListener('click', function () {
@@ -854,7 +1052,7 @@ document.addEventListener('DOMContentLoaded', function () {
               chrome.storage.local.get('vocabList', function (data) {
                 let currentData = data.vocabList || [];
                 currentData = [...currentData, ...jsonData.vocabList]
-              chrome.storage.local.set({ vocabList: currentData }, () => {
+                chrome.storage.local.set({ vocabList: currentData }, () => {
                   if (chrome.runtime.lastError) {
                     console.error("Error saving merged data:", chrome.runtime.lastError);
                   } else {

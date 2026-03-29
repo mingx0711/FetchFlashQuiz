@@ -11,23 +11,45 @@ let showTips;
 let currentLanguage;
 let latinMedieval = false;
 let wordToSpeak;
+let currentSpeakLanguage;
+let currentSpeakWord;
 let selectedPalette;
 document.addEventListener('DOMContentLoaded', function () {
-  chrome.storage.local.get('currentCollectionSelection', function (data) {
-    currentCollectionSelection = data.currentCollectionSelection || []
+  // Set up single event listeners to prevent accumulation
+  document.getElementById('speak').addEventListener('click', async function () {
+    if (currentSpeakLanguage && currentSpeakWord) {
+      await utils.speakWord(currentSpeakLanguage, currentSpeakWord, latinMedieval);
+    }
   });
-  chrome.storage.local.get(['selectedPalette'], function (result) {
-    if (result.selectedPalette) {
-      changeColor(result.selectedPalette);
+  document.getElementById('speakQuiz').addEventListener('click', async function () {
+    if (currentLanguage && wordToSpeak) {
+      await utils.speakWord(currentLanguage, wordToSpeak, latinMedieval);
+    }
+  });
+  chrome.storage.local.get([
+    'currentCollectionSelection',
+    'selectedPalette',
+    'selectedBG',
+    'showLanguageTips'
+  ], (data) => {
+    currentCollectionSelection = data.currentCollectionSelection || [];
+
+    if (data.selectedPalette) {
+      changeColor(data.selectedPalette);
     } else {
       changeColor('Basic'); // Default to palette1 if no previous selection
     }
-  });
-  chrome.storage.local.get(['selectedBG'], function (result) {
-    if (result.selectedBG) {
-      utils.changeBG(result.selectedBG);
+
+    if (data.selectedBG) {
+      utils.changeBG(data.selectedBG);
     }
+
+    // Show language tips by default unless explicitly disabled
+    const show = data.showLanguageTips === undefined ? true : data.showLanguageTips;
+    checkbox.checked = show;
+    showTips = show;
   });
+
   const toggleBtn = document.getElementById('toggleThemeOptions');
   const themeOptions = document.getElementById('themeOptions');
   const bgOptions = document.getElementById('bgOptions');
@@ -62,15 +84,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const backupReminderClose = document.getElementById('backupReminderClose');
   // Wait for DOM to load
   const checkbox = document.getElementById("tipsCheckbox");
-
-  // Load saved state from chrome.storage.local
-  chrome.storage.local.get("showLanguageTips", (data) => {
-    if (data.showLanguageTips === undefined) {
-      data.showLanguageTips = true;
-    }
-    checkbox.checked = data.showLanguageTips === true;
-    showTips = data.showLanguageTips;
-  });
 
   // Add event listener to update storage when clicked
   checkbox.addEventListener("change", () => {
@@ -460,6 +473,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return new Promise(resolve => setTimeout(resolve, sleepMs));
   }
   async function fetchInfoFromWik(vocab) {
+    console.log(vocab)
     //////console.log.log(vocabList.length)
     var language = vocab.language ? vocab.language : vocab.book
     language = utils.convertToAbbr(language)
@@ -469,55 +483,53 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     //console.log(vocab.word + "-----" + word + "-----" + language);
     var url = `https://en.wiktionary.org/wiki/${word}`
-    fetch(url)
-      .then(response => { return response.text(); })
-      .then(async html => {
-        // Parse the returned HTML and extract the inflection table
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        var newVocab;
-        if (language == "la") {
-          var newVocab = await utils.getLatinAttributes(doc, vocab.word, vocab.book);
-        } else {
-          var newVocab = await utils.getLinkedAttributes(doc, vocab.word, language, vocab.book);
+    try {
+      const response = await fetch(url);
+      const html = await response.text();
+      // Parse the returned HTML and extract the inflection table
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      let newVocab;
+      if (language == "la") {
+        newVocab = await utils.getLatinAttributes(doc, vocab.word, vocab.book);
+      } else {
+        switch (language) {
+          case "ja":
+            newVocab = await utils.getLinkedAttributes(doc, vocab.word, language, vocab.book);
+            break;
+          case "zh":
+            newVocab = await utils.getLinkedAttributes(doc, vocab.word, language, vocab.book);
+            break;
+          default:
+            newVocab = await utils.getEasyAttributes(doc, vocab.word, language, vocab.book);
         }
-        if (typeof newVocab === 'string') {
-
-        } else {
-          if (language === "zh") {
-            newVocab.word = vocab.word;
-          }
-          let learnedTimes = vocab.learnedTimes ? vocab.learnedTimes : 0;
-          let def = vocab.definition;
-          let pronounciation = utils.hasPronounciation(vocab) ? vocab.pronounciation : null;
-          vocab = newVocab;
-          vocab.definition = def;
-          vocab.learnedTimes = learnedTimes;
-          if (pronounciation) {
-            vocab.pronounciation = pronounciation;
-          }
+      }
+      if (typeof newVocab !== 'string') {
+        if (language === "zh") {
+          newVocab.word = vocab.word;
         }
-        console.log(vocab.word, vocab.usage)
-        vocab.hasChecked = true;
-        vocabList = vocabList.map(item =>
-          item.word === vocab.word
-            ? vocab
-            : item
-        );
-        chrome.storage.local.set({ vocabList: vocabList }, function (data) { })
+        let learnedTime = vocab.learnedTime ? vocab.learnedTime : 0;
+        let def = vocab.definition;
+        let pronounciation = utils.hasPronounciation(vocab) ? vocab.pronounciation : null;
+        vocab = newVocab;
+        vocab.definition = def;
+        vocab.learnedTime = learnedTime;
+        if (pronounciation) {
+          vocab.pronounciation = pronounciation;
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch wiktionary info for', vocab.word, err);
+    }
 
-        ////console.log(vocab);
-      })
-      .catch(err => {
-        vocab.hasChecked = true;
-        vocabList = vocabList.map(item =>
-          item.word === vocab.word
-            ? vocab
-            : item
-        );
-
-        chrome.storage.local.set({ vocabList: vocabList }, function (data) { })
-      })
+    vocab.hasChecked = true;
+    console.log(vocab)
+    vocabList = vocabList.map(item =>
+      item.word === vocab.word
+        ? vocab
+        : item
+    );
+    await new Promise(resolve => chrome.storage.local.set({ vocabList: vocabList }, resolve));
   }
   function getLanguageCharSetMapping(lang) {
     switch (lang) {
@@ -919,9 +931,9 @@ function showNextVocab(collection = currentCollectionSelection) {
         word = currentCollection[currentVocabIndex].word;
         definition = currentCollection[currentVocabIndex].definition;
       }
-      document.getElementById('speak').addEventListener('click', async function () {
-        await utils.speakWord(currentCollection[currentVocabIndex].language, word, latinMedieval)
-      });
+      // Set speak parameters for the single event listener
+      currentSpeakLanguage = currentCollection[currentVocabIndex].language;
+      currentSpeakWord = word;
       const maxSize = 3
       const minSize = 1
       const clamped = Math.min(definition.length, 150);
@@ -947,11 +959,25 @@ function showNextVocab(collection = currentCollectionSelection) {
       wordDiv.innerHTML = word.bold();
       defDiv.textContent = definition;
       bookDiv.textContent = book;
-      let groupDiv = document.getElementById('groupDiv');
-      if (currentCollection[currentVocabIndex].conjugations && currentCollection[currentVocabIndex].conjugations.group) {
-        groupDiv.textContent = "group:" + currentCollection[currentVocabIndex].conjugations.group
-      } else {
-        groupDiv.textContent = ""
+      let infoDiv = document.getElementById('infoDiv');
+      let infoDivTwo = document.getElementById('infoDivTwo');
+      infoDiv.textContent = "";
+      infoDivTwo.textContent = "";
+      if (currentCollection[currentVocabIndex].language) {
+        switch (currentCollection[currentVocabIndex].language) {
+          case 'de':
+            if (currentCollection[currentVocabIndex].conjugation) {
+              console.log(currentCollection[currentVocabIndex].conjugation)
+              infoDiv.textContent = "past participle:  " + currentCollection[currentVocabIndex].conjugation.past_participle ?? '';
+              infoDivTwo.textContent = "auxiliary:  " + currentCollection[currentVocabIndex].conjugation.auxiliary ?? '';
+            }
+            break;
+          case 'la':
+            console.log(currentCollection[currentVocabIndex].conjugations)
+            if (currentCollection[currentVocabIndex].conjugations && currentCollection[currentVocabIndex].conjugations.group) {
+              infoDiv.textContent = "group:" + currentCollection[currentVocabIndex].conjugations.group
+            }
+        }
       }
       if (currentCollection[currentVocabIndex].etym) {
         const etymText = utils.chopEtym(currentCollection[currentVocabIndex].etym);
@@ -998,7 +1024,6 @@ function showNextVocab(collection = currentCollectionSelection) {
         } else {
           usageDiv.insertAdjacentElement("afterend", button);
         }
-        console.log(text, word.language);
         button.addEventListener("click", async function () {
           await utils.speakWord(
             currentCollection[currentVocabIndex].language,

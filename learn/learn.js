@@ -1,4 +1,3 @@
-import { hasGender, hasPronounciation } from '../utils.js';
 import * as utils from '../utils.js';
 let currentVocabIndex = null;
 let vocabList = [];
@@ -30,6 +29,7 @@ let totalVocabList = []
 let wrongVocabs = [];
 let learningQueue = [];
 let learnedWords = []
+let currentGermanPerfektReview = null;
 const FOCUS_EMPTY = '&#9734';
 const FOCUS_FILLED = '&#11088';
 const langMap = {
@@ -291,9 +291,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     let selectedCollection = document.getElementById('bookSelector').value;
     wordsToRevise = document.getElementById('learnedVocabCount').value;
 
-    //console.log("Words to revise: " + wordsToRevise);
-
-    // Call the function to display vocab
     generateLearningQueue(selectedCollection);
   });
 
@@ -491,16 +488,106 @@ function getLearnedWords(arr, learnCount) {
   return learnedWords.slice(0, learnCount);
 }
 async function generateLearningQueue(bookSelected) {
-  let wordAppearances = {};
+  const wordQuizCounts = {};
+  const wordQuizTypeCounts = {};
+  learningQueue = [];
+  learnedWords = [];
 
-  function addToQueue(type, wordObj) {
+  function addQuizToQueue(targetQueue, type, wordObj) {
     const word = wordObj.word;
-    const maxAppearances = 5;
-    if (wordAppearances[word] < maxAppearances) {
-      learningQueue.push({ type, word: wordObj });
-      wordAppearances[word]++;
+    const maxQuizAppearances = 5;
+    if ((wordQuizCounts[word] || 0) < maxQuizAppearances) {
+      targetQueue.push({ type, word: wordObj });
+      wordQuizCounts[word] = (wordQuizCounts[word] || 0) + 1;
+      if (!wordQuizTypeCounts[word]) {
+        wordQuizTypeCounts[word] = {};
+      }
+      wordQuizTypeCounts[word][type] = (wordQuizTypeCounts[word][type] || 0) + 1;
+      return true;
     }
+    return false;
   }
+
+  function getEligibleQuizTypes(wordObj) {
+    const quizTypes = ['quiz1', 'quiz2', 'quiz3', 'quiz8', 'quiz9'];
+
+    if (utils.hasPronounciation(wordObj)) {
+      quizTypes.push('quiz4');
+    }
+    if (utils.hasGender(wordObj)) {
+      quizTypes.push('quiz5');
+    }
+    if (utils.hasGermanPerfekt(wordObj)) {
+      quizTypes.push('quiz10');
+    }
+
+    return quizTypes;
+  }
+
+  function pickQuizTypeForWord(wordObj) {
+    const word = wordObj.word;
+    const eligibleQuizTypes = getEligibleQuizTypes(wordObj);
+    const quizCounts = wordQuizTypeCounts[word] || {};
+    const lowestUsage = Math.min(...eligibleQuizTypes.map(type => quizCounts[type] || 0));
+    const leastUsedTypes = eligibleQuizTypes.filter(type => (quizCounts[type] || 0) === lowestUsage);
+
+    return leastUsedTypes[Math.floor(Math.random() * leastUsedTypes.length)];
+  }
+
+  function getFlashcardBatches(words) {
+    const batches = [];
+    let index = 0;
+
+    while (index < words.length) {
+      const batchSize = Math.min(4, words.length - index);
+      batches.push(words.slice(index, index + batchSize));
+      index += batchSize;
+    }
+
+    return batches;
+  }
+
+  function buildQuizQueueForBatch(batchWords) {
+    const batchQuizQueue = [];
+    const minimumQuizzesPerWord = 2;
+    const targetQuizCount = batchWords.length === 4 ? 10 : batchWords.length * minimumQuizzesPerWord;
+
+    batchWords.forEach(wordObj => {
+      for (let i = 0; i < minimumQuizzesPerWord; i++) {
+        addQuizToQueue(batchQuizQueue, pickQuizTypeForWord(wordObj), wordObj);
+      }
+    });
+
+    const extraWords = batchWords.slice();
+    shuffleArray(extraWords);
+    let extraIndex = 0;
+    while (batchQuizQueue.length < targetQuizCount && extraWords.length > 0) {
+      const wordObj = extraWords[extraIndex % extraWords.length];
+      const added = addQuizToQueue(batchQuizQueue, pickQuizTypeForWord(wordObj), wordObj);
+      extraIndex++;
+
+      if (!added && extraIndex > extraWords.length * 2) {
+        break;
+      }
+    }
+
+    shuffleArray(batchQuizQueue);
+    return batchQuizQueue;
+  }
+
+  function buildFinalQuizQueue(words) {
+    const finalQuizQueue = [];
+
+    words.forEach(wordObj => {
+      for (let i = 0; i < 2; i++) {
+        addQuizToQueue(finalQuizQueue, pickQuizTypeForWord(wordObj), wordObj);
+      }
+    });
+
+    shuffleArray(finalQuizQueue);
+    return finalQuizQueue;
+  }
+
   await chrome.storage.local.get('vocabList', function (data) {
     if (data.vocabList) {
       vocabList = data.vocabList;
@@ -530,87 +617,27 @@ async function generateLearningQueue(bookSelected) {
       currentLanguage = utils.detectLanguage(filteredVocabList);
 
       filteredVocabList.forEach(wordObj => {
-        const word = wordObj.word;
-        wordAppearances[word] = 0;
+        wordQuizCounts[wordObj.word] = 0;
+        wordQuizTypeCounts[wordObj.word] = {};
+      });
+      const flashcardBatches = getFlashcardBatches(filteredVocabList);
+
+      flashcardBatches.forEach(batchWords => {
+        batchWords.forEach(wordObj => {
+          learningQueue.push({ type: 'flashcard', word: wordObj });
+          learnedWords.push(wordObj);
+        });
+
+        const batchQuizQueue = buildQuizQueueForBatch(batchWords);
+        learningQueue.push(...batchQuizQueue);
       });
 
-      // Helper to add to queue only if under max
-
-
-      filteredVocabList.forEach(wordObj => {
-        // 1. Flashcard
-        addToQueue('flashcard', wordObj);
-        learnedWords.push(wordObj);
-        const quizTypeCheck1 = Math.random();
-        switch (quizTypeCheck1) {
-          case quizTypeCheck1 < 0.25:
-            addToQueue('quiz1', wordObj);
-            break;
-          case quizTypeCheck1 < 0.5:
-            addToQueue('quiz2', wordObj);
-            break;
-          case quizTypeCheck1 < 0.75:
-            addToQueue('quiz3', wordObj);
-            break;
-          default:
-            addToQueue('quiz4', wordObj);
-        }
-        const randomQuizWord = (learnedWords.length > 1) ? utils.getNRandomElements(learnedWords, 1)[0] : wordObj;
-
-        if (hasGender(randomQuizWord)) {
-          addToQueue('quiz5', randomQuizWord);
-        }
-        if (hasPronounciation(randomQuizWord)) {
-          addToQueue('quiz4', randomQuizWord);
-        }
-        if (Math.random() < 0.5) {
-          addToQueue('quiz8', randomQuizWord);
-        } else {
-          addToQueue('quiz9', randomQuizWord);
-        }
-      });
+      const finalQuizQueue = buildFinalQuizQueue(filteredVocabList);
+      learningQueue.push(...finalQuizQueue);
     }
-    let quizTypes = ['quiz1', 'quiz2', 'quiz3', 'quiz4', 'quiz5', 'quiz8', 'quiz9'];
-    let randomWords = filteredVocabList.slice();
-    shuffleArray(randomWords);
-    randomWords.slice(0, 8).forEach(wordObj => {
-      var randomIndex = Math.random()
-      //////console.log(randomIndex < 0.25 ? 8 : randomIndex < 0.5 ? 1 : randomIndex < 0.75 ? 2 : 3)
-      if (randomIndex < 0.25) {
-        learningQueue.push({ type: 'quiz8', word: wordObj });
-      } else if (randomIndex < 0.5) {
-        learningQueue.push({ type: 'quiz1', word: wordObj });
-      } else if (randomIndex < 0.75) {
-        learningQueue.push({ type: 'quiz2', word: wordObj });
-      } else {
-        learningQueue.push({ type: 'quiz3', word: wordObj });
-      }
-      if (hasGender(wordObj) && Math.random() < 0.5) {
-        learningQueue.push({ type: 'quiz5', word: wordObj });
-      }
-    });
-    shuffleArray(randomWords);
-    randomWords.slice(0, 8).forEach(wordObj => {
-      var randomIndex = Math.random()
-      //////console.log(randomIndex < 0.25 ? 8 : randomIndex < 0.5 ? 1 : randomIndex < 0.75 ? 2 : 3)
-      if (randomIndex < 0.2) {
-        addToQueue('quiz8', wordObj);
-      } else if (randomIndex < 0.4) {
-        addToQueue('quiz1', wordObj);
-      } else if (randomIndex < 0.6) {
-        addToQueue('quiz2', wordObj);
-      } else if (randomIndex < 0.8) {
-        addToQueue('quiz9', wordObj);
-      } else {
-        addToQueue('quiz3', wordObj);
-      }
-      if (hasPronounciation(wordObj) && Math.random() < 0.5) {
-        addToQueue('quiz4', wordObj);
-      }
-
-    });
     currentStep = 0;
     showNextLearningStep();
+    console.log("Generated learning queue:", learningQueue);
   });
 }
 function showNextLearningStep() {
@@ -659,6 +686,9 @@ function showNextLearningStep() {
     case "quiz9":
       quizStyle9()
       break;
+    case "quiz10":
+      quizStyle10()
+      break;
     case "flashcard":
       showNextVocab()
       break;
@@ -683,13 +713,17 @@ function showNextVocab() {
   let bookDiv = document.getElementById('bookDiv');
   let pronounDiv = document.getElementById('pronounDiv');
   let genderDiv = document.getElementById('genderDiv');
+  let infoDiv = document.getElementById('infoDiv');
+  let infoDivTwo = document.getElementById('infoDivTwo');
+
   let etymDiv = document.getElementById('etymDiv');
-  let groupDiv = document.getElementById('groupDiv');
   let tipsDiv = document.getElementById('tipsDiv');
   let usageDiv = document.getElementById('usageDiv');
   let word;
   let definition;
   let wordObj = learningQueue[currentStep].word;
+  infoDiv.textContent = "";
+  infoDivTwo.textContent = "";
   updateFocusButtonForWord(wordObj);
   ////////console.log(wordObj)
   document.getElementById('speak').addEventListener('click', async function () {
@@ -715,9 +749,23 @@ function showNextVocab() {
   } else {
     genderDiv.textContent = ""
   }
-  if (wordObj.conjugations && wordObj.conjugations.group) {
-    groupDiv.textContent = "group:" + wordObj.conjugations.group
+  if (wordObj.language) {
+    switch (wordObj.language) {
+      case 'de':
+        if (wordObj.conjugation) {
+          console.log(wordObj.conjugation)
+          infoDiv.textContent = "past participle:  " + wordObj.conjugation.past_participle ?? '';
+          infoDivTwo.textContent = "auxiliary:  " + wordObj.conjugation.auxiliary ?? '';
+        }
+        break;
+      case 'la':
+        console.log(wordObj.conjugations)
+        if (wordObj.conjugations && wordObj.conjugations.group) {
+          infoDiv.textContent = "group:" + wordObj.conjugations.group
+        }
+    }
   }
+
   if (wordObj.pronounciation) {
     const pronoun = wordObj.pronounciation;
     pronounDiv.textContent = pronoun;
@@ -833,6 +881,7 @@ function updateStepCounter() {
   document.getElementById('totalStepNum').textContent = learningQueue.length;
 }
 function quizStyle1() {
+  currentGermanPerfektReview = null;
   shouldSpeak = true;
   const correctVocab = learningQueue[currentStep].word;
   currentQuizWord = correctVocab.word;
@@ -841,6 +890,7 @@ function quizStyle1() {
   currentTest = { quizStyle: "Ask for definition", vocab: correctVocab.word, book: correctVocab.book };
 }
 function quizStyle2() {
+  currentGermanPerfektReview = null;
   shouldSpeak = true;
   const correctVocab = learningQueue[currentStep].word;
   currentQuizWord = correctVocab.word;
@@ -852,6 +902,7 @@ function quizStyle2() {
 }
 
 function quizStyle3() {
+  currentGermanPerfektReview = null;
   const correctVocab = learningQueue[currentStep].word;
   shouldSpeak = false;
   currentQuizWord = correctVocab.word;
@@ -871,6 +922,7 @@ function quizStyle3() {
   utils.setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition)
 }
 function quizStyle4() {
+  currentGermanPerfektReview = null;
   ////////console.log("4, ask for pronounciation")
   quizType = "pronounciation"
 
@@ -905,6 +957,7 @@ function quizStyle4() {
 
 }
 function quizStyle5() {
+  currentGermanPerfektReview = null;
   quizType = "gender"
   ////////console.log("5, ask for gender")
   const correctVocab = learningQueue[currentStep].word;
@@ -928,9 +981,8 @@ function quizStyle5() {
   currentQuizDefinition = correctVocab.gender;
   quizType = 'truefalse';
   isPairCorrect = Math.random() < 0.5;
-  console.log(utils.LanguageGenderMap[correctVocab.language || correctVocab.book])
   if (!isPairCorrect) {
-    var incorrectVocab = utils.LanguageGenderMap[correctVocab.language || correctVocab.book].filter(item => item !== currentQuizDefinition);
+    var incorrectVocab = utils.LanguageGenderMap[correctVocab.language || correctVocab.book || currentLanguage].filter(item => item !== currentQuizDefinition);
     //////console.log(incorrectVocab)
     currentQuizDefinition = utils.getRandomElement(incorrectVocab);
   }
@@ -938,46 +990,13 @@ function quizStyle5() {
 }
 
 function quizStyle9() {
+  currentGermanPerfektReview = null;
   shouldSpeak = true;
   const correctVocab = learningQueue[currentStep].word;
   currentQuizWord = correctVocab.word;
   wordToSpeak = correctVocab.word;
   utils.setupSpellingQuiz(correctVocab)
   currentTest = { quizStyle: "Ask for spelling", vocab: correctVocab.word, book: correctVocab.book };
-}
-function getRandomKeys(obj, count) {
-  let keys = Object.keys(obj);
-  let selectedKeys = [];
-  for (let i = 0; i < count; i++) {
-    let randomKey = keys[Math.floor(Math.random() * keys.length)];
-    selectedKeys.push(randomKey);
-  }
-  return selectedKeys;
-}
-function getRandomElement(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-function getRandomNumber(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-// Helper function to get random keys from an array
-function getRandomKeysFromArray(array, count) {
-  let shuffled = array.sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
-}
-
-// Helper function to get random subfield from an object
-function getRandomSubfield(obj) {
-  const keys = Object.keys(obj);
-  const validKeys = keys.filter(field => (field !== 'pos') && (field !== 'type'));
-  const randomKey = validKeys[Math.floor(Math.random() * keys.length)];
-  return randomKey;
-}
-
-// Helper function to find common word across multiple lists
-function findCommonWordAcrossLists(lists) {
-  const res = lists.reduce((a, b) => a.filter(c => b.includes(c))); // Get first common word or undefined
-  return res;
 }
 
 function getRandomWordFromConjugations(conjugations, commonWordsList = []) {
@@ -999,12 +1018,6 @@ function getRandomWordFromConjugations(conjugations, commonWordsList = []) {
   } else {
     return randomWord;
   }
-}
-function makeStringReadable(names) {
-  names = names.replace("futurePerfect", 'future perfect');
-  names = names.replaceAll("_", ' ');
-
-  return names
 }
 function findSubfieldsForWord(word, conjugations) {
   let wordSubfields = [];
@@ -1038,6 +1051,7 @@ function findSubfieldsForWord(word, conjugations) {
 }
 
 function quizStyle6() {
+  currentGermanPerfektReview = null;
   shouldSpeak = false;
 
   const correctVocab = learningQueue[currentStep].word;
@@ -1057,6 +1071,7 @@ function quizStyle6() {
 
 }
 function quizStyle7() {
+  currentGermanPerfektReview = null;
   const correctVocab = learningQueue[currentStep].word;
   if (!utils.checkEligible(correctVocab, utils.hasConjugations, false)) {
     return quizStyle1();
@@ -1073,102 +1088,64 @@ function quizStyle7() {
 
   utils.setupQuiz7(options, currentQuizDefinition, result[2]);
 }
+function quizStyle10() {
+  currentGermanPerfektReview = null;
+  shouldSpeak = true;
+  nextButton.style.display = 'none';
+  const correctVocab = learningQueue[currentStep].word;
+  if (!utils.checkEligible(correctVocab, utils.hasGermanPerfekt, false)) {
+    return quizStyle2();
+  }
+  currentQuizWord = correctVocab.word;
+  currentQuizDefinition = correctVocab.conjugation.past_participle;
+  currentGermanPerfektReview = correctVocab?.conjugation?.auxiliary
+    ? `Perfekt: ${correctVocab.conjugation.auxiliary} + ${currentQuizDefinition}`
+    : `Perfekt: ${currentQuizDefinition}`;
+  quizType = 'germanPerfekt';
+  wordToSpeak = currentQuizDefinition;
+  utils.setupSpellingQuiz(correctVocab, {
+    prompt: `Spell the past participle of "${correctVocab.word}".`,
+    correctAnswer: currentQuizDefinition
+  });
+  currentTest = { quizStyle: "German Perfekt Tense", vocab: correctVocab.word, book: correctVocab.book };
+}
 function checkAnswer(button) {
   const correctAnswer = document.getElementById('quizContainer').dataset.correctAnswer;
-  const correctMessage = document.getElementById('correctMessage');
-  const incorrectMessage = document.getElementById('incorrectMessage');
-  const correctDefinition = document.getElementById('correctDefinition');
-  const result = button.textContent === correctAnswer ? 't' : 'f';
-
-  if (button.textContent === correctAnswer) {
-    utils.speakWord(currentLanguage, currentQuizWord, latinMedieval);
-
-    currentStep += 1;
-    button.classList.add('correct');
-    correctMessage.style.display = 'block';
-    setTimeout(() => {
-      button.classList.remove('correct');
-      correctMessage.style.display = 'none';
-      ////////console.log("correct")
+  utils.handleMultipleChoiceAnswer({
+    button,
+    correctAnswer,
+    speakWord: () => utils.speakWord(currentLanguage, currentQuizWord, latinMedieval),
+    onCorrect: () => {
+      currentStep += 1;
       showNextLearningStep();
-    }, 500);
-  } else {
-    incorrectMessage.style.display = 'block';
-    showCorrectAnswer();
-    wrongVocabs.push(currentQuizWord);
-    document.getElementById('nextAfterIncorrectButton').style.display = 'Block';
-  }
+    },
+    onIncorrect: () => {
+      wrongVocabs.push(currentQuizWord);
+    },
+    reviewState: getAnswerReviewState(),
+  });
 }
 
-function showCorrectAnswer() {
-  ////////console.log(quizType)
-  document.getElementById('quizContainer').style.display = "none";
-  const tfContainer = document.querySelector('.true-false-container');
-  document.getElementById('trueFalseContainer').style.display = "none";
-  const vocabFlashcard = document.getElementById('correctDefinition');
-  vocabFlashcard.style.display = 'block';
-  const nextButton = document.getElementById('nextAfterIncorrectButton');
-  nextButton.style.display = 'block';
-  const correctVocab = vocabList.find(entry => entry.word === currentQuizWord);
-  if (correctVocab) {
-    vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-
-    vocabFlashcard.textContent = `${correctVocab.word}: ${correctVocab.definition}`;
-    if (correctVocab.gender && correctVocab.gender != "") {
-      vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-
-      vocabFlashcard.textContent += " gender:"
-      vocabFlashcard.textContent += correctVocab.gender
-    }
-    if (correctVocab.pronounciation && correctVocab.pronounciation != "") {
-      vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-
-      vocabFlashcard.textContent += " pronounciation:"
-      vocabFlashcard.textContent += correctVocab.pronounciation
-    }
-    if (quizType == "6") {
-      vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-      vocabFlashcard.textContent += currentQuizDefinition
-      vocabFlashcard.textContent += " is one of the "
-      vocabFlashcard.textContent += makeStringReadable(conjToTest.toString())
-      vocabFlashcard.textContent += "form of "
-      vocabFlashcard.textContent += correctVocab.word
-    } if (quizType == "7") {
-      vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-      vocabFlashcard.textContent += wordToTest
-      vocabFlashcard.textContent += " is one of the "
-      vocabFlashcard.textContent += makeStringReadable(conjToTest.toString())
-      vocabFlashcard.textContent += " form of "
-      vocabFlashcard.textContent += correctVocab.word
-    } if (quizType == "groupTest") {
-      vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-      vocabFlashcard.textContent += " group: "
-      vocabFlashcard.textContent += correctVocab.conjugations.group
-    }
-    document.getElementById('quizContainer').style.display = 'none';
-    vocabFlashcard.style.display = 'block';
-  }
+function showCorrectAnswer(userAnswer = "", correctAnswer = "") {
+  utils.renderCorrectAnswerReview({
+    ...getAnswerReviewState(),
+    userAnswer,
+    correctAnswer,
+  });
 }
 function checkTrueFalse(isTrue) {
-  const correctMessage = document.getElementById('correctMessage');
-  const incorrectMessage = document.getElementById('incorrectMessage');
-  const correctDefinition = document.getElementById('correctDefinition');
-
-  if (isTrue === isPairCorrect) {
-    currentStep += 1;
-    correctMessage.style.display = 'block';
-    setTimeout(() => {
-      correctMessage.style.display = 'none';
+  utils.handleTrueFalseAnswer({
+    isTrue,
+    isPairCorrect,
+    onCorrect: () => {
+      currentStep += 1;
       showNextLearningStep();
-    }, 500);
-  } else {
-    incorrectMessage.style.display = 'block';
-    document.getElementById('nextButton').style.display = 'none';
-    showCorrectAnswer();
-    document.getElementById('nextAfterIncorrectButton').style.display = 'block';
-    wrongVocabs.push(currentQuizWord);
-  }
-  document.getElementById('trueFalseContainer').style.display = 'none';
+    },
+    onIncorrect: () => {
+      wrongVocabs.push(currentQuizWord);
+    },
+    reviewState: getAnswerReviewState(),
+  });
 }
 
 function shuffleArray(array) {
@@ -1214,26 +1191,34 @@ function endTest() {
 function checkSpelling() {
   const spellingContainer = document.getElementById('SpellingContainer');
   const answerInput = document.getElementById('answer');
-  const correctMessage = document.getElementById('correctMessage');
-  const incorrectMessage = document.getElementById('incorrectMessage');
-
   const rawCorrect = spellingContainer?.dataset.correctAnswer || currentQuizWord || "";
-  const userAnswer = utils.normalizeSpelling(answerInput?.value || "", currentLanguage);
-  const isCorrect = utils.normalizeSpelling(rawCorrect, currentLanguage) === userAnswer;
+  const inputValue = answerInput?.value || "";
+  const displayUserAnswer = utils.normalizeSpelling(inputValue, currentLanguage);
 
-  if (isCorrect) {
-    utils.speakWord(currentLanguage, currentQuizWord, latinMedieval);
-    currentStep += 1;
-    correctMessage.style.display = 'block';
-    setTimeout(() => {
-      correctMessage.style.display = 'none';
+  utils.handleSpellingAnswer({
+    currentLanguage,
+    rawCorrect,
+    inputValue,
+    displayUserAnswer,
+    speakWord: () => utils.speakWord(currentLanguage, wordToSpeak || currentQuizWord, latinMedieval),
+    onCorrect: () => {
+      currentStep += 1;
       showNextLearningStep();
-    }, 500);
-  } else {
-    incorrectMessage.style.display = 'block';
-    if (spellingContainer) spellingContainer.style.display = 'none';
-    showCorrectAnswer();
-    wrongVocabs.push(currentQuizWord);
-    document.getElementById('nextAfterIncorrectButton').style.display = 'block';
-  }
+    },
+    onIncorrect: () => {
+      wrongVocabs.push(currentQuizWord);
+    },
+    reviewState: getAnswerReviewState(),
+  });
+}
+function getAnswerReviewState() {
+  return {
+    currentQuizWord,
+    currentQuizDefinition,
+    quizType,
+    wordToTest,
+    conjToTest,
+    currentGermanPerfektReview,
+    vocabList,
+  };
 }

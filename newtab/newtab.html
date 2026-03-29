@@ -661,7 +661,8 @@
         style="background-color: transparent;display: inline-flex;border: none; outline: none;font-size: 3vh;">&#128266;</button>
       <div style="display:flex;justify-content: center; align-items:center; gap:1vw;">
         <div style="font-size: 1.5vw; color:#272623;" id="genderDiv"></div>
-        <div style="font-size: 1.5vw; color:#272623;" id="groupDiv"></div>
+        <div style="font-size: 1.5vw; color:#272623;" id="infoDiv"></div>
+        <div style="font-size: 1.5vw; color:#272623;" id="infoDivTwo"></div>
       </div>
       <div class="ui horizontal divider" id="divider" style="color:#545150; height: 5px"></div>
       <div style="font-size: 3vw; color:#4b5437;" id="defDiv"></div>
@@ -775,11 +776,9 @@
     <button class="ui button" id="nextButton"
       style="border: 3px solid;position: fixed;bottom:14%;transform: translateX(-50%);left: 70%;font-weight: bold;font-size:1vw;">Next</button>
     <button class="ui button" id="learnButton"
-      style="border: 3px solid;position: fixed;bottom:14%;transform: translateX(-50%);left: 30%;font-weight: bold;font-size:1vw;">Learn
-      your vocabs</button>
+      style="border: 3px solid;position: fixed;bottom:14%;transform: translateX(-50%);left: 30%;font-weight: bold;font-size:1vw;">Learn</button>
     <button class="ui button" id="testButton"
-      style="border: 3px solid;position: fixed;bottom:14%;transform: translateX(-50%);left: 50%;font-weight: bold;font-size:1vw;">Test
-      your vocabs</button>
+      style="border: 3px solid;position: fixed;bottom:14%;transform: translateX(-50%);left: 50%;font-weight: bold;font-size:1vw;">Quiz</button>
   </div>
   <div class="ui form"
     style="display: flex;position: fixed;bottom:8%;justify-content: center;transform: translateX(-50%);left: 50%;
@@ -923,9 +922,9 @@
     <button class="ui circular bg-option button" style="background-color:#fafafa;font-size: 2vh;" data-palette="snack"
       title="snack">&#x1F96A; </button>
   </div>
-  <script src="../libs/semantic.css"></script>
-  <script src="search.js"></script>
-  <script src="../libs/tldts.min.js"></script>
+  <link rel="stylesheet" href="../libs/semantic.css">
+  <script defer src="../libs/tldts.min.js"></script>
+  <script defer src="search.js"></script>
   <script type="module" src="newtab.js"></script>
 </body>
 

@@ -414,38 +414,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
       }
     }
   });
-  chrome.storage.local.get('hideBox1', function (data) {
-    if (!data.hideBox1 || typeof (data.hideBox1) === undefined || data.hideBox1 == null) {
-      document.getElementById('tipsBox1').style.display = 'block';
-    } else {
-      document.getElementById('tipsBox1').style.display = 'none';
-    }
-    ////console.log(data.hideBox1)
 
-  });
-  chrome.storage.local.get('hideBox0', function (data) {
-    if (!data.hideBox0 || typeof (data.hideBox0) === undefined || data.hideBox0 == null) {
-      document.getElementById('tipsBox0').style.display = 'block';
-    } else {
-      document.getElementById('tipsBox0').style.display = 'none';
-    }
-    ////console.log(data.hideBox0)
-
-  });
 
   document.getElementById('closeQuickStart').addEventListener('click', function (e) {
     document.getElementById('quickstart').style.display = 'none';
   })
-
-  document.getElementById('hideTips1').addEventListener('click', function (e) {
-    document.getElementById('tipsBox1').style.display = 'none';
-    chrome.storage.local.set({ hideBox1: true }, function (data) { })
-  })
-  document.getElementById('hideTips0').addEventListener('click', function (e) {
-    document.getElementById('tipsBox0').style.display = 'none';
-    chrome.storage.local.set({ hideBox0: true }, function (data) { })
-  })
-
 
   const showQuickStart = document.getElementById('showQuickStart')
   const bookSelector = document.getElementById('bookSelector');

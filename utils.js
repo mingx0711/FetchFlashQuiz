@@ -933,7 +933,6 @@ export async function getLinkedAttributes(doc, word, lang, book) {
           definition = liElement.textContent.trim()
         }
       }
-      //////console.log(linkText, definition);
       let noramlizedWord = word.normalize('NFD');
       let noDiacritics = noramlizedWord.replace(/[\u0300-\u036f]/g, "");
       let finalStr = noDiacritics.replace(/-/g, "");
@@ -979,6 +978,9 @@ export async function getLinkedAttributes(doc, word, lang, book) {
         }
       }
 
+    } else {
+      return getEasyAttributes(doc, word, lang, book)
+
     }
     //definition = document.getElementById("vocabInfo").textContent+","+definition
     //vocab = {word,definition,snoozed: false,book,pronounciation,gender,hasChecked:true,seen:0,quizResults: ['n','n','n','n']}
@@ -1001,8 +1003,51 @@ export async function getLinkedAttributes(doc, word, lang, book) {
 }
 export const invalidWord = "Word can not be found in wiktionary. This could be because this is a combined word, the word does not exist in your selected language, mispelling, or capitalization issues."
 
+function getGermanConjugationAttributes(doc) {
+  const navFrames = doc.querySelectorAll('.NavFrame');
+
+  for (const navFrame of navFrames) {
+    const navHeadText = navFrame.querySelector('.NavHead')?.textContent?.toLowerCase() || '';
+    if (!navHeadText.includes('conjugation of')) {
+      continue;
+    }
+
+    const rows = navFrame.querySelectorAll('table.inflection-table tr');
+    const conjugation = {};
+
+    rows.forEach((row) => {
+      const headerText = row.querySelector('th')?.textContent?.trim().toLowerCase();
+      const valueCell = row.querySelector('td');
+      const valueText = valueCell?.textContent?.replace(/\s+/g, ' ').trim();
+
+      if (!headerText || !valueText) {
+        return;
+      }
+
+      if (headerText === 'past participle') {
+        const firstLinkedForm =
+          valueCell?.querySelector('a')?.textContent?.trim() ||
+          valueCell?.querySelector('strong')?.textContent?.trim() ||
+          '';
+        conjugation.past_participle = (firstLinkedForm || valueText)
+          .replace(/\d+/g, '')
+          .trim()
+          .split(/\s+/)[0];
+      }
+
+      if (headerText === 'auxiliary') {
+        conjugation.auxiliary = valueText;
+      }
+    });
+    if (Object.keys(conjugation).length > 0) {
+      return conjugation;
+    }
+  }
+
+  return null;
+}
+
 export async function getEasyAttributes(doc, word, lang, book) {
-  //console.log(book)
   let mention = getLanguageCharSetMapping(lang)
   let pronounciationText = null
   let autoGender = ''
@@ -1012,7 +1057,6 @@ export async function getEasyAttributes(doc, word, lang, book) {
 
   const queryWord = 'strong.' + mention + '.headword[lang="' + lang + '"]'
   let isWord = doc.querySelector(queryWord);
-
   if (lang === "zh" && !isWord) {
     isWord = doc.querySelector('strong.Hant.headword[lang="zh"]')
     if (!isWord) {
@@ -1027,14 +1071,12 @@ export async function getEasyAttributes(doc, word, lang, book) {
       mention = "Hant"
     }
   }
-  //console.log(word)
   if (isWord) {
     const grannyElement = isWord.parentElement.parentElement;
     const closestOl = grannyElement.nextElementSibling;
     var usage;
     const liElement = closestOl.querySelector("li");
     let liElementCopy = liElement.cloneNode(true);
-    //console.log(liElement);
     if (liElement) {
       if (liElement.querySelector('div.h-usage-example') || liElement.querySelector('span.h-usage-example.collocation')) {
         usage = liElementCopy.querySelector('div.h-usage-example') || liElementCopy.querySelector('span.h-usage-example.collocation');
@@ -1153,8 +1195,12 @@ export async function getEasyAttributes(doc, word, lang, book) {
         pronounciationText = pronounciationText.split(',')[0].split('（')[0];
       }
     }
+    const germanConjugation = lang === 'de' ? getGermanConjugationAttributes(doc) : null;
     let vocab = { word, definition, snoozed: false, book, language: lang, pronounciation: pronounciationText, gender: autoGender ? autoGender : gender, hasChecked: true, seen: 0, quizResults: ['n', 'n', 'n', 'n'], etym: hasEytm ? etym : "", usage: usage ? usage : "" }
-    console.log(vocab.word, vocab.usage);
+    if (germanConjugation) {
+      vocab.conjugation = germanConjugation;
+    }
+    console.log(vocab.word, vocab.conjugation ? vocab.conjugation : "no conjugation");
     addType(vocab);
     return vocab;
   } else {
@@ -1318,7 +1364,7 @@ function getRandomKeysFromArray(array, count) {
 }
 
 // Helper function to get random subfield from an object
-function getRandomSubfield(obj) {
+export function getRandomSubfield(obj) {
   const keys = Object.keys(obj);
   const validKeys = keys.filter(field => (field !== 'pos') && (field !== 'type'));
   const randomKey = validKeys[Math.floor(Math.random() * keys.length)];
@@ -1510,10 +1556,311 @@ export function prepareOptionsForQuiz6(correctVocab) {
   ////////console.log(correctAnswer)
   return [options, correctAnswer, conjToTest, currentQuizWord, quizType, questionText];
 }
-function makeStringReadable(names) {
+export function makeStringReadable(names) {
   names = names.replace("futurePerfect", 'future perfect');
   names = names.replaceAll("_", ' ');
   return names
+}
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+function getQuizFeedbackElements() {
+  return {
+    quizContainer: document.getElementById('quizContainer'),
+    trueFalseContainer: document.getElementById('trueFalseContainer'),
+    spellingContainer: document.getElementById('SpellingContainer'),
+    nextButton: document.getElementById('nextButton'),
+    nextAfterIncorrectButton: document.getElementById('nextAfterIncorrectButton'),
+    correctDefinition: document.getElementById('correctDefinition'),
+    correctMessage: document.getElementById('correctMessage'),
+    incorrectMessage: document.getElementById('incorrectMessage'),
+  };
+}
+function computeSpellingAlignment(userAnswer = "", correctAnswer = "") {
+  const userChars = Array.from(String(userAnswer ?? ""));
+  const correctChars = Array.from(String(correctAnswer ?? ""));
+  const rows = userChars.length + 1;
+  const cols = correctChars.length + 1;
+  const dp = Array.from({ length: rows }, () => Array(cols).fill(0));
+
+  for (let i = 0; i < rows; i++) dp[i][0] = i;
+  for (let j = 0; j < cols; j++) dp[0][j] = j;
+
+  for (let i = 1; i < rows; i++) {
+    for (let j = 1; j < cols; j++) {
+      const substitutionCost = userChars[i - 1] === correctChars[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + substitutionCost
+      );
+    }
+  }
+
+  const alignment = [];
+  let i = userChars.length;
+  let j = correctChars.length;
+
+  while (i > 0 || j > 0) {
+    if (
+      i > 0 &&
+      j > 0 &&
+      dp[i][j] === dp[i - 1][j - 1] + (userChars[i - 1] === correctChars[j - 1] ? 0 : 1)
+    ) {
+      alignment.push({
+        type: userChars[i - 1] === correctChars[j - 1] ? 'match' : 'replace',
+        userChar: userChars[i - 1],
+        correctChar: correctChars[j - 1],
+      });
+      i -= 1;
+      j -= 1;
+      continue;
+    }
+    if (i > 0 && dp[i][j] === dp[i - 1][j] + 1) {
+      alignment.push({
+        type: 'delete',
+        userChar: userChars[i - 1],
+        correctChar: '',
+      });
+      i -= 1;
+      continue;
+    }
+    alignment.push({
+      type: 'insert',
+      userChar: '',
+      correctChar: correctChars[j - 1],
+    });
+    j -= 1;
+  }
+
+  alignment.reverse();
+  return alignment;
+}
+function formatSpellingDiff(userAnswer = "", correctAnswer = "") {
+  const alignment = computeSpellingAlignment(userAnswer, correctAnswer);
+  const userMarkup = [];
+  const correctMarkup = [];
+
+  alignment.forEach(({ type, userChar, correctChar }) => {
+    if (type === 'match') {
+      const safeChar = escapeHtml(userChar);
+      userMarkup.push(`<span>${safeChar}</span>`);
+      correctMarkup.push(`<span>${escapeHtml(correctChar)}</span>`);
+      return;
+    }
+    if (type === 'replace') {
+      userMarkup.push(`<span style="color: #b04233;">${escapeHtml(userChar)}</span>`);
+      correctMarkup.push(`<span style="color: #149d5f;">${escapeHtml(correctChar)}</span>`);
+      return;
+    }
+    if (type === 'delete') {
+      userMarkup.push(`<span style="color: #b04233;">${escapeHtml(userChar)}</span>`);
+      return;
+    }
+    correctMarkup.push(`<span style="color: #149d5f;">${escapeHtml(correctChar)}</span>`);
+  });
+
+  return {
+    userMarkup: userMarkup.join("") || `<span style="color: #b04233;">&nbsp;</span>`,
+    correctMarkup: correctMarkup.join("") || `<span style="color: #149d5f;">&nbsp;</span>`,
+  };
+}
+export function renderCorrectAnswerReview(context = {}) {
+  const {
+    currentQuizWord = "",
+    currentQuizDefinition = "",
+    quizType = "",
+    wordToTest = "",
+    conjToTest = "",
+    currentGermanPerfektReview = "",
+    userAnswer = "",
+    correctAnswer = "",
+    vocabList = [],
+    isSpellingQuiz = false,
+  } = context;
+  const {
+    quizContainer,
+    trueFalseContainer,
+    spellingContainer,
+    nextButton,
+    nextAfterIncorrectButton,
+    correctDefinition,
+  } = getQuizFeedbackElements();
+
+  if (quizContainer) quizContainer.style.display = 'none';
+  if (trueFalseContainer) trueFalseContainer.style.display = 'none';
+  if (spellingContainer) spellingContainer.style.display = 'none';
+  if (nextButton) nextButton.style.display = 'none';
+  if (nextAfterIncorrectButton) nextAfterIncorrectButton.style.display = 'block';
+  if (!correctDefinition) return;
+
+  correctDefinition.style.display = 'block';
+  const correctVocab = vocabList.find(entry => entry.word === currentQuizWord);
+  const spellingDiff = isSpellingQuiz ? formatSpellingDiff(userAnswer, correctAnswer) : null;
+  if (!correctVocab) {
+    correctDefinition.innerHTML = [
+      `<div>${isSpellingQuiz ? 'Your spelling:' : 'Your answer:'}</div>`,
+      `<div><b>${isSpellingQuiz ? spellingDiff.userMarkup : escapeHtml(userAnswer)}</b></div>`,
+      `<div>${isSpellingQuiz ? 'Correct spelling:' : 'Correct answer:'}</div>`,
+      `<div><b>${isSpellingQuiz ? spellingDiff.correctMarkup : `<span style="color: #149d5f;">${escapeHtml(correctAnswer)}</span>`}</b></div>`,
+    ].join("");
+    return;
+  }
+
+  const reviewParts = [
+    `<div>${isSpellingQuiz ? 'Your spelling:' : 'Your answer:'}</div>`,
+    `<div>${isSpellingQuiz ? `<b>${spellingDiff.userMarkup}</b>` : `<span style="color: #b04233;"><b>${escapeHtml(userAnswer)}</b></span>`}</div>`,
+    `<div>${isSpellingQuiz ? 'Correct spelling:' : 'Correct answer:'}</div>`,
+  ];
+
+  if (isSpellingQuiz) {
+    reviewParts.push(`<div><b>${spellingDiff.correctMarkup}</b></div>`);
+  }
+
+  reviewParts.push(`<div style="color: #149d5f;"><b>${escapeHtml(correctVocab.word)}: ${escapeHtml(correctVocab.definition)}</b></div>`);
+
+  if (correctVocab.gender) {
+    reviewParts.push(`<div style="color: #3f6252;">${String.fromCodePoint(0x1F4A0)} gender: ${escapeHtml(correctVocab.gender)}</div>`);
+  }
+  if (correctVocab.pronounciation) {
+    reviewParts.push(`<div style="color: #3f6252;">${String.fromCodePoint(0x1F4A0)} pronounciation: ${escapeHtml(correctVocab.pronounciation)}</div>`);
+  }
+  if (quizType == "6") {
+    reviewParts.push(
+      `<div style="color: #3f6252;">${String.fromCodePoint(0x1F4A0)} ${escapeHtml(currentQuizDefinition)} is one of the ${escapeHtml(makeStringReadable(String(conjToTest)))} form of ${escapeHtml(correctVocab.word)}</div>`
+    );
+  }
+  if (quizType == "7") {
+    reviewParts.push(
+      `<div style="color: #3f6252;">${String.fromCodePoint(0x1F4A0)} ${escapeHtml(wordToTest)} is one of the ${escapeHtml(makeStringReadable(String(conjToTest)))} form of ${escapeHtml(correctVocab.word)}</div>`
+    );
+  }
+  if (quizType == "groupTest" && correctVocab?.conjugations?.group) {
+    reviewParts.push(
+      `<div style="color: #3f6252;">${String.fromCodePoint(0x1F4A0)} group: ${escapeHtml(correctVocab.conjugations.group)}</div>`
+    );
+  }
+  if (quizType == "germanPerfekt") {
+    reviewParts.push(
+      `<div style="color: #3f6252;">${String.fromCodePoint(0x1F4A0)} Perfekt past participle: ${escapeHtml(currentQuizDefinition)}</div>`
+    );
+    if (currentGermanPerfektReview) {
+      reviewParts.push(
+        `<div style="color: #3f6252;">${String.fromCodePoint(0x1F4A0)} ${escapeHtml(currentGermanPerfektReview)}</div>`
+      );
+    }
+  }
+
+  correctDefinition.innerHTML = reviewParts.join("");
+}
+export function handleMultipleChoiceAnswer(context = {}) {
+  const {
+    button,
+    correctAnswer = "",
+    speakWord,
+    onCorrect,
+    onIncorrect,
+    reviewState,
+    successDelay = 500,
+  } = context;
+  const { correctMessage, incorrectMessage } = getQuizFeedbackElements();
+  const userAnswer = button?.textContent || "";
+  const isCorrect = userAnswer === correctAnswer;
+
+  if (isCorrect) {
+    speakWord?.();
+    button?.classList.add('correct');
+    if (correctMessage) correctMessage.style.display = 'block';
+    setTimeout(() => {
+      button?.classList.remove('correct');
+      if (correctMessage) correctMessage.style.display = 'none';
+      onCorrect?.();
+    }, successDelay);
+    return true;
+  }
+
+  if (incorrectMessage) incorrectMessage.style.display = 'block';
+  onIncorrect?.();
+  renderCorrectAnswerReview({
+    ...reviewState,
+    userAnswer,
+    correctAnswer,
+  });
+  return false;
+}
+export function handleTrueFalseAnswer(context = {}) {
+  const {
+    isTrue,
+    isPairCorrect,
+    onCorrect,
+    onIncorrect,
+    reviewState,
+    successDelay = 500,
+  } = context;
+  const { trueFalseContainer, correctMessage, incorrectMessage } = getQuizFeedbackElements();
+  const isCorrect = isTrue === isPairCorrect;
+
+  if (trueFalseContainer) trueFalseContainer.style.display = 'none';
+
+  if (isCorrect) {
+    if (correctMessage) correctMessage.style.display = 'block';
+    setTimeout(() => {
+      if (correctMessage) correctMessage.style.display = 'none';
+      onCorrect?.();
+    }, successDelay);
+    return true;
+  }
+
+  if (incorrectMessage) incorrectMessage.style.display = 'block';
+  onIncorrect?.();
+  renderCorrectAnswerReview({
+    ...reviewState,
+    userAnswer: isTrue ? "True" : "False",
+    correctAnswer: isPairCorrect ? "True" : "False",
+  });
+  return false;
+}
+export function handleSpellingAnswer(context = {}) {
+  const {
+    currentLanguage,
+    rawCorrect = "",
+    inputValue = "",
+    displayUserAnswer = inputValue,
+    speakWord,
+    onCorrect,
+    onIncorrect,
+    reviewState,
+    successDelay = 500,
+  } = context;
+  const { spellingContainer, correctMessage, incorrectMessage } = getQuizFeedbackElements();
+  const normalizedUserAnswer = normalizeSpelling(inputValue, currentLanguage);
+  const isCorrect = normalizeSpelling(rawCorrect, currentLanguage) === normalizedUserAnswer;
+
+  if (isCorrect) {
+    speakWord?.();
+    if (correctMessage) correctMessage.style.display = 'block';
+    setTimeout(() => {
+      if (correctMessage) correctMessage.style.display = 'none';
+      onCorrect?.();
+    }, successDelay);
+    return true;
+  }
+
+  if (incorrectMessage) incorrectMessage.style.display = 'block';
+  if (spellingContainer) spellingContainer.style.display = 'none';
+  onIncorrect?.();
+  renderCorrectAnswerReview({
+    ...reviewState,
+    userAnswer: displayUserAnswer,
+    correctAnswer: rawCorrect,
+    isSpellingQuiz: true,
+  });
+  return false;
 }
 export function checkVocabIndex(currentVocabIndex, vocabList, eligibleVocab) {
 
@@ -1539,20 +1886,32 @@ export function prepareQuiz6(options, answer, questionText) {
   document.getElementById('nextAfterIncorrectButton').style.display = 'none';
   prepareOptions(options, answer);
 }
-export function exportToJson() {
-  chrome.storage.local.get('vocabList', function (data) {
+export function exportToJson(dataOverride = null, onComplete = null, filenamePrefix = "") {
+  const finishExport = (data) => {
     const jsonString = JSON.stringify(data, null, 2);
     const blob = new Blob([jsonString], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     var date = new Date();
-    const filename = date.toJSON().slice(0, 10) + ".json";
+    const filename = `${filenamePrefix}${date.toJSON().slice(0, 10)}.json`;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    if (typeof onComplete === "function") {
+      onComplete();
+    }
+  };
+
+  if (dataOverride !== null) {
+    finishExport(dataOverride);
+    return;
+  }
+
+  chrome.storage.local.get('vocabList', function (data) {
+    finishExport(data);
   });
 }
 export function prepareOptions(options, answer) {
@@ -1590,6 +1949,17 @@ const dontRemoveDiacritics = [LANGUAGES.GERMAN];
 export function hasConjugations(vocab) {
   return vocab && vocab.conjugations && vocab.conjugations !== undefined && vocab.conjugations.type != "";
 }
+export function hasGermanPerfekt(vocab) {
+  const language = (vocab?.language || "").toLowerCase();
+  const book = (vocab?.book || "").toLowerCase();
+  const pastParticiple = vocab?.conjugation?.past_participle;
+  const pass = ((language === "de" || book === "german") &&
+    vocab?.wordType === wordTypes.VERB &&
+    typeof pastParticiple === "string" &&
+    pastParticiple.trim() !== "");
+  //console.log(vocab.word, "hasGermanPerfekt:", pass);
+  return pass;
+}
 // ...existing code...
 export function processWordByLanguage(language, word) {
   if (dontRemoveDiacritics.includes(language)) {
@@ -1609,6 +1979,142 @@ export function hasGender(wordObj) {
 }
 export function hasPronounciation(wordObj) {
   return !!(wordObj.pronounciation && wordObj.pronounciation !== "undefined" && wordObj.pronounciation !== "");
+}
+const GERMAN_SEPARABLE_PREFIXES = [
+  'ab', 'an', 'auf', 'aus', 'bei', 'dar', 'ein', 'empor', 'entgegen', 'fehl',
+  'fern', 'fest', 'fort', 'frei', 'gegenueber', 'gegenüber', 'gleich', 'heim',
+  'her', 'hin', 'los', 'mit', 'nach', 'nieder', 'preis', 'statt', 'teil',
+  'ueber', 'über', 'um', 'unter', 'vor', 'weg', 'weiter', 'wieder', 'zu', 'zurueck', 'zurück'
+];
+
+function normalizeGermanVerb(word = '') {
+  return word.trim().toLowerCase();
+}
+
+function getGermanVerbStem(word = '') {
+  const normalized = normalizeGermanVerb(word);
+  if (normalized.endsWith('en') && normalized.length > 3) {
+    return normalized.slice(0, -2);
+  }
+  if (normalized.endsWith('n') && normalized.length > 2) {
+    return normalized.slice(0, -1);
+  }
+  return normalized;
+}
+
+function getGermanSeparablePrefix(word = '') {
+  const normalized = normalizeGermanVerb(word);
+  return GERMAN_SEPARABLE_PREFIXES.find(prefix =>
+    normalized.startsWith(prefix) && normalized.length > prefix.length + 2
+  ) || null;
+}
+
+function addGermanCandidate(set, candidate, correctAnswer) {
+  if (typeof candidate !== 'string') {
+    return;
+  }
+  const cleaned = candidate.replace(/\s+/g, ' ').trim().toLowerCase();
+  if (!cleaned || cleaned === correctAnswer) {
+    return;
+  }
+  set.add(cleaned);
+}
+
+function buildGermanPerfektDistractors(word, correctAnswer) {
+  const normalizedWord = normalizeGermanVerb(word);
+  const correct = normalizeGermanVerb(correctAnswer);
+  const candidates = new Set();
+  const prefix = getGermanSeparablePrefix(normalizedWord);
+  const baseVerb = prefix ? normalizedWord.slice(prefix.length) : normalizedWord;
+  const stem = getGermanVerbStem(baseVerb);
+
+  addGermanCandidate(candidates, normalizedWord, correct);
+  addGermanCandidate(candidates, `ge${normalizedWord}`, correct);
+  addGermanCandidate(candidates, `${stem}t`, correct);
+  addGermanCandidate(candidates, `${stem}en`, correct);
+  addGermanCandidate(candidates, `ge${stem}t`, correct);
+  addGermanCandidate(candidates, `ge${stem}en`, correct);
+  addGermanCandidate(candidates, `ge${stem}et`, correct);
+
+  if (prefix) {
+    addGermanCandidate(candidates, `${prefix}${stem}t`, correct);
+    addGermanCandidate(candidates, `${prefix}${stem}en`, correct);
+    addGermanCandidate(candidates, `${prefix}ge${baseVerb}`, correct);
+    addGermanCandidate(candidates, `ge${prefix}${baseVerb}`, correct);
+    addGermanCandidate(candidates, `${prefix}ge${stem}t`, correct);
+    addGermanCandidate(candidates, `${prefix}ge${stem}en`, correct);
+    addGermanCandidate(candidates, `${prefix}${baseVerb}`, correct);
+  }
+
+  if (correct.startsWith('ge')) {
+    addGermanCandidate(candidates, correct.slice(2), correct);
+  } else {
+    addGermanCandidate(candidates, `ge${correct}`, correct);
+  }
+  if (correct.endsWith('en')) {
+    addGermanCandidate(candidates, `${correct.slice(0, -2)}t`, correct);
+  }
+  if (correct.endsWith('t')) {
+    addGermanCandidate(candidates, `${correct}en`, correct);
+  }
+
+  const fallbackBase = stem || normalizedWord || correct;
+  const fallbackCandidates = [
+    `${fallbackBase}te`,
+    `${fallbackBase}tet`,
+    `${fallbackBase}end`,
+    `${fallbackBase}${fallbackBase.endsWith('t') ? '' : 't'}`,
+    `${fallbackBase}${fallbackBase.endsWith('en') ? '' : 'en'}`
+  ];
+  fallbackCandidates.forEach(candidate => addGermanCandidate(candidates, candidate, correct));
+
+  return Array.from(candidates).slice(0, 12);
+}
+
+export function prepareGermanPerfektQuiz(correctVocab) {
+  const correctAnswer = normalizeGermanVerb(correctVocab?.conjugation?.past_participle || '');
+  const wrongAnswers = buildGermanPerfektDistractors(correctVocab?.word || '', correctAnswer);
+  const options = [correctAnswer];
+  for (const wrongAnswer of wrongAnswers) {
+    if (options.length >= 4) {
+      break;
+    }
+    if (!options.includes(wrongAnswer)) {
+      options.push(wrongAnswer);
+    }
+  }
+
+  let fallbackIndex = 1;
+  while (options.length < 4) {
+    const fallbackCandidate = `${getGermanVerbStem(correctVocab?.word || 'verb')}${fallbackIndex}`;
+    if (!options.includes(fallbackCandidate) && fallbackCandidate !== correctAnswer) {
+      options.push(fallbackCandidate);
+    }
+    fallbackIndex += 1;
+  }
+
+  shuffleArray(options);
+  return {
+    options,
+    correctAnswer,
+    questionText: `Which is the correct German Perfekt past participle for "${correctVocab.word}"?`,
+    quizType: 'germanPerfekt',
+    reviewText: correctVocab?.conjugation?.auxiliary
+      ? `Perfekt: ${correctVocab.conjugation.auxiliary} + ${correctAnswer}`
+      : `Perfekt: ${correctAnswer}`
+  };
+}
+
+export function setupGermanPerfektQuiz(quizData) {
+  ClearPageForQuizContainer();
+  document.getElementById('quizQuestion').textContent = quizData.questionText;
+  document.getElementById('quizContainer').style.display = 'block';
+  document.getElementById('vocabFlashcard').style.display = 'none';
+  document.getElementById('correctMessage').style.display = 'none';
+  document.getElementById('incorrectMessage').style.display = 'none';
+  document.getElementById('correctDefinition').style.display = 'none';
+  document.getElementById('nextAfterIncorrectButton').style.display = 'none';
+  prepareOptions(quizData.options, quizData.correctAnswer);
 }
 export function generateDefOptions(correctVocab, filteredVocabList) {
   const options = [correctVocab.definition];
@@ -1664,8 +2170,12 @@ export function generateWordOptions(correctVocab, filteredVocabList) {
 }
 export function ClearPageForQuizContainer() {
   const autoplayButton = document.getElementById('autoplayButton');
+  const spellingContainer = document.getElementById('SpellingContainer');
   if (autoplayButton) {
     autoplayButton.style.display = 'none';
+  }
+  if (spellingContainer) {
+    spellingContainer.style.display = 'none';
   }
   document.getElementById('trueFalseContainer').style.display = 'none';
   document.getElementById('incorrectMessage').style.display = 'none';
@@ -1674,8 +2184,12 @@ export function ClearPageForQuizContainer() {
 
 export function ClearPageForTFContainer() {
   const autoplayButton = document.getElementById('autoplayButton');
+  const spellingContainer = document.getElementById('SpellingContainer');
   if (autoplayButton) {
     autoplayButton.style.display = 'none';
+  }
+  if (spellingContainer) {
+    spellingContainer.style.display = 'none';
   }
   document.getElementById('trueFalseContainer').style.display = 'none';
   document.getElementById('incorrectMessage').style.display = 'none';
@@ -1818,6 +2332,7 @@ export function detectLanguage(filteredVocabList) {
 
   // Find the first item that actually has a 'language' field
   const itemWithLang = filteredVocabList.find(item => item && item.language);
+  console.log(itemWithLang)
 
   if (itemWithLang) {
     return itemWithLang.language;
@@ -2099,7 +2614,7 @@ export function showUsage(word, latinMedieval = false) {
 
 
 }
-export function setupSpellingQuiz(correctVocab) {
+export function setupSpellingQuiz(correctVocab, config = {}) {
   const spellingContainer = document.getElementById('SpellingContainer');
   const quizContainer = document.getElementById('quizContainer');
   const tfContainer = document.getElementById('trueFalseContainer');
@@ -2126,11 +2641,13 @@ export function setupSpellingQuiz(correctVocab) {
   if (!spellingContainer) return;
 
   const questionEl = spellingContainer.querySelector('#spellingQuestion');
+  const prompt = config.prompt || `Spell the word for \r\n "${correctVocab.definition}"?`;
+  const correctAnswer = config.correctAnswer || correctVocab.word;
   if (questionEl) {
-    questionEl.innerHTML = `Spell the word for \r\n "${correctVocab.definition}"?`;
+    questionEl.innerHTML = prompt;
   }
 
-  spellingContainer.dataset.correctAnswer = correctVocab.word;
+  spellingContainer.dataset.correctAnswer = correctAnswer;
   spellingContainer.style.display = 'block';
 
   if (answerInput) {

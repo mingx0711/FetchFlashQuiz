@@ -209,6 +209,8 @@
     }
 
     #manageBookButton,
+    #toggleTestModeButton,
+    #removeDuplicateWordsButton,
     #exportToJson,
     #doSearchVocabBtn,
     #submitChanges,
@@ -216,6 +218,7 @@
     #addBookInContainerButton {
       background: var(--accent) !important;
       color: #fff !important;
+      margin: 0%;
     }
 
     #searchEditVocabBtn,
@@ -251,6 +254,7 @@
       padding: 14px 16px;
       font-size: 0.98rem;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      height: 130%;
     }
 
     input[type="text"]:focus,
@@ -643,6 +647,43 @@
       border-radius: var(--radius-xl);
     }
 
+    .selection-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .selection-list .ui.button {
+      justify-content: flex-start;
+      text-align: left;
+      border-radius: var(--radius-md);
+      background: var(--surface-muted) !important;
+      color: var(--text) !important;
+    }
+
+    .selection-group {
+      padding: 16px;
+      border-radius: var(--radius-lg);
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+    }
+
+    .selection-group-title {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .selection-group-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .selection-group-buttons .ui.button {
+      margin: 0;
+    }
+
     .floating-header {
       display: flex;
       align-items: center;
@@ -773,7 +814,9 @@
         </div>
         <div class="hero-actions">
           <button class="ui button" id="manageBookButton">Manage Collection</button>
+          <button class="ui button" id="toggleTestModeButton">Dev Mode: Off</button>
           <button class="ui button" id="deleteCheckedDataButton">Reset Check Status</button>
+          <button class="ui button" id="removeDuplicateWordsButton">Remove Duplicate Words</button>
         </div>
       </div>
 
@@ -813,7 +856,8 @@
       <div class="panel-heading">
         <div>
           <h2 class="panel-title">Search and Edit Vocabulary</h2>
-          <p class="panel-subtitle">Find a stored word, update its metadata, and save changes without leaving the page.</p>
+          <p class="panel-subtitle">Find a stored word, update its metadata, and save changes without leaving the page.
+          </p>
         </div>
         <button type="button" id="closeSearchEditVocab" aria-label="Close">x</button>
       </div>
@@ -908,7 +952,8 @@
       <div class="manager-header">
         <div>
           <h2 class="manager-title">Vocabulary Deck</h2>
-          <p class="manager-note">Filter by collection, inspect quiz performance, and manage focus or snooze state inline.</p>
+          <p class="manager-note">Filter by collection, inspect quiz performance, and manage focus or snooze state
+            inline.</p>
         </div>
       </div>
 
@@ -957,6 +1002,18 @@
         <button class="ui button primary" id="addBookInContainerButton">Add Book</button>
       </div>
     </div>
+  </div>
+
+  <div class="floating-container" id="resetCheckedCollectionContainer">
+    <div class="floating-header">
+      <h3 class="ui header" style="margin: 0;">Reset Checked Status</h3>
+      <span class="close-button" id="closeResetCheckedContainer">x</span>
+    </div>
+
+    <p style="margin-top: 0; color: var(--muted);">
+      Choose which collection should have its checked data reset.
+    </p>
+    <div id="resetCheckedCollectionList" class="selection-list"></div>
   </div>
 
   <script src="../libs/papaparse.js"></script>

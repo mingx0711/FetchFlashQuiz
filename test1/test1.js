@@ -25,20 +25,17 @@ let currentLanguage;
 let totalCountYet = 0;
 let conjToTest;
 let correctVocab;
+let currentGermanPerfektReview = null;
 let quizChartInstance = null; // Add this at the top of your file (or outside the function)
-
-function prepareShuffledTestQueue(vocabItems) {
-  filteredVocabList = [...vocabItems];
-  shuffleArray(filteredVocabList);
-  currentVocabIndex = -1;
-}
-
+let currentQuizBucket = null;
+let redoUsesLastWrongQuizType = false;
 document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('wrongCountDiv').style.display = 'none';
   document.getElementById('vocabFlashcard').style.display = 'none';
   document.getElementById('quizContainer').style.display = 'none';
   document.getElementById('trueFalseContainer').style.display = 'none';
   populateBookSelector();
+  document.getElementById('bookSelector').addEventListener('change', updateBookSpecificFocusOptions);
 
   chrome.storage.local.get(['selectedBG'], function (result) {
     if (result.selectedBG) {
@@ -78,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('testCollectionBtn').addEventListener('click', () => {
     // Get the selected collection from the dropdown
     const selectedCollection = document.getElementById('bookSelector').value;
+    redoUsesLastWrongQuizType = false;
     document.getElementById('end').style.display = '';
     // Call the function to display vocab
     displayTests(selectedCollection);
@@ -94,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('showTestResult').style.display = "None"
 
     filteredVocabList = filteredVocabList.filter(item => wrongVocabs.includes(item.word));
-    ////console.log(filteredVocabList)
+    //////console.log(filteredVocabList)
     currentQuizNo = 0;
     wordToTest = "";
     recordHistory = [];
@@ -103,7 +101,8 @@ document.addEventListener('DOMContentLoaded', function () {
     totalCountYet = 0;
     currentTest;
     wrongVocabs = [];
-    prepareShuffledTestQueue(filteredVocabList);
+    currentVocabIndex = -1;
+    redoUsesLastWrongQuizType = true;
     showNextItem();
   });
 
@@ -121,7 +120,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   document.getElementById('correctDefinition').style.display = 'none';
 
-
   document.getElementById('trueButton').addEventListener('click', function () {
     checkTrueFalse(true);
   });
@@ -129,14 +127,113 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('falseButton').addEventListener('click', function () {
     checkTrueFalse(false);
   });
+
+  const checkButton = document.getElementById('checkButton');
+  const answerInput = document.getElementById('answer');
+  if (checkButton && answerInput) {
+    checkButton.addEventListener('click', function () {
+      checkSpelling();
+    });
+    answerInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        checkSpelling();
+      }
+    });
+  }
 }
 );
 let currentFocus;
+
+function getCurrentVocabEntry() {
+  if (currentTest?.vocab) {
+    return filteredVocabList.find(item =>
+      item.word === currentTest.vocab &&
+      item.book === currentTest.book
+    ) || null;
+  }
+  return filteredVocabList[currentVocabIndex] || null;
+}
+
+function getStoredVocabMatch(list, vocab) {
+  if (!Array.isArray(list) || !vocab) return null;
+  return list.find(item =>
+    item.word === vocab.word &&
+    item.book === vocab.book &&
+    item.definition === vocab.definition
+  ) || list.find(item =>
+    item.word === vocab.word &&
+    item.book === vocab.book
+  ) || null;
+}
+
+function persistCurrentWordErrorState(isCorrect) {
+  const currentVocab = getCurrentVocabEntry();
+  if (!currentVocab) return;
+
+  chrome.storage.local.get('vocabList', function (data) {
+    const storedList = data.vocabList || [];
+    const storedMatch = getStoredVocabMatch(storedList, currentVocab);
+    if (!storedMatch) return;
+
+    if (isCorrect) {
+      delete storedMatch.lastWrongQuizType;
+    } else {
+      storedMatch.lastWrongQuizType = currentQuizBucket || null;
+    }
+
+    currentVocab.lastWrongQuizType = storedMatch.lastWrongQuizType;
+    chrome.storage.local.set({ vocabList: storedList }, function () { });
+  });
+}
+
+function getQuizStylesForCurrentWord(allQuizStyles) {
+  const currentVocab = getCurrentVocabEntry();
+  if (!currentVocab) return allQuizStyles;
+
+  if (currentFocus && focusQuizMap[currentFocus]) {
+    return focusQuizMap[currentFocus];
+  }
+
+  if (currentVocab.lastWrongQuizType && Math.random() < 0.6) {
+    return focusQuizMap[currentVocab.lastWrongQuizType] || allQuizStyles;
+  }
+
+  return allQuizStyles;
+}
+
+function updateBookSpecificFocusOptions() {
+  const selectedBook = document.getElementById('bookSelector').value;
+  const inflectionLabel = document.getElementById('inflectionFocusOption');
+  const germanPerfektLabel = document.getElementById('germanPerfektFocusOption');
+  const inflectionInput = inflectionLabel?.querySelector('input[name="focusOption"]');
+  const germanPerfektInput = germanPerfektLabel?.querySelector('input[name="focusOption"]');
+  const defaultOption = document.querySelector('input[name="focusOption"][value="none"]');
+
+  const showInflection = selectedBook === 'Latin';
+  const showGermanPerfekt = selectedBook === 'German';
+
+  if (inflectionLabel) {
+    inflectionLabel.style.display = showInflection ? 'inline-flex' : 'none';
+  }
+  if (germanPerfektLabel) {
+    germanPerfektLabel.style.display = showGermanPerfekt ? 'inline-flex' : 'none';
+  }
+
+  const invalidSelection =
+    (inflectionInput?.checked && !showInflection) ||
+    (germanPerfektInput?.checked && !showGermanPerfekt);
+
+  if (invalidSelection && defaultOption) {
+    defaultOption.checked = true;
+  }
+}
 
 let focusQuizMap = {
   gender: [quizStyle5],
   pronunciation: [quizStyle4],
   inflection: [quizStyle6, quizStyle7],
+  germanPerfekt: [quizStyle10],
   definition: [quizStyle1, quizStyle2, quizStyle3, quizStyle8],
   listeningMCQ: [quizStyle8],
 };
@@ -160,7 +257,7 @@ function displayTests(bookSelected) {
       // Focus selector logic
       const focus = document.querySelector('input[name="focusOption"]:checked').value;
       currentFocus = focus;
-      //////console.log(focus)
+      ////////console.log(focus)
       if (focus === "gender") {
         filteredVocabList = filteredVocabList.filter(vocab => hasGender(vocab));
         if (filteredVocabList.length < 4) {
@@ -177,6 +274,12 @@ function displayTests(bookSelected) {
         filteredVocabList = filteredVocabList.filter(vocab => vocab.conjugations && vocab.conjugations.type && vocab.conjugations.type !== "");
         if (filteredVocabList.length < 4) {
           alert("Not enough entries with inflection to make the test.");
+          return;
+        }
+      } else if (focus === "germanPerfekt") {
+        filteredVocabList = filteredVocabList.filter(vocab => utils.hasGermanPerfekt(vocab));
+        if (filteredVocabList.length < 4) {
+          alert("Not enough German verbs with Perfekt data to make the test.");
           return;
         }
       } else if (focus === "listening") {
@@ -203,8 +306,9 @@ function displayTests(bookSelected) {
 
           if (selectedFilters.includes("freq")) {
             match = match || (
-              item.quizResults &&
-              item.quizResults.filter(r => r === 'f').length > 1
+              (item.quizResults &&
+                item.quizResults.filter(r => r === 'f').length > 1) ||
+              (focus !== "all" && item.lastError && item.lastError === focus)
             );
           }
 
@@ -251,20 +355,15 @@ function displayTests(bookSelected) {
       }
 
       // Final order: withN, withF, others
-      prepareShuffledTestQueue([...withN, ...withF, ...others]);
-
-      // ...use filteredVocabList for your test display logic...
-      // Example:
-      // renderVocabs(orderedVocabs);
-
-      // Clean up temp fields
+      filteredVocabList = [...withN, ...withF, ...others];
+      currentLanguage = utils.detectLanguage(filteredVocabList);
+      //console.log(currentLanguage)
       filteredVocabList.forEach(v => { delete v._nCount; delete v._fCount; });
-      //console.log(filteredVocabList)
       eligibleForQuiz4 = (new Set(filteredVocabList.map(item => item.pronounciation)).size) > 3;
       if (!eligibleForQuiz4) {
         focusQuizMap.pronunciation = [quizStyle2];
       }
-      eligibleForQuiz5 = (utils.LanguageGenderMap[filteredVocabList[0].language] || []).length > 1;
+      eligibleForQuiz5 = (utils.LanguageGenderMap[filteredVocabList[0].language ? filteredVocabList[0].language : currentLanguage] || []).length > 1;
       if (!eligibleForQuiz5) {
         focusQuizMap.gender = [quizStyle1];
       }
@@ -281,6 +380,9 @@ function displayTests(bookSelected) {
         document.getElementById('vocabFlashcard').textContent = "No vocabulary to test.";
         return;
       }
+      shuffleArray(filteredVocabList);
+      //console.log(filteredVocabList);
+
       showNextItem();
     }
   });
@@ -292,7 +394,7 @@ function populateBookSelector() {
     document.getElementById('bookSelector').innerHTML = ""
     chrome.storage.local.get('lastBook', function (data) {
       const lastBook = data.lastBook;
-      ////////console.log(lastBook)
+      //////////console.log(lastBook)
       if (lastBook && lastBook != null) {
         if (lastBook != "" || lastBook === "addNew" || lastBook === "Default") {
           let optionNewSelected = document.createElement('option');
@@ -315,6 +417,7 @@ function populateBookSelector() {
           document.getElementById('bookSelector').add(option);
         }
       });
+      updateBookSpecificFocusOptions();
     });
 
   });
@@ -330,33 +433,30 @@ function showNextItem() {
     document.getElementById('trueFalseContainer').style.display = 'none';
 
     currentVocabIndex++;
-    if (currentVocabIndex >= filteredVocabList.length) {
+    console.log("Current vocab index: " + currentVocabIndex + " / " + filteredVocabList.length);
+    if (currentVocabIndex === filteredVocabList.length) {
       endTest();
     }
-    //console.log("Current vocab index: " + currentVocabIndex);
-    const allQuizStyles = [quizStyle1, quizStyle2, quizStyle3, quizStyle4, quizStyle5, quizStyle6, quizStyle7, quizStyle8];
+    ////console.log("Current vocab index: " + currentVocabIndex);
+    const allQuizStyles = [quizStyle1, quizStyle2, quizStyle3, quizStyle4, quizStyle5, quizStyle6, quizStyle7, quizStyle8, quizStyle10];
     if (!eligibleForQuiz4) {
       allQuizStyles.splice(allQuizStyles.indexOf(quizStyle4), 1)
     } if (!eligibleForQuiz5) {
       allQuizStyles.splice(allQuizStyles.indexOf(quizStyle5), 1)
     }
 
-    if (focusQuizMap[currentFocus]) {
-
-      const quizStyles = focusQuizMap[currentFocus];
-      const randomIndex = Math.floor(Math.random() * quizStyles.length);
-
-      // Pick one at random if multiple styles
-      quizStyles[randomIndex]();
-    } else {
-      // No focus: pick any quiz style at random
-      const randomIndex = Math.floor(Math.random() * allQuizStyles.length);
-      allQuizStyles[randomIndex]();
-    }
+    const currentVocab = filteredVocabList[currentVocabIndex];
+    const redoQuizStyles = redoUsesLastWrongQuizType && currentVocab?.lastWrongQuizType
+      ? focusQuizMap[currentVocab.lastWrongQuizType]
+      : null;
+    const quizStyles = redoQuizStyles?.length ? redoQuizStyles : getQuizStylesForCurrentWord(allQuizStyles);
+    const randomIndex = Math.floor(Math.random() * quizStyles.length);
+    quizStyles[randomIndex]();
   }
 }
 
 function quizStyle1() {
+  currentQuizBucket = 'definition';
   utils.ClearPageForQuizContainer();
   utils.removeSnooze();
   const correctVocab = filteredVocabList[currentVocabIndex];
@@ -371,12 +471,13 @@ function quizStyle1() {
 
 }
 function quizStyle2() {
+  currentQuizBucket = 'definition';
   utils.ClearPageForQuizContainer();
   utils.removeSnooze();
   shouldSpeak = true;
 
   const correctVocab = filteredVocabList[currentVocabIndex];
-  ////console.log("quizStyle2 called for " + correctVocab);
+  //////console.log("quizStyle2 called for " + correctVocab);
   wordToSpeak = correctVocab.word;
 
   if (!utils.checkEligible(correctVocab, () => true, false)) {
@@ -387,15 +488,16 @@ function quizStyle2() {
   currentQuizDefinition = correctVocab.definition;
   quizType = 'word';
 
-  // //////console.log.log(currentQuizWord);
+  // ////////console.log.log(currentQuizWord);
   utils.setupWordQuiz(correctVocab, filteredVocabList)
   currentTest = { quizStyle: "Ask for word", vocab: correctVocab.word, book: correctVocab.book };
 }
 
 function quizStyle3() {
+  currentQuizBucket = 'definition';
   // Quiz Style 3: True or False
   const correctVocab = filteredVocabList[currentVocabIndex];
-  ////console.log("quizStyle3 called for " + correctVocab);
+  //////console.log("quizStyle3 called for " + correctVocab);
   shouldSpeak = false;
 
   if (!utils.checkEligible(correctVocab, () => true, false)) {
@@ -422,6 +524,7 @@ function quizStyle3() {
 
 }
 function quizStyle4() {
+  currentQuizBucket = 'pronunciation';
 
   utils.ClearPageForQuizContainer();
   utils.removeSnooze()
@@ -447,13 +550,14 @@ function quizStyle4() {
 
 }
 function quizStyle5() {
+  currentQuizBucket = 'gender';
 
   utils.ClearPageForQuizContainer();
   utils.removeSnooze();
   shouldSpeak = false;
 
   const correctVocab = filteredVocabList[currentVocabIndex];
-  //console.log("quizStyle5 called for " + correctVocab.word);
+  ////console.log("quizStyle5 called for " + correctVocab.word);
 
 
   if (!utils.checkEligible(correctVocab, utils.hasGender, false)) {
@@ -498,7 +602,7 @@ function getRandomKeysFromArray(array, count) {
 
 // Helper function to get random subfield from an object
 function getRandomSubfield(obj) {
-  ////////console.log(obj)
+  //////////console.log(obj)
   const keys = Object.keys(obj);
   const validKeys = keys.filter(field => (field !== 'pos') && (field !== 'type'));
   const randomKey = validKeys[Math.floor(Math.random() * keys.length)];
@@ -519,23 +623,17 @@ function getRandomWordFromConjugations(conjugations, commonWordsList = []) {
   let randomSubfield = subfields[Math.floor(Math.random() * subfields.length)];
   const words = conjugations[randomField][randomSubfield];
   const randomWord = words[Math.floor(Math.random() * words.length)];
-  ////////console.log(randomField+":"+randomSubfield+":"+randomWord)
+  //////////console.log(randomField+":"+randomSubfield+":"+randomWord)
   if (randomWord == undefined) {
     return getRandomWordFromConjugations(conjugations, commonWordsList);
   }
   const isInAllSubfields = commonWordsList.includes(randomWord)
   if (randomWord.length <= 1 || randomWord == null || isInAllSubfields) {
-    ////////console.log(randomWord+" is not not a wrong answer")
+    //////////console.log(randomWord+" is not not a wrong answer")
     return getRandomWordFromConjugations(conjugations, commonWordsList);
   } else {
     return randomWord;
   }
-}
-function makeStringReadable(names) {
-  names = names.replace("futurePerfect", 'future perfect');
-  names = names.replaceAll("_", ' ');
-
-  return names
 }
 function findSubfieldsForWord(word, conjugations) {
   let wordSubfields = [];
@@ -569,6 +667,7 @@ function findSubfieldsForWord(word, conjugations) {
 }
 
 function quizStyle6() {
+  currentQuizBucket = 'inflection';
 
   utils.ClearPageForQuizContainer();
   utils.removeSnooze()
@@ -592,6 +691,7 @@ function quizStyle6() {
 
 }
 function quizStyle7() {
+  currentQuizBucket = 'inflection';
   utils.removeSnooze()
   shouldSpeak = false;
 
@@ -617,7 +717,8 @@ function quizStyle7() {
 
 }
 function quizStyle8() {
-  ////console.log("quiz style 8, listening quiz")
+  currentQuizBucket = 'listeningMCQ';
+  //////console.log("quiz style 8, listening quiz")
   utils.ClearPageForQuizContainer();
   utils.showNextAndAutoplay()
 
@@ -627,11 +728,7 @@ function quizStyle8() {
     showNextVocab();
     return;
   }
-  const correctVocab = filteredVocabList[currentVocabIndex];
-  if (!utils.checkEligible(correctVocab, () => true, false)) {
-    currentVocabIndex--;
-    return showNextItem();
-  }
+  const correctVocab = utils.getTestWord(eligibleVocab);
   currentQuizWord = correctVocab.word;
   wordToSpeak = currentQuizWord;
 
@@ -640,99 +737,111 @@ function quizStyle8() {
   currentTest = { quizStyle: "Pronounciation", vocab: correctVocab.word, book: correctVocab.book };
 
 }
+function quizStyle10() {
+  currentQuizBucket = 'germanPerfekt';
+  currentGermanPerfektReview = null;
+  utils.ClearPageForQuizContainer();
+  utils.removeSnooze();
+
+  const correctVocab = filteredVocabList[currentVocabIndex];
+  if (!utils.checkEligible(correctVocab, utils.hasGermanPerfekt, false)) {
+    currentVocabIndex--;
+    return showNextItem();
+  }
+
+  currentQuizWord = correctVocab.word;
+  currentQuizDefinition = correctVocab.conjugation.past_participle;
+  currentGermanPerfektReview = correctVocab?.conjugation?.auxiliary
+    ? `Perfekt: ${correctVocab.conjugation.auxiliary} + ${currentQuizDefinition}`
+    : `Perfekt: ${currentQuizDefinition}`;
+  quizType = 'germanPerfekt';
+  wordToSpeak = currentQuizDefinition;
+
+  utils.setupSpellingQuiz(correctVocab, {
+    prompt: `Spell the past participle of <b>"${correctVocab.word}"</b>.`,
+    correctAnswer: currentQuizDefinition
+  });
+  currentTest = { quizStyle: "German Perfekt Tense", vocab: correctVocab.word, book: correctVocab.book };
+}
 function checkAnswer(button) {
   const correctAnswer = document.getElementById('quizContainer').dataset.correctAnswer;
-  const correctMessage = document.getElementById('correctMessage');
-  const incorrectMessage = document.getElementById('incorrectMessage');
-  const correctDefinition = document.getElementById('correctDefinition');
-  const result = button.textContent === correctAnswer ? 't' : 'f';
-  updateQuizResults(result);
-
-  if (button.textContent === correctAnswer) {
-    utils.speakWord(currentLanguage, currentQuizWord, latinMedieval);
-    button.classList.add('correct');
-    correctMessage.style.display = 'block';
-    setTimeout(() => {
-      button.classList.remove('correct');
-      correctMessage.style.display = 'none';
+  utils.handleMultipleChoiceAnswer({
+    button,
+    correctAnswer,
+    speakWord: () => utils.speakWord(currentLanguage, wordToSpeak || currentQuizWord, latinMedieval),
+    onCorrect: () => {
+      updateQuizResults('t');
+      persistCurrentWordErrorState(true);
       showNextItem();
-    }, 500);
-  } else {
-    incorrectMessage.style.display = 'block';
-    showCorrectAnswer();
-    wrongVocabs.push(currentQuizWord);
-    document.getElementById('nextAfterIncorrectButton').style.display = 'Block';
-  }
+    },
+    onIncorrect: () => {
+      updateQuizResults('f');
+      persistCurrentWordErrorState(false);
+      wrongVocabs.push(currentQuizWord);
+    },
+    reviewState: getAnswerReviewState(),
+  });
 }
 
-function showCorrectAnswer() {
-  const quizContainer = document.querySelector('.quiz-container');
-  quizContainer.style.display = "none";
-  const tfContainer = document.querySelector('.true-false-container');
-  tfContainer.style.display = "none";
-  const vocabFlashcard = document.getElementById('correctDefinition');
-  vocabFlashcard.style.display = 'block';
-  const nextButton = document.getElementById('nextAfterIncorrectButton');
-  nextButton.style.display = 'block';
-  const correctVocab = vocabList.find(entry => entry.word === currentQuizWord);
-  if (correctVocab) {
-    vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-
-    vocabFlashcard.textContent = `${correctVocab.word}: ${correctVocab.definition}`;
-    if (correctVocab.gender && correctVocab.gender != "") {
-      vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-
-      vocabFlashcard.textContent += " gender:"
-      vocabFlashcard.textContent += correctVocab.gender
-    }
-    if (correctVocab.pronounciation && correctVocab.pronounciation != "") {
-      vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-
-      vocabFlashcard.textContent += " pronounciation:"
-      vocabFlashcard.textContent += correctVocab.pronounciation
-    }
-    if (quizType == "6") {
-      vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-      vocabFlashcard.textContent += currentQuizDefinition
-      vocabFlashcard.textContent += " is one of the "
-      vocabFlashcard.textContent += makeStringReadable(conjToTest.toString())
-      vocabFlashcard.textContent += "form of "
-      vocabFlashcard.textContent += correctVocab.word
-    } if (quizType == "7") {
-      vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-      vocabFlashcard.textContent += wordToTest
-      vocabFlashcard.textContent += " is one of the "
-      vocabFlashcard.textContent += makeStringReadable(conjToTest.toString())
-      vocabFlashcard.textContent += " form of "
-      vocabFlashcard.textContent += correctVocab.word
-    } if (quizType == "groupTest") {
-      vocabFlashcard.innerHTML += String.fromCodePoint(0x1F4A0);
-      vocabFlashcard.textContent += " group: "
-      vocabFlashcard.textContent += correctVocab.conjugations.group
-    }
-    document.getElementById('quizContainer').style.display = 'none';
-    vocabFlashcard.style.display = 'block';
-  }
+function showCorrectAnswer(userAnswer = "", correctAnswer = "") {
+  utils.renderCorrectAnswerReview({
+    ...getAnswerReviewState(),
+    userAnswer,
+    correctAnswer,
+  });
 }
 function checkTrueFalse(isTrue) {
-  const correctMessage = document.getElementById('correctMessage');
-  const incorrectMessage = document.getElementById('incorrectMessage');
-  if (isTrue === isPairCorrect) {
-    updateQuizResults('t');
-    correctMessage.style.display = 'block';
-    setTimeout(() => {
-      correctMessage.style.display = 'none';
+  utils.handleTrueFalseAnswer({
+    isTrue,
+    isPairCorrect,
+    onCorrect: () => {
+      updateQuizResults('t');
+      persistCurrentWordErrorState(true);
       showNextItem();
-    }, 500);
-  } else {
-    updateQuizResults('f');
-    incorrectMessage.style.display = 'block';
-    showCorrectAnswer();
-    document.getElementById('nextAfterIncorrectButton').style.display = 'block';
-    wrongVocabs.push(currentQuizWord);
-  }
-  document.getElementById('trueFalseContainer').style.display = 'none';
+    },
+    onIncorrect: () => {
+      updateQuizResults('f');
+      persistCurrentWordErrorState(false);
+      wrongVocabs.push(currentQuizWord);
+    },
+    reviewState: getAnswerReviewState(),
+  });
+}
+function checkSpelling() {
+  const spellingContainer = document.getElementById('SpellingContainer');
+  const answerInput = document.getElementById('answer');
+  const rawCorrect = spellingContainer?.dataset.correctAnswer || currentQuizWord || "";
+  const inputValue = answerInput?.value || "";
 
+  utils.handleSpellingAnswer({
+    currentLanguage,
+    rawCorrect,
+    inputValue,
+    displayUserAnswer: inputValue,
+    speakWord: () => utils.speakWord(currentLanguage, wordToSpeak || currentQuizWord, latinMedieval),
+    onCorrect: () => {
+      updateQuizResults('t');
+      persistCurrentWordErrorState(true);
+      showNextItem();
+    },
+    onIncorrect: () => {
+      updateQuizResults('f');
+      persistCurrentWordErrorState(false);
+      wrongVocabs.push(currentQuizWord);
+    },
+    reviewState: getAnswerReviewState(),
+  });
+}
+function getAnswerReviewState() {
+  return {
+    currentQuizWord,
+    currentQuizDefinition,
+    quizType,
+    wordToTest,
+    conjToTest,
+    currentGermanPerfektReview,
+    vocabList,
+  };
 }
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -742,7 +851,7 @@ function shuffleArray(array) {
 }
 function updateQuizResults(result) {
   currentTest.correct = result;
-  ////////console.log(currentVocabIndex);
+  //////////console.log(currentVocabIndex);
   totalCountYet += 1;
   if (currentVocabIndex !== null && filteredVocabList[currentVocabIndex].quizResults) {
     chrome.storage.local.get('vocabList', function (data) {
@@ -753,12 +862,12 @@ function updateQuizResults(result) {
       if (quizResults.length > 4) {
         quizResults.pop(); // Remove the oldest result to keep only the last 4
       }
-      ////////console.log(match.word)
+      //////////console.log(match.word)
       if (match) {
         match.quizResults = quizResults;
       }
       chrome.storage.local.set({ vocabList: vocabList }, function () {
-        ////////console.log(`Updated quiz results for "${match.word}": ${quizResults}`);
+        //////////console.log(`Updated quiz results for "${match.word}": ${quizResults}`);
       });
     });
   }
@@ -767,8 +876,8 @@ function updateQuizResults(result) {
     correctCount += 1;
   }
   recordHistory.push(currentTest);
-  ////////console.log("currentTest",currentTest);
-  ////////console.log("recordHistory",recordHistory);
+  //////////console.log("currentTest",currentTest);
+  //////////console.log("recordHistory",recordHistory);
   const correctRate = (correctCount / totalCountYet) * 100;
   document.getElementById('correctCountDiv').innerHTML = `<span style="color: green;">${currentQuizNo}</span> / ${totalCountYet}  CorrectRate: ${correctRate.toFixed(2)}%`;
 }
@@ -778,11 +887,12 @@ function removeCurrentVocab() {
     filteredVocabList.splice(currentVocabIndex, 1);
 
     chrome.storage.local.set({ filteredVocabList: vocabList }, function () {
-      ////////console.log(`Removed "${currentQuizWord}" from the filtered vocab list.`);
+      //////////console.log(`Removed "${currentQuizWord}" from the filtered vocab list.`);
     });
   }
 }
 function endTest() {
+  redoUsesLastWrongQuizType = false;
   currentQuizNo = 0;
   totalNoCount = 0;
   document.getElementById("incorrectMessage").style.display = 'none';
@@ -792,6 +902,10 @@ function endTest() {
   document.getElementById("quizContainer").style.display = 'none';
   document.getElementById('trueFalseContainer').style.display = 'none';
   document.getElementById('correctDefinition').style.display = 'none';
+  document.getElementById('SpellingContainer').style.display = 'none';
+  nextButton.style.display = 'none';
+  document.getElementById('nextAfterIncorrectButton').style.display = 'none';
+
   const showTestResult = document.getElementById('showTestResult');
   showTestResult.style.display = '';
   let quizStats = analyzeByQuizStyle(recordHistory);
@@ -809,7 +923,6 @@ function endTest() {
     drawCorrectnessTrend(histories, recordHistory);
     histories.push(recordHistory);
     chrome.storage.local.set({ recordHistories: histories }, function () {
-      ////////console.log('Record history saved successfully.');
     });
   });
 }

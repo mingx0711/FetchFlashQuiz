@@ -520,7 +520,7 @@ async function generateLearningQueue(bookSelected) {
     if (utils.hasVerbFormSpelling(wordObj)) {
       quizTypes.push('quiz10');
     }
-
+    return ['quiz9', 'quiz10'];
     return quizTypes;
   }
 

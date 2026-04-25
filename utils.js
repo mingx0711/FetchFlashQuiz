@@ -2879,12 +2879,7 @@ export function setupSpellingQuiz(correctVocab, config = {}) {
   const checkButton = document.getElementById('checkButton');
   const hintButton = document.getElementById('hintButton');
   const spellingHintText = document.getElementById('spellingHintText');
-  console.log(config)
-  if (config.prompt && config.prompt.includes("form")) {
-    hintButton.style.display = 'none';
-  } else {
-    hintButton.style.display = '';
-  }
+
   if (quizContainer) quizContainer.style.display = 'none';
   if (tfContainer) tfContainer.style.display = 'none';
   if (vocabFlashcard) vocabFlashcard.style.display = 'none';
@@ -2919,7 +2914,7 @@ export function setupSpellingQuiz(correctVocab, config = {}) {
     spellingHintText.textContent = '';
   }
   if (hintButton) {
-    hintButton.style.display = hintText ? 'inline-block' : 'none';
+    hintButton.style.display = (!prompt.includes("Spell the word for")) ? 'inline-block' : 'none';
     hintButton.onclick = () => {
       if (!hintText || !spellingHintText) {
         return;

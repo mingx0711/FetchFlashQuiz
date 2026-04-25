@@ -25,7 +25,7 @@ let currentLanguage;
 let totalCountYet = 0;
 let conjToTest;
 let correctVocab;
-let currentGermanPerfektReview = null;
+let currentSpellingReview = null;
 let quizChartInstance = null; // Add this at the top of your file (or outside the function)
 let currentQuizBucket = null;
 let redoUsesLastWrongQuizType = false;
@@ -205,24 +205,24 @@ function getQuizStylesForCurrentWord(allQuizStyles) {
 function updateBookSpecificFocusOptions() {
   const selectedBook = document.getElementById('bookSelector').value;
   const inflectionLabel = document.getElementById('inflectionFocusOption');
-  const germanPerfektLabel = document.getElementById('germanPerfektFocusOption');
+  const verbFormSpellingLabel = document.getElementById('verbFormSpellingFocusOption');
   const inflectionInput = inflectionLabel?.querySelector('input[name="focusOption"]');
-  const germanPerfektInput = germanPerfektLabel?.querySelector('input[name="focusOption"]');
+  const verbFormSpellingInput = verbFormSpellingLabel?.querySelector('input[name="focusOption"]');
   const defaultOption = document.querySelector('input[name="focusOption"][value="none"]');
 
   const showInflection = selectedBook === 'Latin';
-  const showGermanPerfekt = selectedBook === 'German';
+  const showVerbFormSpelling = selectedBook === 'German' || selectedBook === 'Latin';
 
   if (inflectionLabel) {
     inflectionLabel.style.display = showInflection ? 'inline-flex' : 'none';
   }
-  if (germanPerfektLabel) {
-    germanPerfektLabel.style.display = showGermanPerfekt ? 'inline-flex' : 'none';
+  if (verbFormSpellingLabel) {
+    verbFormSpellingLabel.style.display = showVerbFormSpelling ? 'inline-flex' : 'none';
   }
 
   const invalidSelection =
     (inflectionInput?.checked && !showInflection) ||
-    (germanPerfektInput?.checked && !showGermanPerfekt);
+    (verbFormSpellingInput?.checked && !showVerbFormSpelling);
 
   if (invalidSelection && defaultOption) {
     defaultOption.checked = true;
@@ -233,7 +233,7 @@ let focusQuizMap = {
   gender: [quizStyle5],
   pronunciation: [quizStyle4],
   inflection: [quizStyle6, quizStyle7],
-  germanPerfekt: [quizStyle10],
+  verbFormSpelling: [quizStyle10],
   definition: [quizStyle1, quizStyle2, quizStyle3, quizStyle8],
   listeningMCQ: [quizStyle8],
 };
@@ -276,10 +276,10 @@ function displayTests(bookSelected) {
           alert("Not enough entries with inflection to make the test.");
           return;
         }
-      } else if (focus === "germanPerfekt") {
-        filteredVocabList = filteredVocabList.filter(vocab => utils.hasGermanPerfekt(vocab));
+      } else if (focus === "verbFormSpelling") {
+        filteredVocabList = filteredVocabList.filter(vocab => utils.hasVerbFormSpelling(vocab));
         if (filteredVocabList.length < 4) {
-          alert("Not enough German verbs with Perfekt data to make the test.");
+          alert("Not enough verbs with spelling-test conjugation data to make the test.");
           return;
         }
       } else if (focus === "listening") {
@@ -738,30 +738,35 @@ function quizStyle8() {
 
 }
 function quizStyle10() {
-  currentQuizBucket = 'germanPerfekt';
-  currentGermanPerfektReview = null;
+  currentQuizBucket = 'verbFormSpelling';
+  currentSpellingReview = null;
   utils.ClearPageForQuizContainer();
   utils.removeSnooze();
 
   const correctVocab = filteredVocabList[currentVocabIndex];
-  if (!utils.checkEligible(correctVocab, utils.hasGermanPerfekt, false)) {
+  if (!utils.checkEligible(correctVocab, utils.hasVerbFormSpelling, false)) {
+    currentVocabIndex--;
+    return showNextItem();
+  }
+
+  const quizData = utils.prepareVerbFormSpellingQuiz(correctVocab);
+  if (!quizData) {
     currentVocabIndex--;
     return showNextItem();
   }
 
   currentQuizWord = correctVocab.word;
-  currentQuizDefinition = correctVocab.conjugation.past_participle;
-  currentGermanPerfektReview = correctVocab?.conjugation?.auxiliary
-    ? `Perfekt: ${correctVocab.conjugation.auxiliary} + ${currentQuizDefinition}`
-    : `Perfekt: ${currentQuizDefinition}`;
-  quizType = 'germanPerfekt';
+  currentQuizDefinition = quizData.correctAnswer;
+  currentSpellingReview = quizData.reviewText || null;
+  quizType = quizData.quizType;
   wordToSpeak = currentQuizDefinition;
-
+  console.log(correctVocab)
   utils.setupSpellingQuiz(correctVocab, {
-    prompt: `Spell the past participle of <b>"${correctVocab.word}"</b>.`,
-    correctAnswer: currentQuizDefinition
+    prompt: quizData.questionText,
+    correctAnswer: currentQuizDefinition,
+    hintText: quizData.hintText
   });
-  currentTest = { quizStyle: "German Perfekt Tense", vocab: correctVocab.word, book: correctVocab.book };
+  currentTest = { quizStyle: quizData.testLabel, vocab: correctVocab.word, book: correctVocab.book };
 }
 function checkAnswer(button) {
   const correctAnswer = document.getElementById('quizContainer').dataset.correctAnswer;
@@ -839,7 +844,7 @@ function getAnswerReviewState() {
     quizType,
     wordToTest,
     conjToTest,
-    currentGermanPerfektReview,
+    currentSpellingReview,
     vocabList,
   };
 }

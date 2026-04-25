@@ -473,7 +473,6 @@ document.addEventListener('DOMContentLoaded', function () {
     return new Promise(resolve => setTimeout(resolve, sleepMs));
   }
   async function fetchInfoFromWik(vocab) {
-    console.log(vocab)
     //////console.log.log(vocabList.length)
     var language = vocab.language ? vocab.language : vocab.book
     language = utils.convertToAbbr(language)
@@ -492,6 +491,9 @@ document.addEventListener('DOMContentLoaded', function () {
       let newVocab;
       if (language == "la") {
         newVocab = await utils.getLatinAttributes(doc, vocab.word, vocab.book);
+        if (newVocab.conjugations.group == "" || newVocab.conjugations.group == null) {
+          confirm("bob")
+        }
       } else {
         switch (language) {
           case "ja":
@@ -523,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     vocab.hasChecked = true;
-    console.log(vocab)
+    console.log(vocab.word, vocab.conjugations.group)
     vocabList = vocabList.map(item =>
       item.word === vocab.word
         ? vocab

@@ -281,6 +281,7 @@ function updateTestModeUI() {
   const toggleTestModeButton = document.getElementById('toggleTestModeButton');
   const removeDuplicateWordsButton = document.getElementById('removeDuplicateWordsButton');
   const deleteCheckedDataButton = document.getElementById('deleteCheckedDataButton');
+  const clearDownloadedDataButton = document.getElementById('clearDownloadedDataButton');
   if (toggleTestModeButton) {
     toggleTestModeButton.textContent = isTestModeEnabled ? 'Dev Mode: On' : 'Dev Mode: Off';
   }
@@ -289,6 +290,9 @@ function updateTestModeUI() {
   }
   if (deleteCheckedDataButton) {
     deleteCheckedDataButton.style.display = isTestModeEnabled ? 'inline' : 'none';
+  }
+  if (clearDownloadedDataButton) {
+    clearDownloadedDataButton.style.display = isTestModeEnabled ? 'inline' : 'none';
   }
 }
 
@@ -727,11 +731,15 @@ document.addEventListener('DOMContentLoaded', function () {
   const removeDuplicateWordsButton = document.getElementById('removeDuplicateWordsButton');
   const toggleTestModeButton = document.getElementById('toggleTestModeButton');
   const deleteCheckedDataButton = document.getElementById('deleteCheckedDataButton');
+  const clearDownloadedDataButton = document.getElementById('clearDownloadedDataButton');
   const floatingContainer = document.getElementById('floatingContainer');
   const closeButton = document.getElementById('closeButton');
   const resetCheckedCollectionContainer = document.getElementById('resetCheckedCollectionContainer');
   const closeResetCheckedContainer = document.getElementById('closeResetCheckedContainer');
   const resetCheckedCollectionList = document.getElementById('resetCheckedCollectionList');
+  const clearDownloadedDataContainer = document.getElementById('clearDownloadedDataContainer');
+  const closeClearDownloadedDataContainer = document.getElementById('closeClearDownloadedDataContainer');
+  const clearDownloadedDataList = document.getElementById('clearDownloadedDataList');
   const bookListContainer = document.getElementById('bookListContainer');
   const newBookInContainer = document.getElementById('newBookInContainer');
   const addBookInContainerButton = document.getElementById('addBookInContainerButton');
@@ -819,6 +827,10 @@ document.addEventListener('DOMContentLoaded', function () {
     resetCheckedCollectionContainer.style.display = 'none';
   }
 
+  function hideClearDownloadedDataContainer() {
+    clearDownloadedDataContainer.style.display = 'none';
+  }
+
   function normalizeWordTypeLabel(wordType) {
     if (typeof wordType !== 'string' || wordType.trim() === '') {
       return null;
@@ -858,6 +870,35 @@ document.addEventListener('DOMContentLoaded', function () {
       chrome.storage.local.set({ vocabList }, function () {
         refreshVocabList(vocabList);
         hideResetCheckedCollectionContainer();
+      });
+    });
+  }
+
+  function clearDownloadedDataForCollection(collectionName, wordTypeFilter, buttonLabel) {
+    const proceed = confirm(
+      `This will clear downloaded conjugation data for ${buttonLabel.toLowerCase()} vocab entries in "${collectionName}" ` +
+      'and mark them as unchecked.\n\nProceed?'
+    );
+    if (!proceed) {
+      return;
+    }
+
+    chrome.storage.local.get('vocabList', function (data) {
+      const vocabList = data.vocabList || [];
+      vocabList.forEach(vocab => {
+        const normalizedWordType = normalizeWordTypeLabel(vocab.wordType);
+        const matchesWordType = wordTypeFilter === '__OTHER_TYPES__'
+          ? normalizedWordType === null || normalizedWordType === 'other' || normalizedWordType === 'tbd'
+          : normalizedWordType === wordTypeFilter;
+        if (vocab.book === collectionName && matchesWordType) {
+          if (vocab.conjugation) vocab.conjugation = "";
+          if (vocab.conjugations) vocab.conjugations = "";
+          vocab.hasChecked = false;
+        }
+      });
+      chrome.storage.local.set({ vocabList }, function () {
+        refreshVocabList(vocabList);
+        hideClearDownloadedDataContainer();
       });
     });
   }
@@ -939,6 +980,83 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  function showClearDownloadedDataContainer() {
+    chrome.storage.local.get({ bookList: [], vocabList: [] }, (result) => {
+      const bookList = (result.bookList || []).filter(Boolean);
+      const vocabList = result.vocabList || [];
+      clearDownloadedDataList.innerHTML = '';
+
+      if (bookList.length === 0) {
+        const emptyState = document.createElement('div');
+        emptyState.textContent = 'No collections available.';
+        clearDownloadedDataList.appendChild(emptyState);
+      } else {
+        bookList.forEach(book => {
+          const collectionEntries = vocabList.filter(vocab => vocab.book === book);
+          if (collectionEntries.length === 0) {
+            return;
+          }
+
+          const selectionGroup = document.createElement('div');
+          selectionGroup.className = 'selection-group';
+
+          const title = document.createElement('h4');
+          title.className = 'selection-group-title';
+          title.textContent = book;
+          selectionGroup.appendChild(title);
+
+          const buttonsContainer = document.createElement('div');
+          buttonsContainer.className = 'selection-group-buttons';
+
+          const distinctWordTypes = Array.from(new Set(
+            collectionEntries
+              .map(vocab => normalizeWordTypeLabel(vocab.wordType))
+              .filter(wordType => wordType && wordType !== 'other' && wordType !== 'tbd')
+          ));
+
+          distinctWordTypes.forEach(wordType => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'ui button';
+            const label = formatWordTypeLabel(wordType);
+            button.textContent = label;
+            button.addEventListener('click', () => {
+              clearDownloadedDataForCollection(book, wordType, label);
+            });
+            buttonsContainer.appendChild(button);
+          });
+
+          const hasOtherTypes = collectionEntries.some(vocab => {
+            const normalizedWordType = normalizeWordTypeLabel(vocab.wordType);
+            return normalizedWordType === null || normalizedWordType === 'other' || normalizedWordType === 'tbd';
+          });
+
+          if (hasOtherTypes) {
+            const otherTypesButton = document.createElement('button');
+            otherTypesButton.type = 'button';
+            otherTypesButton.className = 'ui button';
+            otherTypesButton.textContent = 'All Other Types';
+            otherTypesButton.addEventListener('click', () => {
+              clearDownloadedDataForCollection(book, '__OTHER_TYPES__', 'all other types');
+            });
+            buttonsContainer.appendChild(otherTypesButton);
+          }
+
+          selectionGroup.appendChild(buttonsContainer);
+          clearDownloadedDataList.appendChild(selectionGroup);
+        });
+
+        if (!clearDownloadedDataList.hasChildNodes()) {
+          const emptyState = document.createElement('div');
+          emptyState.textContent = 'No collections with vocabulary entries available.';
+          clearDownloadedDataList.appendChild(emptyState);
+        }
+      }
+
+      clearDownloadedDataContainer.style.display = 'block';
+    });
+  }
+
   // Add new book to the bookList from floating container
   addBookInContainerButton.addEventListener('click', () => {
     const newBook = newBookInContainer.value.trim();
@@ -1010,6 +1128,10 @@ document.addEventListener('DOMContentLoaded', function () {
     showResetCheckedCollectionContainer();
   });
 
+  clearDownloadedDataButton.addEventListener('click', () => {
+    showClearDownloadedDataContainer();
+  });
+
   toggleTestModeButton.addEventListener('click', () => {
     isTestModeEnabled = !isTestModeEnabled;
     updateTestModeUI();
@@ -1028,6 +1150,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   closeResetCheckedContainer.addEventListener('click', () => {
     hideResetCheckedCollectionContainer();
+  });
+
+  closeClearDownloadedDataContainer.addEventListener('click', () => {
+    hideClearDownloadedDataContainer();
   });
 
   document.getElementById('exportToJson').addEventListener('click', function () {

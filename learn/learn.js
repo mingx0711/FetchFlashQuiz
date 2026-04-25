@@ -29,7 +29,7 @@ let totalVocabList = []
 let wrongVocabs = [];
 let learningQueue = [];
 let learnedWords = []
-let currentGermanPerfektReview = null;
+let currentSpellingReview = null;
 const FOCUS_EMPTY = '&#9734';
 const FOCUS_FILLED = '&#11088';
 const langMap = {
@@ -517,7 +517,7 @@ async function generateLearningQueue(bookSelected) {
     if (utils.hasGender(wordObj)) {
       quizTypes.push('quiz5');
     }
-    if (utils.hasGermanPerfekt(wordObj)) {
+    if (utils.hasVerbFormSpelling(wordObj)) {
       quizTypes.push('quiz10');
     }
 
@@ -881,7 +881,7 @@ function updateStepCounter() {
   document.getElementById('totalStepNum').textContent = learningQueue.length;
 }
 function quizStyle1() {
-  currentGermanPerfektReview = null;
+  currentSpellingReview = null;
   shouldSpeak = true;
   const correctVocab = learningQueue[currentStep].word;
   currentQuizWord = correctVocab.word;
@@ -890,7 +890,7 @@ function quizStyle1() {
   currentTest = { quizStyle: "Ask for definition", vocab: correctVocab.word, book: correctVocab.book };
 }
 function quizStyle2() {
-  currentGermanPerfektReview = null;
+  currentSpellingReview = null;
   shouldSpeak = true;
   const correctVocab = learningQueue[currentStep].word;
   currentQuizWord = correctVocab.word;
@@ -902,7 +902,7 @@ function quizStyle2() {
 }
 
 function quizStyle3() {
-  currentGermanPerfektReview = null;
+  currentSpellingReview = null;
   const correctVocab = learningQueue[currentStep].word;
   shouldSpeak = false;
   currentQuizWord = correctVocab.word;
@@ -922,7 +922,7 @@ function quizStyle3() {
   utils.setupTFQuiz(correctVocab, currentQuizWord, currentQuizDefinition)
 }
 function quizStyle4() {
-  currentGermanPerfektReview = null;
+  currentSpellingReview = null;
   ////////console.log("4, ask for pronounciation")
   quizType = "pronounciation"
 
@@ -957,7 +957,7 @@ function quizStyle4() {
 
 }
 function quizStyle5() {
-  currentGermanPerfektReview = null;
+  currentSpellingReview = null;
   quizType = "gender"
   ////////console.log("5, ask for gender")
   const correctVocab = learningQueue[currentStep].word;
@@ -990,7 +990,7 @@ function quizStyle5() {
 }
 
 function quizStyle9() {
-  currentGermanPerfektReview = null;
+  currentSpellingReview = null;
   shouldSpeak = true;
   const correctVocab = learningQueue[currentStep].word;
   currentQuizWord = correctVocab.word;
@@ -1051,7 +1051,7 @@ function findSubfieldsForWord(word, conjugations) {
 }
 
 function quizStyle6() {
-  currentGermanPerfektReview = null;
+  currentSpellingReview = null;
   shouldSpeak = false;
 
   const correctVocab = learningQueue[currentStep].word;
@@ -1071,7 +1071,7 @@ function quizStyle6() {
 
 }
 function quizStyle7() {
-  currentGermanPerfektReview = null;
+  currentSpellingReview = null;
   const correctVocab = learningQueue[currentStep].word;
   if (!utils.checkEligible(correctVocab, utils.hasConjugations, false)) {
     return quizStyle1();
@@ -1089,25 +1089,28 @@ function quizStyle7() {
   utils.setupQuiz7(options, currentQuizDefinition, result[2]);
 }
 function quizStyle10() {
-  currentGermanPerfektReview = null;
+  currentSpellingReview = null;
   shouldSpeak = true;
   nextButton.style.display = 'none';
   const correctVocab = learningQueue[currentStep].word;
-  if (!utils.checkEligible(correctVocab, utils.hasGermanPerfekt, false)) {
+  if (!utils.checkEligible(correctVocab, utils.hasVerbFormSpelling, false)) {
+    return quizStyle2();
+  }
+  const quizData = utils.prepareVerbFormSpellingQuiz(correctVocab);
+  if (!quizData) {
     return quizStyle2();
   }
   currentQuizWord = correctVocab.word;
-  currentQuizDefinition = correctVocab.conjugation.past_participle;
-  currentGermanPerfektReview = correctVocab?.conjugation?.auxiliary
-    ? `Perfekt: ${correctVocab.conjugation.auxiliary} + ${currentQuizDefinition}`
-    : `Perfekt: ${currentQuizDefinition}`;
-  quizType = 'germanPerfekt';
+  currentQuizDefinition = quizData.correctAnswer;
+  currentSpellingReview = quizData.reviewText || null;
+  quizType = quizData.quizType;
   wordToSpeak = currentQuizDefinition;
   utils.setupSpellingQuiz(correctVocab, {
-    prompt: `Spell the past participle of "${correctVocab.word}".`,
-    correctAnswer: currentQuizDefinition
+    prompt: quizData.questionText,
+    correctAnswer: currentQuizDefinition,
+    hintText: quizData.hintText
   });
-  currentTest = { quizStyle: "German Perfekt Tense", vocab: correctVocab.word, book: correctVocab.book };
+  currentTest = { quizStyle: quizData.testLabel, vocab: correctVocab.word, book: correctVocab.book };
 }
 function checkAnswer(button) {
   const correctAnswer = document.getElementById('quizContainer').dataset.correctAnswer;
@@ -1218,7 +1221,7 @@ function getAnswerReviewState() {
     quizType,
     wordToTest,
     conjToTest,
-    currentGermanPerfektReview,
+    currentSpellingReview,
     vocabList,
   };
 }

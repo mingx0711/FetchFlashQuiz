@@ -227,7 +227,8 @@
       color: var(--text) !important;
     }
 
-    #deleteCheckedDataButton {
+    #deleteCheckedDataButton,
+    #clearDownloadedDataButton {
       background: var(--rose-soft) !important;
       color: #7f3748 !important;
     }
@@ -816,6 +817,7 @@
           <button class="ui button" id="manageBookButton">Manage Collection</button>
           <button class="ui button" id="toggleTestModeButton">Dev Mode: Off</button>
           <button class="ui button" id="deleteCheckedDataButton">Reset Check Status</button>
+          <button class="ui button" id="clearDownloadedDataButton">Remove Downloaded Data</button>
           <button class="ui button" id="removeDuplicateWordsButton">Remove Duplicate Words</button>
         </div>
       </div>
@@ -1014,6 +1016,18 @@
       Choose which collection should have its checked data reset.
     </p>
     <div id="resetCheckedCollectionList" class="selection-list"></div>
+  </div>
+
+  <div class="floating-container" id="clearDownloadedDataContainer">
+    <div class="floating-header">
+      <h3 class="ui header" style="margin: 0;">Remove Downloaded Data</h3>
+      <span class="close-button" id="closeClearDownloadedDataContainer">x</span>
+    </div>
+
+    <p style="margin-top: 0; color: var(--muted);">
+      Choose which collection should have its downloaded conjugation data cleared.
+    </p>
+    <div id="clearDownloadedDataList" class="selection-list"></div>
   </div>
 
   <script src="../libs/papaparse.js"></script>

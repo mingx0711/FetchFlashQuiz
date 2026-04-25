@@ -1,3 +1,5 @@
+import * as Hints from '/LatinConjugationHints.js';
+
 const QuizType = Object.freeze({
   DEFINITION: 'definition',
   WORD: 'word',
@@ -110,6 +112,31 @@ export const latinNounRules = [
   { ending: "ig", gender: GenderType.MASCULINE },  // Käfig, König
   { ending: "ismus", gender: GenderType.MASCULINE }
 ];
+
+function extractLatinConjugationGroup(navHeadElement) {
+  if (!navHeadElement) return '';
+
+  const navHeadText = navHeadElement.textContent?.replace(/\s+/g, ' ').trim() || '';
+  const normalizedText = navHeadText.toLowerCase();
+  const patterns = [
+    { regex: /\bfirst\s*(?:&|and)\s*second\s+conjugation\b/i, group: 'first&second' },
+    { regex: /\bthird[- ]io\s+conjugation\b/i, group: 'third_io' },
+    { regex: /\birregular\s+conjugation\b/i, group: 'irregular' },
+    { regex: /\bfirst\s+conjugation\b/i, group: 'first' },
+    { regex: /\bsecond\s+conjugation\b/i, group: 'second' },
+    { regex: /\bthird\s+conjugation\b/i, group: 'third' },
+    { regex: /\bfourth\s+conjugation\b/i, group: 'fourth' },
+    { regex: /\bfifth\s+conjugation\b/i, group: 'fifth' }
+  ];
+
+  for (const pattern of patterns) {
+    if (pattern.regex.test(normalizedText)) {
+      return pattern.group;
+    }
+  }
+
+  return '';
+}
 export const wordTypes = Object.freeze({
   NOUN: 'noun',
   VERB: 'verb',
@@ -573,7 +600,22 @@ export async function getLatinAttributes(doc, word, book) {
 
   if (verbInflectionTable || isVerb) {
     let anchorElement = verbInflectionTableNew.querySelector('a');
-    if (anchorElement) { conjugations.group = anchorElement.textContent };
+    if (anchorElement) {
+      if (anchorElement) {
+        const conjugationLink = doc.querySelector('div.NavHead a[href^="/wiki/Appendix:Latin_"]');
+        const href = conjugationLink?.getAttribute('href') || '';
+        const text = conjugationLink?.textContent?.trim().toLowerCase() || '';
+
+        const group =
+          href.match(/Latin_(first|second|third|fourth|fifth|irregular)(?:_|$)/i)?.[1]?.toLowerCase() ||
+          text.match(/^(first|second|third|fourth|fifth|irregular)\s+conjugation$/i)?.[1]?.toLowerCase() ||
+          '';
+
+        conjugations.group = group;
+      }
+
+    }
+
     let definition = ""
     let lastOl = null;
     const parentParagraph = verbInflectionTableNew.parentElement.parentElement;
@@ -621,8 +663,6 @@ export async function getLatinAttributes(doc, word, book) {
       }
 
     }
-
-    let conjugationText = conjugations.group;
     // Select the <span> element
     let spanElements = doc.querySelectorAll('span.Latn.form-of.lang-la');
     conjugations.pos = 'verb'
@@ -1561,6 +1601,62 @@ export function makeStringReadable(names) {
   names = names.replaceAll("_", ' ');
   return names
 }
+function getPrimarySubfieldLabel(subfield = "") {
+  return String(subfield).split("/")[0];
+}
+
+function formatConjugationDescriptor(subfields = {}) {
+  const orderedParts = [];
+  const person = getPrimarySubfieldLabel(subfields.person);
+  const number = getPrimarySubfieldLabel(subfields.number);
+  const tense = getPrimarySubfieldLabel(subfields.tense);
+  const voice = getPrimarySubfieldLabel(subfields.voice);
+  const mood = getPrimarySubfieldLabel(subfields.mood);
+  const form = getPrimarySubfieldLabel(subfields.form);
+  const noun = getPrimarySubfieldLabel(subfields.noun);
+  const grammaticalCase = getPrimarySubfieldLabel(subfields.case);
+
+  if (person) {
+    orderedParts.push(`${makeStringReadable(person)}-person`);
+  }
+  if (number) {
+    orderedParts.push(makeStringReadable(number));
+  }
+  if (tense) {
+    orderedParts.push(makeStringReadable(tense));
+  }
+  if (voice) {
+    orderedParts.push(makeStringReadable(voice));
+  }
+  if (mood) {
+    orderedParts.push(makeStringReadable(mood));
+  }
+  if (form) {
+    orderedParts.push(makeStringReadable(form));
+  }
+  if (noun) {
+    orderedParts.push(makeStringReadable(noun));
+  }
+  if (grammaticalCase) {
+    orderedParts.push(makeStringReadable(grammaticalCase));
+  }
+
+  return orderedParts.join(' ').trim();
+}
+function formatLatinInflectionDescriptor(inflectionKey = "") {
+  if (!inflectionKey) {
+    return "";
+  }
+  const [number = "", grammaticalCase = ""] = String(inflectionKey).split("_");
+  const parts = [];
+  if (number) {
+    parts.push(makeStringReadable(number));
+  }
+  if (grammaticalCase) {
+    parts.push(makeStringReadable(grammaticalCase));
+  }
+  return parts.join(' ').trim();
+}
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -1677,7 +1773,7 @@ export function renderCorrectAnswerReview(context = {}) {
     quizType = "",
     wordToTest = "",
     conjToTest = "",
-    currentGermanPerfektReview = "",
+    currentSpellingReview = "",
     userAnswer = "",
     correctAnswer = "",
     vocabList = [],
@@ -1745,13 +1841,13 @@ export function renderCorrectAnswerReview(context = {}) {
       `<div style="color: #3f6252;">${String.fromCodePoint(0x1F4A0)} group: ${escapeHtml(correctVocab.conjugations.group)}</div>`
     );
   }
-  if (quizType == "germanPerfekt") {
+  if (quizType == "germanPerfekt" || quizType == "latinConjugationSpelling") {
     reviewParts.push(
-      `<div style="color: #3f6252;">${String.fromCodePoint(0x1F4A0)} Perfekt past participle: ${escapeHtml(currentQuizDefinition)}</div>`
+      `<div style="color: #3f6252;">${String.fromCodePoint(0x1F4A0)} correct form: ${escapeHtml(currentQuizDefinition)}</div>`
     );
-    if (currentGermanPerfektReview) {
+    if (currentSpellingReview) {
       reviewParts.push(
-        `<div style="color: #3f6252;">${String.fromCodePoint(0x1F4A0)} ${escapeHtml(currentGermanPerfektReview)}</div>`
+        `<div style="color: #3f6252;">${String.fromCodePoint(0x1F4A0)} ${escapeHtml(currentSpellingReview)}</div>`
       );
     }
   }
@@ -1959,6 +2055,161 @@ export function hasGermanPerfekt(vocab) {
     pastParticiple.trim() !== "");
   //console.log(vocab.word, "hasGermanPerfekt:", pass);
   return pass;
+}
+function isNonEmptyConjugationList(value) {
+  return Array.isArray(value) && value.length > 0;
+}
+
+function getLatinVerbFormSamples(correctVocab) {
+  const conjugations = correctVocab?.conjugations;
+  if (!conjugations || conjugations.pos !== 'verb') {
+    return [];
+  }
+
+  const seenWords = new Set();
+  const samples = [];
+
+  for (const field of Object.keys(conjugations)) {
+    if (field === 'pos' || field === 'type' || field === 'group') {
+      continue;
+    }
+    const fieldValue = conjugations[field];
+    if (!fieldValue || typeof fieldValue !== 'object') {
+      continue;
+    }
+    for (const subfield of Object.keys(fieldValue)) {
+      const forms = fieldValue[subfield];
+      if (!isNonEmptyConjugationList(forms)) {
+        continue;
+      }
+      for (const correctAnswer of forms) {
+        if (!correctAnswer || seenWords.has(correctAnswer)) {
+          continue;
+        }
+        const fullSubfields = findSubfieldsForWord(correctAnswer, conjugations);
+        const readableConjugation = formatConjugationDescriptor(fullSubfields);
+        if (!readableConjugation) {
+          continue;
+        }
+        seenWords.add(correctAnswer);
+        samples.push({
+          correctAnswer,
+          conjToTest: fullSubfields,
+          reviewText: `${correctAnswer} is the ${readableConjugation} form of ${correctVocab.word}`,
+          questionText: `Spell the ${readableConjugation} form of <b>"${correctVocab.word}"</b>.`
+        });
+      }
+    }
+  }
+
+  return samples;
+}
+function getRandomLatinConjugationSample(correctVocab) {
+  const samples = getLatinVerbFormSamples(correctVocab);
+  if (samples.length === 0) {
+    return null;
+  }
+  return samples[getRandomNumber(0, samples.length - 1)];
+}
+function getLatinNounInflectionSamples(correctVocab) {
+  const inflections = correctVocab?.conjugations?.inflections;
+  if (!inflections || typeof inflections !== 'object') {
+    return [];
+  }
+
+  const availableInflections = Object.keys(inflections).filter(key =>
+    isNonEmptyConjugationList(inflections[key])
+  );
+  if (availableInflections.length === 0) {
+    return [];
+  }
+
+  const samples = [];
+  for (const inflectionKey of availableInflections) {
+    const forms = inflections[inflectionKey];
+    const readableInflection = formatLatinInflectionDescriptor(inflectionKey);
+    if (!readableInflection) {
+      continue;
+    }
+    for (const correctAnswer of forms) {
+      if (!correctAnswer) {
+        continue;
+      }
+      samples.push({
+        correctAnswer,
+        conjToTest: inflectionKey,
+        reviewText: `${correctAnswer} is the ${readableInflection} form of ${correctVocab.word}`,
+        questionText: `Spell the ${readableInflection} form of <b>"${correctVocab.word}"</b>.`
+      });
+    }
+  }
+
+  return samples;
+}
+function getRandomLatinNounInflectionSample(correctVocab) {
+  const samples = getLatinNounInflectionSamples(correctVocab);
+  if (samples.length === 0) {
+    return null;
+  }
+  return samples[getRandomNumber(0, samples.length - 1)];
+}
+
+export function hasLatinConjugationSpelling(vocab) {
+  const language = (vocab?.language || "").toLowerCase();
+  const book = (vocab?.book || "").toLowerCase();
+  const isLatin = language === "la" || book === "latin";
+  if (!isLatin) {
+    return false;
+  }
+  if (vocab?.wordType === wordTypes.VERB) {
+    return getLatinVerbFormSamples(vocab).length > 0;
+  }
+  if (vocab?.wordType === wordTypes.NOUN) {
+    return getLatinNounInflectionSamples(vocab).length > 0;
+  }
+  return false;
+}
+
+export function hasVerbFormSpelling(vocab) {
+  return hasGermanPerfekt(vocab) || hasLatinConjugationSpelling(vocab);
+}
+
+export function prepareVerbFormSpellingQuiz(correctVocab) {
+  if (hasGermanPerfekt(correctVocab)) {
+    const germanQuiz = prepareGermanPerfektQuiz(correctVocab);
+    return {
+      ...germanQuiz,
+      hintText: correctVocab?.conjugations?.group || "",
+      testLabel: "German Perfekt Tense"
+    };
+  }
+
+  const latinQuiz = getRandomLatinConjugationSample(correctVocab);
+
+  if (latinQuiz) {
+    return {
+      correctAnswer: latinQuiz.correctAnswer,
+      questionText: latinQuiz.questionText,
+      quizType: 'latinConjugationSpelling',
+      reviewText: latinQuiz.reviewText,
+      hintText: correctVocab?.conjugations?.group || "",
+      testLabel: "Latin Form Spelling"
+    };
+  }
+
+  const latinNounQuiz = getRandomLatinNounInflectionSample(correctVocab);
+  if (latinNounQuiz) {
+    return {
+      correctAnswer: latinNounQuiz.correctAnswer,
+      questionText: latinNounQuiz.questionText,
+      quizType: 'latinConjugationSpelling',
+      reviewText: latinNounQuiz.reviewText,
+      hintText: correctVocab?.conjugations?.group || "",
+      testLabel: "Latin Form Spelling"
+    };
+  }
+
+  return null;
 }
 // ...existing code...
 export function processWordByLanguage(language, word) {
@@ -2332,7 +2583,6 @@ export function detectLanguage(filteredVocabList) {
 
   // Find the first item that actually has a 'language' field
   const itemWithLang = filteredVocabList.find(item => item && item.language);
-  console.log(itemWithLang)
 
   if (itemWithLang) {
     return itemWithLang.language;
@@ -2627,7 +2877,14 @@ export function setupSpellingQuiz(correctVocab, config = {}) {
   const speakQuiz = document.getElementById('speakQuiz');
   const answerInput = document.getElementById('answer');
   const checkButton = document.getElementById('checkButton');
-
+  const hintButton = document.getElementById('hintButton');
+  const spellingHintText = document.getElementById('spellingHintText');
+  console.log(config)
+  if (config.prompt && config.prompt.includes("form")) {
+    hintButton.style.display = 'none';
+  } else {
+    hintButton.style.display = '';
+  }
   if (quizContainer) quizContainer.style.display = 'none';
   if (tfContainer) tfContainer.style.display = 'none';
   if (vocabFlashcard) vocabFlashcard.style.display = 'none';
@@ -2647,6 +2904,7 @@ export function setupSpellingQuiz(correctVocab, config = {}) {
     questionEl.innerHTML = prompt;
   }
 
+  const hintText = correctVocab.conjugations?.group ? correctVocab.conjugations.group : "";
   spellingContainer.dataset.correctAnswer = correctAnswer;
   spellingContainer.style.display = 'block';
 
@@ -2655,6 +2913,23 @@ export function setupSpellingQuiz(correctVocab, config = {}) {
   }
   if (checkButton) {
     checkButton.disabled = false;
+  }
+  if (spellingHintText) {
+    spellingHintText.style.display = 'none';
+    spellingHintText.textContent = '';
+  }
+  if (hintButton) {
+    hintButton.style.display = hintText ? 'inline-block' : 'none';
+    hintButton.onclick = () => {
+      if (!hintText || !spellingHintText) {
+        return;
+      }
+      console.log(correctVocab.conjugations.group, correctVocab.wordType);
+      const descriptions = correctVocab.wordType === wordTypes.VERB ? Hints.LatinVerbConjugationDescriptions[correctVocab.conjugations.group] : correctVocab.wordType === wordTypes.NOUN ? Hints.LatinNounConjugationDescriptions[correctVocab.conjugations.group] : "No descriptions available";
+      const hints = correctVocab.wordType === wordTypes.VERB ? Hints.LatinVerbConjugationHints[correctVocab.conjugations.group] : correctVocab.wordType === wordTypes.NOUN ? Hints.LatinNounConjugationHints[correctVocab.conjugations.group] : "No hints available";
+      spellingHintText.innerHTML = descriptions + "<br>" + hints;
+      spellingHintText.style.display = 'block';
+    };
   }
 }
 

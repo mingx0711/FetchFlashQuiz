@@ -68,12 +68,17 @@ document.getElementById('addVocabForm').addEventListener('submit', function (e) 
     var url = usingLocal ? `http://localhost:3000/fetch/${word}` : `https://en.wiktionary.org/wiki/${word}`
     fetch(url)
       .then(response => {
+        if (response.status === 404) {
+          return utils.getGoogleTranslationVocab(word, language, book)
+            .then(showGoogleTranslationResult);
+        }
         if (!response.ok) {
           throw new Error(`Wiktionary request failed with status ${response.status}`);
         }
         return response.text();
       })
       .then(html => {
+        if (typeof html !== 'string') return;
         // Parse the returned HTML and extract the inflection table
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
@@ -88,18 +93,7 @@ document.getElementById('addVocabForm').addEventListener('submit', function (e) 
       .catch(async () => {
         console.log("Error fetching from Wiktionary, trying Google Translate API...");
         vocab = await utils.getGoogleTranslationVocab(word, language, book);
-        console.log(vocab)
-        if (typeof vocab === 'string') {
-          document.getElementById('vocabInfoInfInfs').style.display = 'block';
-          document.getElementById('addAuto').style.display = 'none';
-          document.getElementById('vocabInfo').style.display = 'block';
-          document.getElementById('vocabInfo').innerHTML = utils.invalidWord;
-          return;
-        }
-        document.getElementById('vocabInfo').innerHTML =
-          `word: <span style="font-weight: bold;">${vocab.word}</span><br>\n definition: <span style="font-weight: bold;">${vocab.definition}</span>`;
-        document.getElementById('vocabInfoInfInfs').style.display = 'block';
-        document.getElementById('addAuto').style.display = 'block';
+        showGoogleTranslationResult(vocab);
       });
     updateLanguageList(language);
   }
@@ -107,6 +101,22 @@ document.getElementById('addVocabForm').addEventListener('submit', function (e) 
 
 
 });
+function showGoogleTranslationResult(googleVocab) {
+  vocab = googleVocab;
+  const vocabInfo = document.getElementById('vocabInfo');
+  document.getElementById('vocabInfoInfInfs').style.display = 'block';
+  vocabInfo.style.display = 'block';
+
+  if (typeof googleVocab === 'string') {
+    document.getElementById('addAuto').style.display = 'none';
+    vocabInfo.innerHTML = utils.invalidWord;
+    return;
+  }
+
+  vocabInfo.innerHTML =
+    `word: <span style="font-weight: bold;">${googleVocab.word}</span><br>\n definition: <span style="font-weight: bold;">${googleVocab.definition}</span>`;
+  document.getElementById('addAuto').style.display = 'block';
+}
 function updateLanguageList(lang) {
   chrome.storage.local.get({ languageList: {} }, (data) => {
 
@@ -388,6 +398,7 @@ document.getElementById('googleApiKeyButton').addEventListener('click', async fu
 async function renderGoogleApiKeyPanel() {
   const result = await chrome.storage.local.get('googleTranslateApiKey');
   const hasKey = Boolean(result.googleTranslateApiKey);
+  document.getElementById('getGoogleMeaning').hidden = !hasKey;
   document.getElementById('googleApiKeyInput').style.display = hasKey ? 'none' : '';
   document.getElementById('saveGoogleApiKey').style.display = hasKey ? 'none' : '';
   document.getElementById('googleApiKeyStatus').textContent = hasKey
@@ -410,6 +421,46 @@ document.getElementById('clearGoogleApiKey').addEventListener('click', async fun
   await chrome.storage.local.remove('googleTranslateApiKey');
   document.getElementById('googleApiKeyInput').value = '';
   await renderGoogleApiKeyPanel();
+});
+
+async function showGoogleMeaning() {
+  const word = document.getElementById('word').value.trim();
+  const language = document.getElementById('selectLanguage').value;
+  const book = document.getElementById('bookSelector').value;
+  const googleButton = document.getElementById('getGoogleMeaning');
+  const vocabInfo = document.getElementById('vocabInfo');
+
+  if (!word) return;
+
+  googleButton.disabled = true;
+  vocabInfo.textContent = 'Getting meaning from Google...';
+  try {
+    const googleVocab = await utils.getGoogleTranslationVocab(word, language, book);
+    vocabInfo.innerHTML = '';
+    if (typeof googleVocab === 'string') {
+      vocab = {};
+      vocabInfo.textContent = utils.invalidWord;
+      document.getElementById('addAuto').style.display = 'none';
+      return;
+    }
+
+    vocab = googleVocab;
+    vocabInfo.innerHTML = `word: <span style="font-weight: bold;">${vocab.word}</span>` +
+      `<br>\n definition: <span style="font-weight: bold;">${vocab.definition}</span>`;
+    document.getElementById('addAuto').style.display = 'block';
+  } catch (error) {
+    console.error('Failed to get Google meaning:', error);
+    vocabInfo.textContent = utils.invalidWord;
+    document.getElementById('addAuto').style.display = 'none';
+  } finally {
+    googleButton.disabled = false;
+  }
+}
+
+document.getElementById('getGoogleMeaning').addEventListener('click', showGoogleMeaning);
+
+chrome.storage.local.get('googleTranslateApiKey').then(result => {
+  document.getElementById('getGoogleMeaning').hidden = !result.googleTranslateApiKey;
 });
 function setAutoSearchFieldsVisible(isVisible) {
   document.getElementById('addVocabForm').classList.toggle('auto-search', !isVisible);

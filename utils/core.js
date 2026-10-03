@@ -1057,15 +1057,15 @@ export async function getLinkedAttributes(doc, word, lang, book) {
         try {
           await fetch(url)
           var url = `https://en.wiktionary.org/wiki/${finallinkText}`
-          ////////console.log(url)
           const res = await fetch(url);
           const html = await res.text();
           const parser = new DOMParser();
           const baseDoc = parser.parseFromString(html, 'text/html');
-          //console.log(book)
+          console.log("Fetching linked attributes for:", finallinkText);
           return await getEasyAttributes(baseDoc, linkText, lang, book);
         }
         catch (error) {
+          console.log("Error fetching linked attributes:", error);
           if (lang === 'de' && word.length > 0) {
             const firstChar = word.charAt(0);
             if (firstChar === firstChar.toLowerCase()) {
@@ -1084,15 +1084,17 @@ export async function getLinkedAttributes(doc, word, lang, book) {
                 const baseDoc = parser.parseFromString(html, 'text/html');
                 return await getEasyAttributes(baseDoc, title, lang, book);
               } catch (error) {
-                return "invalid";
+                return getGoogleTranslationVocab(title, lang, book);
               }
             }
+            console.log("Error fetching linked attributes:", error);
           }
-          return "invalid";
+          return getGoogleTranslationVocab(title, lang, book);
         }
       }
 
     } else {
+
       return getEasyAttributes(doc, word, lang, book)
 
     }
@@ -1109,7 +1111,7 @@ export async function getLinkedAttributes(doc, word, lang, book) {
         const baseDoc = parser.parseFromString(html, 'text/html');
         return await getEasyAttributes(baseDoc, title, lang, book);
       } catch (error) {
-        return "invalid";
+        return getGoogleTranslationVocab(title, lang, book);
       }
     }
     return getEasyAttributes(doc, word, lang, book)
@@ -1164,6 +1166,7 @@ function getGermanConjugationAttributes(doc) {
 }
 
 export async function getEasyAttributes(doc, word, lang, book) {
+  console.log(doc);
   let mention = getLanguageCharSetMapping(lang)
   let pronounciationText = null
   let autoGender = ''
@@ -1172,7 +1175,7 @@ export async function getEasyAttributes(doc, word, lang, book) {
   let definition = ""
 
   const queryWord = 'strong.' + mention + '.headword[lang="' + lang + '"]'
-  let isWord = doc.querySelector(queryWord);
+  let isWord = getPreferredHeadword(doc, queryWord);
   if (lang === "zh" && !isWord) {
     isWord = doc.querySelector('strong.Hant.headword[lang="zh"]')
     if (!isWord) {
@@ -1540,6 +1543,22 @@ function getPreferredDefinitionListItem(headwordElement, fallbackListItem) {
     .flatMap(list => Array.from(list.children))
     .filter(item => item.tagName === 'LI');
   return definitionItems.find(item => !isFormOfDefinition(item)) || fallbackListItem;
+}
+
+function getPreferredHeadword(doc, queryWord) {
+  const headwords = Array.from(doc.querySelectorAll(queryWord));
+  if (headwords.length === 0) return null;
+
+  const adjectiveHeadword = headwords.find(headword => {
+    const headings = Array.from(doc.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+    const precedingHeading = headings
+      .filter(heading => heading.compareDocumentPosition(headword) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .at(-1);
+    return precedingHeading?.tagName === 'H3' &&
+      precedingHeading.textContent.trim().toLowerCase().startsWith('adjective');
+  });
+
+  return adjectiveHeadword || headwords[0];
 }
 
 function getRandomNumber(min, max) {
@@ -2322,13 +2341,50 @@ export function hasVerbFormSpelling(vocab) {
   return hasGermanPerfekt(vocab) || hasLatinConjugationSpelling(vocab);
 }
 
-const GERMAN_PHRASE_CONNECTORS = new Set([
+const GERMAN_PHRASE_PREPOSITIONS = new Set([
   'ab', 'an', 'auf', 'aus', 'bei', 'durch', 'für', 'gegen', 'hinter', 'in',
   'mit', 'nach', 'neben', 'ohne', 'seit', 'über', 'um', 'unter', 'vor',
   'von', 'zu', 'zwischen', 'am', 'ans', 'beim', 'im', 'ins', 'vom', 'zum',
-  'zur', 'als', 'auch', 'dass', 'denn', 'oder', 'sich', 'etwas', 'nichts',
-  'jemand', 'niemand'
+  'zur'
 ]);
+
+const GERMAN_ARTICLES = new Set([
+  'der', 'die', 'das', 'den', 'dem', 'des',
+  'ein', 'eine', 'einen', 'einem', 'einer', 'eines',
+  'kein', 'keine', 'keinen', 'keinem', 'keiner', 'keines'
+]);
+
+const GERMAN_PRONOUNS = new Set([
+  'ich', 'du', 'er', 'sie', 'es', 'wir', 'ihr', 'sie',
+  'mich', 'dich', 'ihn', 'uns', 'euch', 'ihnen', 'ihr',
+  'mir', 'dir', 'ihm', 'ihr', 'uns', 'euch', 'ihnen',
+  'meiner', 'deiner', 'seiner', 'ihrer', 'unserer', 'eurer'
+]);
+
+const GERMAN_DETERMINERS = new Set([
+  'mein', 'meine', 'meinen', 'meinem', 'meiner', 'meines',
+  'dein', 'deine', 'deinen', 'deinem', 'deiner', 'deines',
+  'sein', 'seine', 'seinen', 'seinem', 'seiner', 'seines',
+  'ihr', 'ihre', 'ihren', 'ihrem', 'ihrer', 'ihres',
+  'unser', 'unsere', 'unseren', 'unserem', 'unserer', 'unseres',
+  'euer', 'eure', 'euren', 'eurem', 'eurer', 'eures'
+]);
+
+const GERMAN_FUNCTION_WORDS = new Set([
+  ...GERMAN_PHRASE_PREPOSITIONS,
+  ...GERMAN_ARTICLES,
+  ...GERMAN_PRONOUNS,
+  ...GERMAN_DETERMINERS
+]);
+
+function normalizeGermanPhraseWord(word) {
+  return word.toLowerCase().replace(/^[^\p{L}]+|[^\p{L}]+$/gu, '');
+}
+
+function isGermanFunctionWord(word) {
+  const normalized = normalizeGermanPhraseWord(String(word || ''));
+  return normalized.length > 0 && GERMAN_FUNCTION_WORDS.has(normalized);
+}
 
 function isGermanVocab(vocab) {
   return (vocab?.language || '').toLowerCase() === LANGUAGES.GERMAN ||
@@ -2339,9 +2395,8 @@ export function hasGermanPhraseSpelling(vocab) {
   if (!isGermanVocab(vocab)) return false;
 
   const words = String(vocab?.word || '').trim().split(/\s+/);
-  return words.length >= 2 && words.some(word =>
-    GERMAN_PHRASE_CONNECTORS.has(word.toLowerCase().replace(/^[^\p{L}]+|[^\p{L}]+$/gu, ''))
-  );
+  const wordsWithoutFunctionWords = words.filter(word => !isGermanFunctionWord(word));
+  return wordsWithoutFunctionWords.length > 2;
 }
 
 export function hasReflexive(vocab) {
@@ -2374,13 +2429,11 @@ export function prepareGermanPhraseSpellingQuiz(correctVocab) {
   if (!hasGermanPhraseSpelling(correctVocab)) return null;
 
   const words = String(correctVocab.word).trim().split(/\s+/);
-  const connectorIndex = words.findIndex(word =>
-    GERMAN_PHRASE_CONNECTORS.has(word.toLowerCase().replace(/^[^\p{L}]+|[^\p{L}]+$/gu, ''))
-  );
-  if (connectorIndex === -1) return null;
+  const blankIndex = words.findIndex(word => !isGermanFunctionWord(word));
+  if (blankIndex === -1) return null;
 
-  const correctAnswer = words[connectorIndex];
-  const phraseWithBlank = words.map((word, index) => index === connectorIndex ? '___' : word).join(' ');
+  const correctAnswer = words[blankIndex];
+  const phraseWithBlank = words.map((word, index) => index === blankIndex ? '___' : word).join(' ');
   return {
     correctAnswer,
     questionText: `Fill in the blank: <br><b>${escapeHtml(correctVocab.definition)}<br></b>: ${escapeHtml(phraseWithBlank)}`,

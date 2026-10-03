@@ -297,8 +297,8 @@
 
     #addAuto {
       display: inline-block;
-      width: 100%;
-      background: #059669 !important;
+      flex: 1;
+      background: #869d96 !important;
       color: #ffffff !important;
       border: none !important;
       border-radius: var(--radius-sm) !important;
@@ -306,6 +306,34 @@
       font-weight: 600 !important;
       cursor: pointer;
       transition: background 0.15s ease;
+    }
+
+    #getGoogleMeaning {
+      display: inline-block;
+      flex: 0.3;
+      background: #8f9db9 !important;
+      color: #ffffff !important;
+      border: none !important;
+      border-radius: var(--radius-sm) !important;
+      padding: 9px 14px !important;
+      font-size: 0.6rem;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      width: 60vw;
+      font-weight: 300;
+    }
+
+    #getGoogleMeaning:hover {
+      background: #678ffb !important;
+    }
+
+    #getGoogleMeaning[hidden] {
+      display: none !important;
+    }
+
+    .vocab-actions {
+      display: flex;
+      gap: 8px;
     }
 
     #addAuto:hover {
@@ -775,7 +803,10 @@
       <div id="vocabInfoInfInfs" class="ui container" style="display: none;">
         <div id="vocabInfoInfs"></div>
         <div id="vocabInfo"></div>
-        <button class="ui button" id="addAuto" type="button">Add to database</button>
+        <div class="vocab-actions">
+          <button class="ui button" id="getGoogleMeaning" type="button" hidden>Get meaning from Google instead</button>
+          <button class="ui button" id="addAuto" type="button">Add to database</button>
+        </div>
       </div>
 
       <button style="display:none" class="ui button" id="addAutoFallback" type="button">Add to database</button>
@@ -812,66 +843,7 @@
 
   </div>
 
-  <script src="../libs/semantic.css"></script>
   <script type="module" src="popup.js"></script>
-
-  <!-- Lightweight Standalone Fallback Script for visual testing -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Toggle QuickStart Panel
-      const showQuickStart = document.getElementById('showQuickStart');
-      const closeQuickStart = document.getElementById('closeQuickStart');
-      const quickstart = document.getElementById('quickstart');
-
-      if (showQuickStart && quickstart) {
-        showQuickStart.addEventListener('click', () => {
-          quickstart.style.display = 'block';
-        });
-      }
-      if (closeQuickStart && quickstart) {
-        closeQuickStart.addEventListener('click', () => {
-          quickstart.style.display = 'none';
-        });
-      }
-
-      // Toggle Google API Panel
-      const googleApiKeyButton = document.getElementById('googleApiKeyButton');
-      const googleApiKeyPanel = document.getElementById('googleApiKeyPanel');
-
-      if (googleApiKeyButton && googleApiKeyPanel) {
-        googleApiKeyButton.addEventListener('click', () => {
-          const isVisible = googleApiKeyPanel.style.display === 'block';
-          googleApiKeyPanel.style.display = isVisible ? 'none' : 'block';
-        });
-      }
-
-      // Show collection creator field if "add new" selected
-      const bookSelector = document.getElementById('bookSelector');
-      const newBookField = document.getElementById('newBookField');
-      if (bookSelector && newBookField) {
-        bookSelector.addEventListener('change', (e) => {
-          if (e.target.value === 'new') {
-            newBookField.style.display = 'block';
-          } else {
-            newBookField.style.display = 'none';
-          }
-        });
-      }
-
-      // Auto search mode toggle
-      const autoSearchCheckbox = document.getElementById('autoSearchMode');
-      const form = document.getElementById('addVocabForm');
-      if (autoSearchCheckbox && form) {
-        autoSearchCheckbox.addEventListener('change', (e) => {
-          if (e.target.checked) {
-            form.classList.add('auto-search');
-          } else {
-            form.classList.remove('auto-search');
-          }
-        });
-      }
-    });
-  </script>
 </body>
 
 </html>

@@ -2,6 +2,10 @@
 //   e.preventDefault();
 import * as utils from '../utils/index.js';
 
+const CLOUD_SYNC_TOKEN_KEY = 'githubCloudSyncToken';
+const GITHUB_VOCAB_JSON_URL_KEY = 'githubVocabJsonUrl';
+const CLOUD_VOCAB_MODE_KEY = 'cloud_enabled';
+
 chrome.storage.sync.getBytesInUse(null, function (bytesInUse) {
   console.log('Sync storage used: ' + bytesInUse + ' bytes');
 });
@@ -125,26 +129,67 @@ async function fetchBulkSearchVocab(word, language, book) {
   const lookupWord = normaliseBulkSearchWord(word, language);
   if (!lookupWord) return null;
 
-  const response = await fetch(`https://en.wiktionary.org/wiki/${encodeURIComponent(lookupWord)}`);
-  if (!response.ok) return null;
-  const html = await response.text();
-  const doc = new DOMParser().parseFromString(html, 'text/html');
   let vocab;
-  console.log('Fetching vocab for', lookupWord, 'in language', language, 'from book', book);
-  if (language === 'la') {
-    vocab = await utils.getLatinAttributes(doc, word, book);
-    if (vocab && vocab.vocabResult) vocab = vocab.vocabResult;
-  } else if (language === 'ja' || language === 'zh') {
-    vocab = await utils.getLinkedAttributes(doc, word, language, book);
-  } else {
-    vocab = await utils.getLinkedAttributes(doc, word, language, book);
+  try {
+    const response = await fetch(`https://en.wiktionary.org/wiki/${encodeURIComponent(lookupWord)}`);
+    if (response.ok) {
+      const html = await response.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      console.log('Fetching vocab for', lookupWord, 'in language', language, 'from book', book);
+      if (language === 'la') {
+        vocab = await utils.getLatinAttributes(doc, word, book);
+        if (vocab && vocab.vocabResult) vocab = vocab.vocabResult;
+      } else {
+        vocab = await utils.getLinkedAttributes(doc, word, language, book);
+      }
+    }
+  } catch (error) {
+    console.warn('Wiktionary lookup failed; trying Google Translate for', word, error);
   }
 
-  if (!vocab || typeof vocab === 'string' || !vocab.word || !vocab.definition) return null;
-  if (language === 'zh') vocab.word = word;
-  vocab.book = book;
-  vocab.language = language;
-  return vocab;
+  if (vocab && typeof vocab !== 'string' && vocab.word && vocab.definition) {
+    if (language === 'zh') vocab.word = word;
+    vocab.book = book;
+    vocab.language = language;
+    return vocab;
+  }
+
+  const translatedVocab = await utils.getGoogleTranslationVocab(word, language, book);
+  if (!translatedVocab || typeof translatedVocab === 'string' ||
+    !translatedVocab.word || !translatedVocab.definition) {
+    return null;
+  }
+  translatedVocab.book = book;
+  translatedVocab.language = language;
+  utils.addType(translatedVocab);
+  return translatedVocab;
+}
+
+function showBulkSearchResults(found, failed, additionsCount, skippedDuplicates) {
+  const dialog = document.getElementById('bulkSearchResultsDialog');
+  const summary = document.getElementById('bulkSearchResultsSummary');
+  const results = document.getElementById('bulkSearchResultsList');
+  const failures = document.getElementById('bulkSearchResultsFailures');
+
+  summary.textContent = `Added ${additionsCount} word${additionsCount === 1 ? '' : 's'}.` +
+    (skippedDuplicates ? ` Skipped ${skippedDuplicates} duplicate${skippedDuplicates === 1 ? '' : 's'}.` : '');
+  results.replaceChildren();
+  found.forEach(({ word, definition }) => {
+    const item = document.createElement('li');
+    const term = document.createElement('strong');
+    const meaning = document.createElement('span');
+    term.textContent = word;
+    meaning.textContent = definition;
+    item.append(term, meaning);
+    results.appendChild(item);
+  });
+  if (!found.length) {
+    const item = document.createElement('li');
+    item.textContent = 'No definitions were found.';
+    results.appendChild(item);
+  }
+  failures.textContent = failed.length ? `Could not find: ${failed.join(', ')}` : '';
+  dialog.showModal();
 }
 
 document.getElementById('runBulkSearchVocab').addEventListener('click', async () => {
@@ -177,7 +222,7 @@ document.getElementById('runBulkSearchVocab').addEventListener('click', async ()
         if (vocab) found.push(vocab);
         else failed.push(word);
       } catch (error) {
-        console.error('Bulk Wiktionary search failed for', word, error);
+        console.error('Bulk vocabulary lookup failed for', word, error);
         failed.push(word);
       }
     }
@@ -197,6 +242,7 @@ document.getElementById('runBulkSearchVocab').addEventListener('click', async ()
     bulkSearchMessage.textContent = `Added ${additions.length} word${additions.length === 1 ? '' : 's'}.` +
       (skippedDuplicates ? ` Skipped ${skippedDuplicates} duplicate${skippedDuplicates === 1 ? '' : 's'}.` : '') +
       (failed.length ? ` Could not find: ${failed.join(', ')}` : '');
+    showBulkSearchResults(found, failed, additions.length, skippedDuplicates);
   } finally {
     button.disabled = false;
   }
@@ -398,11 +444,15 @@ function refreshVocabList(vocabList) {
 
 function updateTestModeUI() {
   const toggleTestModeButton = document.getElementById('toggleTestModeButton');
+  const enableCloudVocabSyncButton = document.getElementById('enableCloudVocabSyncButton');
   const removeDuplicateWordsButton = document.getElementById('removeDuplicateWordsButton');
   const deleteCheckedDataButton = document.getElementById('deleteCheckedDataButton');
   const clearDownloadedDataButton = document.getElementById('clearDownloadedDataButton');
   if (toggleTestModeButton) {
     toggleTestModeButton.textContent = isTestModeEnabled ? 'Dev Mode: On' : 'Dev Mode: Off';
+  }
+  if (enableCloudVocabSyncButton) {
+    enableCloudVocabSyncButton.style.display = isTestModeEnabled ? 'inline' : 'none';
   }
   if (removeDuplicateWordsButton) {
     removeDuplicateWordsButton.style.display = isTestModeEnabled ? 'inline' : 'none';
@@ -747,19 +797,21 @@ function convertToCSV() {
 document.addEventListener('DOMContentLoaded', function () {
   const clearDisplayFiltersButton = document.getElementById('clearDisplayFiltersButton');
 
-  chrome.storage.local.get('vocabList', function (data) {
-    if (data.vocabList) {
-      refreshVocabList(data.vocabList);
-    }
-    console.log(data.vocabList)
+  function loadVocabularyManager() {
+    chrome.storage.local.get('vocabList', function (data) {
+      if (data.vocabList) {
+        refreshVocabList(data.vocabList);
+      }
+      console.log(data.vocabList)
 
-    chrome.storage.local.get({ bookList: [] }, (result) => {
-      const bookList = result.bookList;
-      console.log(bookList)
-      renderBookFilters(bookList);
-      renderStatusFilters();
+      chrome.storage.local.get({ bookList: [] }, (result) => {
+        const bookList = result.bookList;
+        console.log(bookList)
+        renderBookFilters(bookList);
+        renderStatusFilters();
+      });
     });
-  });
+  }
 
   if (clearDisplayFiltersButton) {
     clearDisplayFiltersButton.addEventListener('click', function () {
@@ -849,6 +901,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const manageBookButton = document.getElementById('manageBookButton');
   const removeDuplicateWordsButton = document.getElementById('removeDuplicateWordsButton');
   const toggleTestModeButton = document.getElementById('toggleTestModeButton');
+  const enableCloudVocabSyncButton = document.getElementById('enableCloudVocabSyncButton');
   const deleteCheckedDataButton = document.getElementById('deleteCheckedDataButton');
   const clearDownloadedDataButton = document.getElementById('clearDownloadedDataButton');
   const floatingContainer = document.getElementById('floatingContainer');
@@ -863,9 +916,17 @@ document.addEventListener('DOMContentLoaded', function () {
   const newBookInContainer = document.getElementById('newBookInContainer');
   const addBookInContainerButton = document.getElementById('addBookInContainerButton');
 
+  toggleTestModeButton.disabled = true;
+  toggleTestModeButton.textContent = 'Loading Dev Mode...';
   chrome.storage.local.get({ isTestModeEnabled: false }, (result) => {
-    isTestModeEnabled = result.isTestModeEnabled === true;
+    if (chrome.runtime.lastError) {
+      console.error('Could not load Dev Mode setting:', chrome.runtime.lastError);
+      toggleTestModeButton.title = 'Could not load the saved Dev Mode setting.';
+    }
+    isTestModeEnabled = result && result.isTestModeEnabled === true;
     updateTestModeUI();
+    toggleTestModeButton.disabled = false;
+    loadVocabularyManager();
   });
   // bookSelector.addEventListener('change', () => {
   //   if (bookSelector.value === 'add New Vocab collection') {
@@ -1252,10 +1313,141 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   toggleTestModeButton.addEventListener('click', () => {
-    isTestModeEnabled = !isTestModeEnabled;
-    updateTestModeUI();
-
+    const nextTestModeState = !isTestModeEnabled;
+    toggleTestModeButton.disabled = true;
+    chrome.storage.local.set({ isTestModeEnabled: nextTestModeState }, () => {
+      if (chrome.runtime.lastError) {
+        console.error('Could not save Dev Mode setting:', chrome.runtime.lastError);
+        alert('Could not save the Dev Mode setting. Please try again.');
+        toggleTestModeButton.disabled = false;
+        return;
+      }
+      isTestModeEnabled = nextTestModeState;
+      updateTestModeUI();
+      toggleTestModeButton.disabled = false;
+    });
   });
+
+  const cloudVocabSyncDialog = document.getElementById('cloudVocabSyncDialog');
+  const cloudVocabSyncForm = document.getElementById('cloudVocabSyncForm');
+  const cloudVocabSyncToken = document.getElementById('cloudVocabSyncToken');
+  const cloudVocabSyncStatus = document.getElementById('cloudVocabSyncStatus');
+  const saveCloudVocabSyncTokenButton = document.getElementById('saveCloudVocabSyncToken');
+  const githubLinkForm = document.getElementById('githubLinkForm');
+  const githubLinkInput = document.getElementById('Githublink');
+  const githubLinkStatus = document.getElementById('githubLinkStatus');
+  const saveGithubLinkButton = document.getElementById('saveGithubLink');
+  const cloudVocabModeStatus = document.getElementById('cloudVocabModeStatus');
+  const verifyAndEnableCloudModeButton = document.getElementById('verifyAndEnableCloudMode');
+
+  enableCloudVocabSyncButton.addEventListener('click', () => {
+    if (!isTestModeEnabled) {
+      return;
+    }
+    cloudVocabSyncForm.reset();
+    githubLinkForm.reset();
+    cloudVocabSyncStatus.textContent = 'Checking for a saved token...';
+    githubLinkStatus.textContent = 'Checking for a saved link...';
+    cloudVocabSyncDialog.showModal();
+    chrome.storage.sync.get([CLOUD_SYNC_TOKEN_KEY, GITHUB_VOCAB_JSON_URL_KEY], result => {
+      if (chrome.runtime.lastError) {
+        console.error('Could not check saved GitHub sync settings:', chrome.runtime.lastError);
+        cloudVocabSyncStatus.textContent = 'Could not check Chrome Sync storage. Please try again.';
+        githubLinkStatus.textContent = 'Could not check Chrome Sync storage. Please try again.';
+        cloudVocabModeStatus.textContent = '';
+        return;
+      }
+      cloudVocabSyncStatus.textContent = result[CLOUD_SYNC_TOKEN_KEY]
+        ? 'A token is already saved. Saving a new token will replace it.'
+        : '';
+      githubLinkInput.value = result[GITHUB_VOCAB_JSON_URL_KEY] || '';
+      githubLinkStatus.textContent = result[GITHUB_VOCAB_JSON_URL_KEY]
+        ? 'A vocabulary link is already saved. Saving a new link will replace it.'
+        : '';
+      chrome.storage.local.get(CLOUD_VOCAB_MODE_KEY, localResult => {
+        if (chrome.runtime.lastError) {
+          console.error('Could not load cloud_enabled setting:', chrome.runtime.lastError);
+          cloudVocabModeStatus.textContent = 'Could not load Cloud Mode status.';
+          return;
+        }
+        cloudVocabModeStatus.textContent = localResult[CLOUD_VOCAB_MODE_KEY] === true
+          ? 'Cloud Mode is on. Vocabulary changes are being saved to GitHub.'
+          : 'Cloud Mode is off. Vocabulary is being saved in Chrome storage.';
+      });
+    });
+  });
+
+  document.getElementById('cancelCloudVocabSync').addEventListener('click', () => {
+    cloudVocabSyncDialog.close();
+  });
+
+  cloudVocabSyncDialog.addEventListener('close', () => {
+    cloudVocabSyncToken.value = '';
+  });
+
+  githubLinkForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const url = githubLinkInput.value.trim();
+    if (!url || !githubLinkInput.validity.valid) {
+      githubLinkStatus.textContent = 'Enter a valid vocabulary JSON URL.';
+      githubLinkInput.focus();
+      return;
+    }
+
+    saveGithubLinkButton.disabled = true;
+    chrome.storage.sync.set({ [GITHUB_VOCAB_JSON_URL_KEY]: url }, () => {
+      saveGithubLinkButton.disabled = false;
+      if (chrome.runtime.lastError) {
+        console.error('Could not save the GitHub vocabulary link:', chrome.runtime.lastError);
+        githubLinkStatus.textContent = 'Could not save the link to Chrome Sync storage. Please try again.';
+        return;
+      }
+      githubLinkStatus.textContent = 'Vocabulary link saved to Chrome Sync storage.';
+      checkSavedGitHubAccess();
+    });
+  });
+
+  cloudVocabSyncForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const token = cloudVocabSyncToken.value.trim();
+    if (!token) {
+      cloudVocabSyncStatus.textContent = 'Enter a GitHub token before saving.';
+      cloudVocabSyncToken.focus();
+      return;
+    }
+
+    saveCloudVocabSyncTokenButton.disabled = true;
+    chrome.storage.sync.set({ [CLOUD_SYNC_TOKEN_KEY]: token }, () => {
+      saveCloudVocabSyncTokenButton.disabled = false;
+      if (chrome.runtime.lastError) {
+        console.error('Could not save the GitHub token:', chrome.runtime.lastError);
+        cloudVocabSyncStatus.textContent = 'Could not save the token to Chrome Sync storage. Please try again.';
+        return;
+      }
+      cloudVocabSyncToken.value = '';
+      cloudVocabSyncStatus.textContent = 'Token saved to Chrome Sync storage.';
+      checkSavedGitHubAccess();
+    });
+  });
+
+  verifyAndEnableCloudModeButton.addEventListener('click', async () => {
+    await checkSavedGitHubAccess();
+  });
+
+  async function checkSavedGitHubAccess() {
+    verifyAndEnableCloudModeButton.disabled = true;
+    cloudVocabModeStatus.textContent = 'Settings saved. Checking GitHub read/write access...';
+    try {
+      await window.flizCloudVocabStorage.verifyAndEnableCloudMode();
+      cloudVocabModeStatus.textContent =
+        'GitHub read/write check succeeded. Cloud Mode is on.';
+    } catch (error) {
+      console.error('GitHub access check failed:', error);
+      cloudVocabModeStatus.textContent = `GitHub access check failed: ${error.message}`;
+    } finally {
+      verifyAndEnableCloudModeButton.disabled = false;
+    }
+  }
 
   // Show floating container on button click
   manageBookButton.addEventListener('click', () => {

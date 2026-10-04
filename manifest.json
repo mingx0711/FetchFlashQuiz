@@ -26,6 +26,8 @@
   },
   "host_permissions": [
     "https://en.wiktionary.org/*",
-    "https://translation.googleapis.com/*"
+    "https://translation.googleapis.com/*",
+    "https://api.github.com/*",
+    "https://raw.githubusercontent.com/*"
   ]
 }

@@ -580,6 +580,8 @@ const GOOGLE_TRANSLATE_LANGUAGE_CODES = Object.freeze({
   it: 'it',
   chinese: 'zh',
   zh: 'zh-CN',
+  dutch: 'nl',
+  nl: 'nl',
   japanese: 'ja',
   ja: 'ja',
   korean: 'ko',

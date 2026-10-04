@@ -607,6 +607,89 @@
       padding: 0;
     }
 
+    #bulkSearchResultsDialog {
+      width: min(640px, calc(100vw - 32px));
+      max-height: min(80vh, 720px);
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      background: var(--surface-strong);
+      color: var(--text);
+      box-shadow: var(--shadow-lg);
+    }
+
+    #bulkSearchResultsDialog::backdrop {
+      background: rgba(31, 25, 18, 0.55);
+      backdrop-filter: blur(4px);
+    }
+
+    #bulkSearchResultsDialog h2 {
+      margin-top: 0;
+    }
+
+    #bulkSearchResultsList {
+      display: grid;
+      gap: 10px;
+      max-height: 52vh;
+      overflow-y: auto;
+      padding: 0;
+      list-style: none;
+    }
+
+    #bulkSearchResultsList li {
+      display: grid;
+      gap: 4px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface-muted);
+    }
+
+    #bulkSearchResultsList li span {
+      color: var(--muted);
+    }
+
+    #bulkSearchResultsFailures {
+      color: #7f3748;
+    }
+
+    #cloudVocabSyncDialog {
+      width: min(520px, calc(100vw - 32px));
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      background: var(--surface-strong);
+      color: var(--text);
+      box-shadow: var(--shadow-lg);
+    }
+
+    #cloudVocabSyncDialog::backdrop {
+      background: rgba(31, 25, 18, 0.55);
+      backdrop-filter: blur(4px);
+    }
+
+    #cloudVocabSyncDialog h2 {
+      margin-top: 0;
+    }
+
+    #cloudVocabSyncDialog .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    #Githublink,
+    #cloudVocabSyncToken {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--surface-strong);
+      color: var(--text);
+      padding: 14px 16px;
+      font-size: 0.98rem;
+    }
+
     #vocabInput {
       min-height: 220px;
       margin-bottom: 14px;
@@ -808,6 +891,9 @@
         <div class="hero-actions">
           <button class="ui button" id="manageBookButton">Manage Collection</button>
           <button class="ui button" id="toggleTestModeButton">Dev Mode: Off</button>
+          <button class="ui button" id="enableCloudVocabSyncButton" type="button" style="display:none;">
+            Enable Cloud Vocab Sync
+          </button>
           <button class="ui button" id="deleteCheckedDataButton">Reset Check Status</button>
           <button class="ui button" id="clearDownloadedDataButton">Remove Downloaded Data</button>
           <button class="ui button" id="removeDuplicateWordsButton">Remove Duplicate Words</button>
@@ -854,7 +940,8 @@
       <div class="panel-heading">
         <div>
           <h2 class="panel-title">Bulk Search Words</h2>
-          <p class="panel-subtitle">Paste one word per line. Each successful Wiktionary lookup is added to the selected collection.</p>
+          <p class="panel-subtitle">Paste one word per line. Wiktionary results are supplemented with Google Translate
+            when needed.</p>
         </div>
         <button type="button" id="closeBulkSearchVocab" aria-label="Close">x</button>
       </div>
@@ -982,6 +1069,46 @@
       </div>
     </div>
 
+    <dialog id="bulkSearchResultsDialog" aria-labelledby="bulkSearchResultsTitle">
+      <h2 id="bulkSearchResultsTitle">Bulk Search Results</h2>
+      <p id="bulkSearchResultsSummary"></p>
+      <ul id="bulkSearchResultsList"></ul>
+      <p id="bulkSearchResultsFailures"></p>
+      <form method="dialog">
+        <button type="submit" class="ui button primary">Close</button>
+      </form>
+    </dialog>
+
+    <dialog id="cloudVocabSyncDialog" aria-labelledby="cloudVocabSyncTitle">
+      <h2 id="cloudVocabSyncTitle">Enable Cloud Vocab Sync</h2>
+      <p>Configure the GitHub token and vocabulary JSON link used for cloud sync. The token needs Contents read and write access to the repository.</p>
+      <form id="cloudVocabSyncForm">
+        <label for="cloudVocabSyncToken">GitHub token</label>
+        <input id="cloudVocabSyncToken" type="password" autocomplete="new-password" required>
+        <p id="cloudVocabSyncStatus" role="status" aria-live="polite"></p>
+        <div class="dialog-actions">
+          <button type="submit" class="ui button primary" id="saveCloudVocabSyncToken">Save Token</button>
+        </div>
+      </form>
+
+      <form id="githubLinkForm">
+        <label for="Githublink">Link to your vocab json</label>
+        <input id="Githublink" type="url" placeholder="https://github.com/... or https://raw.githubusercontent.com/..." required>
+        <p id="githubLinkStatus" role="status" aria-live="polite"></p>
+        <div class="dialog-actions">
+          <button type="submit" class="ui button primary" id="saveGithubLink">Save Link</button>
+        </div>
+      </form>
+      <p id="cloudVocabModeStatus" role="status" aria-live="polite"></p>
+      <p>Each vocabulary write creates a GitHub commit with an automatically generated message.</p>
+      <div class="dialog-actions">
+        <button type="button" class="ui button primary" id="verifyAndEnableCloudMode">
+          Check Access &amp; Enter Cloud Mode
+        </button>
+        <button type="button" class="ui button" id="cancelCloudVocabSync">Close</button>
+      </div>
+    </dialog>
+
     <div id="floatingWindow">The vocabulary is not valid, please check your spelling.</div>
 
     <section class="manager-card">
@@ -1065,6 +1192,7 @@
   </div>
 
   <script src="../libs/papaparse.js"></script>
+  <script src="../utils/cloudVocabStorage.js"></script>
   <script type="module" src="manageVocab.js"></script>
 </body>
 
